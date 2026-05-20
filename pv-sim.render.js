@@ -403,8 +403,6 @@ window.PVSIM = window.PVSIM || {};
   P.renderTankStats = function(simTank) {
     document.getElementById('pvsim-cover').textContent      = simTank.daily.coveragePct.toFixed(0);
     document.getElementById('pvsim-cover-kwh').textContent  = P.fmt.pl1(simTank.daily.Q_saved);
-    document.getElementById('pvsim-save-d').textContent     = P.fmt.pl2(simTank.daily.savingPLN);
-    document.getElementById('pvsim-save-m').textContent     = P.fmt.pl0(simTank.monthly.savingPLN);
     document.getElementById('pvsim-heater-hrs').textContent = simTank.daily.heaterHours;
     document.getElementById('pvsim-heater-kwh').textContent = P.fmt.pl1(simTank.daily.Q_heater);
 

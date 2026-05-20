@@ -6,12 +6,12 @@ Napisany w czystym HTML/CSS/JS, bez frameworków i bundlerów.
 
 ## Uruchamianie
 
-Otwórz `pv-sim.v0.6.html` w przeglądarce. Nie wymaga żadnej instalacji ani serwera.
+Otwórz `pv-sim.v0.7.html` w przeglądarce. Nie wymaga żadnej instalacji ani serwera.
 
 ## Struktura plików
 
 ```
-pv-sim.v0.6.html      — jedyna strona HTML; ładuje CSS i JS w odpowiedniej kolejności
+pv-sim.v0.7.html      — jedyna strona HTML; ładuje CSS i JS w odpowiedniej kolejności
 pv-sim.tokens.css     — zmienne CSS (kolory, tła, akcenty); bazowy kontener .pvsim
 pv-sim.layout.css     — nagłówek, suwaki, siatka miesięcy, stopka, responsive
 pv-sim.components.css — wykresy SVG, karty statystyk, separatory modułów, warianty kolorów

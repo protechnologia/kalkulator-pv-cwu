@@ -1,0 +1,127 @@
+/* =========================================================
+   PV.SIM — Konfiguracja i stałe aplikacji
+
+   Tworzy globalną przestrzeń nazw window.PVSIM i definiuje:
+   - stałe fizyczno-geograficzne (szerokość Opola, skaler clear-sky)
+   - parametry CWU: zużycie wody na osobę, ciepło właściwe wody,
+     model temperatury wody zimnej (sinusoida z opóźnieniem fazowym),
+     taryfę ciepła ECO Opole (od 01.01.2026),
+     współczynniki strat cyrkulacji CIRC_LOSS (stary/nowy budynek)
+   - godzinowy profil zużycia CWU znormalizowany do 1.0
+     (źródło: Chmielewska 2025, Energies 18(17), 42 budynki w PL)
+   - parametry zasobnika: termostat, straty UA, liczba podkroków
+   - tablicę MONTHS z danymi PVGIS dla każdego miesiąca
+     (doy, dni w miesiącu, przeciętna dzienna produkcja kWh/kWp)
+   - obiekt state — bieżące wartości wszystkich suwaków UI
+
+   Musi być ładowany jako PIERWSZY spośród plików JS,
+   bo physics.js, render.js i app.js korzystają z P.state i stałych.
+   ========================================================= */
+window.PVSIM = window.PVSIM || {};
+(function(P) {
+  'use strict';
+
+  // ===== FIZYKA / GEOGRAFIA =====
+  P.LAT = 50.67;        // szerokość geograficzna Opola (deg)
+  P.Y_MAX_KW = 45;      // stała skala osi Y wykresu PV
+
+  // Skaler dla trybu "clear-sky" — kalibruje raw clear-sky tak, by suma dobowa w czerwcu
+  // dawała ~7.8 kWh/kWp/dobę (typowy słoneczny dzień w PL). Wartość 1.4577 = 7.8 / 5.351,
+  // gdzie 5.351 to suma raw clear-sky dla 21 czerwca w Opolu.
+  P.CLEAR_SCALE = 1.4577;
+
+  // ===== CWU =====
+  P.DHW_L_PER_PERSON = 40;   // l/osobę/dobę przy temp. docelowej (typowo PL: 30–50)
+  P.C_WATER = 4.186;          // kJ/(kg·K) — ciepło właściwe wody
+
+  // Temperatura wody zimnej z wodociągu — model sinusoidalny z opóźnieniem fazowym.
+  // Rurociąg leży 1.5–2m pod ziemią → podąża za temp. gruntu, opóźniony ~1.5 mies. za powietrzem,
+  // z amplitudą ~5°C. Min w lutym (~6°C), max w sierpniu (~16°C). Średnia roczna 11°C.
+  // Źródło modelu: Górka A., "Zapotrzebowanie na energię cieplną do przygotowania c.w.u.
+  //   w budynku mieszkalnym", RynekInstalacyjny.pl — pomiary 90 punktów sieci PL.
+  P.T_COLD_AVG   = 11.0;  // °C, średnia roczna
+  P.T_COLD_AMP   = 5.0;   // °C, amplituda sezonowa
+  P.T_COLD_PHASE = 1.5;   // mies. opóźnienia za temp. powietrza
+
+  // monthIdx: 0..11 (sty=0). Min w lutym, max w sierpniu.
+  P.T_cold = function(monthIdx) {
+    const m = monthIdx + 1;
+    return P.T_COLD_AVG - P.T_COLD_AMP * Math.cos(2 * Math.PI * (m - 1 - P.T_COLD_PHASE) / 12);
+  };
+
+  // Energia [kWh] do podgrzania 1 m³ od T_cold(m) do T_hot
+  P.kWh_per_m3 = function(monthIdx, T_hot) {
+    return 1000 * P.C_WATER * (T_hot - P.T_cold(monthIdx)) / 3600;
+  };
+
+  // Taryfa ECO Opole — od 01.01.2026, dla mieszkańców (bud. wielorodzinne)
+  P.PRICE_PER_GJ  = 196.95;                        // zł/GJ brutto
+  P.KWH_PER_GJ    = 1000 / 3.6;                    // ≈ 277.78
+  P.PRICE_PER_KWH = P.PRICE_PER_GJ / P.KWH_PER_GJ; // ≈ 0.7091 zł/kWh
+
+  // Profil godzinowy zużycia CWU w bud. wielorodzinnym [% zużycia dobowego]
+  // Źródło: Chmielewska, A. (2025). "Characteristics of Domestic Hot Water Consumption
+  //   Profiles in Multi-Family Buildings for Energy Modeling Purposes". Energies 18(17), 4578.
+  //   DOI: 10.3390/en18174578. Otwarty dostęp (CC BY).
+  //   Badanie: 42 budynki, 1376 mieszkań w Polsce (Wrocław, Zawidów), 3–5 lat pomiarów.
+  // Profil dnia roboczego. ~18% rano (peak 07–08), ~45% wieczorem (peak 20–22).
+  const DHW_PROFILE_RAW = [
+    0.5, 0.3, 0.3, 0.3, 0.5, 1.0,    // 00..05  noc — minimum
+    2.5, 6.5, 6.5, 3.5, 3.0, 3.5,    // 06..11  peak poranny 07–08
+    4.0, 4.0, 3.5, 3.5, 4.0, 4.0,    // 12..17  popołudnie
+    5.5, 8.5, 10.5, 11.5, 8.0, 4.5   // 18..23  peak wieczorny 20–22
+  ];
+  const _profileSum = DHW_PROFILE_RAW.reduce((s, x) => s + x, 0);
+  P.DHW_PROFILE = DHW_PROFILE_RAW.map(x => x / _profileSum);
+
+  // Skale wykresów CWU
+  P.Y_MAX_M3H    = 1.0;   // m³/h (lewa oś wykresu CWU)
+  P.Y_MAX_KW_DHW = 60;    // kW  (prawa oś wykresu CWU)
+
+  // ===== CYRKULACJA CWU =====
+  // Straty ciepła w pętli cyrkulacyjnej jako % energii użytecznej CWU.
+  // Nowy budynek (izolacja nowsza, krótsze piony): ~35%
+  // Stary budynek (brak izolacji rur, długie piony): ~60%
+  // Źródło rzędów wielkości: POBE, Feist & Schnieders (2009), Badescu & Staicovici (2006)
+  P.CIRC_LOSS = { new: 0.35, old: 0.60 };
+
+  // ===== ZASOBNIK + GRZAŁKA (Moduł 03) =====
+  P.TANK_T_MAX  = 60;    // °C — termostat (granica higieniczna anti-legionella)
+  P.TANK_T_AMB  = 15;    // °C — otoczenie zasobnika (piwnica/kotłownia)
+  // UA dla zasobnika izolowanego pianką PU 50mm, smukły walec H/D≈3:
+  //   UA(V) = UA_REF · (V/V_REF)^(2/3) — klasa energetyczna B/C wg PN-EN 12897
+  P.TANK_UA_REF  = 1.75; // W/K przy V_REF = 500 L
+  P.TANK_V_REF   = 500;  // L
+  P.TANK_SUBSTEPS = 6;   // 6 podkroków × 10 min — stabilność numeryczna
+  P.Y_MAX_TEMP   = 70;   // °C — skala osi temperatury zasobnika
+
+  // ===== MIESIĄCE =====
+  // dailyYield = przeciętna dobowa produkcja [kWh/kWp], dane PSH z PVGIS dla PL, 30° opt.
+  P.MONTHS = [
+    { id: 1,  abbr: 'STY', name: 'Styczeń',     doy: 15,  days: 31, dailyYield: 0.65 },
+    { id: 2,  abbr: 'LUT', name: 'Luty',        doy: 45,  days: 28, dailyYield: 1.20 },
+    { id: 3,  abbr: 'MAR', name: 'Marzec',      doy: 74,  days: 31, dailyYield: 2.30 },
+    { id: 4,  abbr: 'KWI', name: 'Kwiecień',    doy: 105, days: 30, dailyYield: 3.50 },
+    { id: 5,  abbr: 'MAJ', name: 'Maj',         doy: 135, days: 31, dailyYield: 4.30 },
+    { id: 6,  abbr: 'CZE', name: 'Czerwiec',    doy: 166, days: 30, dailyYield: 4.55 },
+    { id: 7,  abbr: 'LIP', name: 'Lipiec',      doy: 196, days: 31, dailyYield: 4.45 },
+    { id: 8,  abbr: 'SIE', name: 'Sierpień',    doy: 227, days: 31, dailyYield: 3.90 },
+    { id: 9,  abbr: 'WRZ', name: 'Wrzesień',    doy: 258, days: 30, dailyYield: 2.80 },
+    { id: 10, abbr: 'PAŹ', name: 'Październik', doy: 288, days: 31, dailyYield: 1.60 },
+    { id: 11, abbr: 'LIS', name: 'Listopad',    doy: 319, days: 30, dailyYield: 0.75 },
+    { id: 12, abbr: 'GRU', name: 'Grudzień',    doy: 349, days: 31, dailyYield: 0.50 }
+  ];
+
+  // ===== STAN APLIKACJI =====
+  P.state = {
+    kWp: 10.0,
+    monthIdx: 4,        // Maj domyślnie
+    pvMode: 'avg',      // 'avg' = doba przeciętna (PVGIS), 'clear' = clear-sky (bezchmurnie)
+    residents: 50,
+    T_hot: 50,          // °C — temperatura docelowa CWU
+    heaterKW: 3.0,      // moc grzałki [kW]
+    tankL: 500,         // pojemność zasobnika [l]
+    buildingType: 'old' // 'new' | 'old' — typ budynku (straty cyrkulacji)
+  };
+
+})(window.PVSIM);

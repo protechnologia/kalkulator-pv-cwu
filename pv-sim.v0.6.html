@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PV.SIM — Symulacja fotowoltaiki</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="pv-sim.tokens.css">
+<link rel="stylesheet" href="pv-sim.layout.css">
+<link rel="stylesheet" href="pv-sim.components.css">
+</head>
+<body style="background:#0a0a0b;margin:0;padding:24px;">
+
+<div class="pvsim" id="pvsim">
+
+  <!-- HEADER -->
+  <div class="pvsim-header">
+    <div>
+      <div class="pvsim-brand">
+        <div class="pvsim-logo-dot"></div>
+        <div class="pvsim-title"><span class="accent">PV</span>.SIM</div>
+      </div>
+      <div class="pvsim-subtitle" id="pvsim-subtitle">Symulacja godzinowa &mdash; układ PV + CWU</div>
+    </div>
+    <div class="pvsim-meta">
+      v0.6.0<br>
+      LAT 50.67° N &nbsp;·&nbsp; OPOLE
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="pvsim-controls">
+
+    <div>
+      <div class="pvsim-label">Parametry instalacji &nbsp;[ kWp ]</div>
+      <div class="pvsim-power-row">
+        <div class="pvsim-slider-wrap">
+          <input type="range" min="1" max="50" value="10" step="0.5" class="pvsim-slider" id="pvsim-power">
+        </div>
+        <div class="pvsim-value-box"><span id="pvsim-power-val">10.0</span><span class="unit">kWp</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="pvsim-label">Tryb symulacji PV</div>
+      <div class="pvsim-toggle" id="pvsim-mode-toggle">
+        <button class="pvsim-toggle-btn active" data-mode="avg">
+          <span class="num">01</span>DOBA PRZECIĘTNA
+        </button>
+        <button class="pvsim-toggle-btn" data-mode="clear">
+          <span class="num">02</span>PEŁNE USŁONECZNIENIE
+        </button>
+      </div>
+    </div>
+
+    <div>
+      <div class="pvsim-label">Miesiąc symulacji</div>
+      <div class="pvsim-month-grid" id="pvsim-months"></div>
+    </div>
+
+  </div>
+
+  <!-- CHART -->
+  <div class="pvsim-chart-section">
+    <div class="pvsim-chart-header">
+      <div class="pvsim-chart-title">
+        Moc godzinowa generowana z PV
+        <span class="ctx" id="pvsim-chart-ctx">— Maj</span>
+      </div>
+      <div class="pvsim-chart-axis-label">[ kW vs &nbsp;hh:mm ]</div>
+    </div>
+    <div class="pvsim-chart-wrap">
+      <svg class="pvsim-chart" id="pvsim-chart" viewBox="0 0 780 300" preserveAspectRatio="none"></svg>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="pvsim-stats">
+    <div class="pvsim-stat orange">
+      <div class="pvsim-stat-label">E.dobowa &nbsp;/ E_day</div>
+      <div class="pvsim-stat-value"><span id="pvsim-daily">0,00</span><span class="unit">kWh</span></div>
+    </div>
+    <div class="pvsim-stat orange">
+      <div class="pvsim-stat-label">E.miesięczna &nbsp;/ E_mth</div>
+      <div class="pvsim-stat-value"><span id="pvsim-monthly">0</span><span class="unit">kWh</span></div>
+    </div>
+    <div class="pvsim-stat teal">
+      <div class="pvsim-stat-label">P.szczyt &nbsp;/ P_peak</div>
+      <div class="pvsim-stat-value"><span id="pvsim-peak">0,00</span><span class="unit">kW</span></div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODUŁ 02 — CWU                              -->
+  <!-- ========================================== -->
+  <div class="pvsim-module-divider">
+    <div class="dot"></div>
+    <div class="tag"><span class="num">02 //</span> CWU &mdash; Profil zużycia i zapotrzebowania</div>
+    <div class="rule"></div>
+  </div>
+
+  <!-- KONTROLKI CWU -->
+  <div class="pvsim-controls">
+    <div class="pvsim-controls-row">
+      <div>
+        <div class="pvsim-label teal">Mieszkańcy budynku &nbsp;[ os. ]</div>
+        <div class="pvsim-power-row">
+          <div class="pvsim-slider-wrap">
+            <input type="range" min="5" max="200" value="50" step="1" class="pvsim-slider teal" id="pvsim-residents">
+          </div>
+          <div class="pvsim-value-box teal"><span id="pvsim-residents-val">50</span><span class="unit">osób</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="pvsim-label teal">Temperatura docelowa CWU &nbsp;[ °C ]</div>
+        <div class="pvsim-power-row">
+          <div class="pvsim-slider-wrap">
+            <input type="range" min="40" max="60" value="50" step="1" class="pvsim-slider teal" id="pvsim-thot">
+          </div>
+          <div class="pvsim-value-box teal"><span id="pvsim-thot-val">50</span><span class="unit">°C</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="pvsim-label teal">Typ budynku &nbsp;/ straty cyrkulacji</div>
+        <div class="pvsim-toggle" id="pvsim-building-toggle">
+          <button class="pvsim-toggle-btn teal active" data-building="old">
+            <span class="num">01</span>STARY BUDYNEK &nbsp;<span class="num">60% STRAT</span>
+          </button>
+          <button class="pvsim-toggle-btn teal" data-building="new">
+            <span class="num">02</span>NOWY BUDYNEK &nbsp;<span class="num">35% STRAT</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WYKRES CWU -->
+  <div class="pvsim-chart-section">
+    <div class="pvsim-chart-header">
+      <div class="pvsim-chart-title">
+        Zużycie CWU i moc grzania &mdash; profil dobowy
+        <span class="ctx" id="pvsim-dhw-ctx" style="color:var(--pvsim-teal);">— 50 osób</span>
+      </div>
+      <div class="pvsim-chart-axis-label">[ m³/h &nbsp;·&nbsp; kW ]</div>
+    </div>
+    <div class="pvsim-chart-wrap">
+      <svg class="pvsim-chart" id="pvsim-dhw-chart" viewBox="0 0 780 300" preserveAspectRatio="none"></svg>
+    </div>
+  </div>
+
+  <!-- STATY CWU -->
+  <div class="pvsim-stats four">
+    <div class="pvsim-stat teal">
+      <div class="pvsim-stat-label">V.woda &nbsp;/ CWU</div>
+      <div class="pvsim-stat-value dual">
+        <div class="primary"><span id="pvsim-dhw-water-d">0,00</span><span class="unit">m³ / dobę</span></div>
+        <div class="secondary"><span id="pvsim-dhw-water-m">0</span><span class="unit">m³ / mc</span></div>
+      </div>
+    </div>
+    <div class="pvsim-stat teal">
+      <div class="pvsim-stat-label">E.cieplna &nbsp;/ Q_total</div>
+      <div class="pvsim-stat-value dual">
+        <div class="primary"><span id="pvsim-dhw-energy-d">0</span><span class="unit">kWh / dobę</span></div>
+        <div class="secondary"><span id="pvsim-dhw-energy-m">0</span><span class="unit">kWh / mc</span></div>
+      </div>
+    </div>
+    <div class="pvsim-stat teal">
+      <div class="pvsim-stat-label">Straty cyrk. &nbsp;/ Q_circ</div>
+      <div class="pvsim-stat-value dual">
+        <div class="primary"><span id="pvsim-dhw-circ-d">0</span><span class="unit">kWh / dobę</span></div>
+        <div class="secondary"><span id="pvsim-dhw-circ-pct">0</span><span class="unit">% z Q_podgrzew</span></div>
+        <div class="secondary"><span id="pvsim-dhw-circ-pct-tot">0</span><span class="unit">% z Q_total</span></div>
+      </div>
+    </div>
+    <div class="pvsim-stat teal">
+      <div class="pvsim-stat-label">Koszt &nbsp;/ ECO Opole</div>
+      <div class="pvsim-stat-value dual">
+        <div class="primary"><span id="pvsim-dhw-cost-d">0,00</span><span class="unit">zł / dobę</span></div>
+        <div class="secondary"><span id="pvsim-dhw-cost-m">0</span><span class="unit">zł / mc</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODUŁ 03 — ZASOBNIK + GRZAŁKI               -->
+  <!-- ========================================== -->
+  <div class="pvsim-module-divider amber">
+    <div class="dot"></div>
+    <div class="tag"><span class="num">03 //</span> ZASOBNIK CWU + GRZAŁKI PV (off-grid)</div>
+    <div class="rule"></div>
+  </div>
+
+  <!-- KONTROLKI ZASOBNIKA -->
+  <div class="pvsim-controls">
+    <div class="pvsim-controls-row">
+      <div>
+        <div class="pvsim-label amber">Moc grzałki &nbsp;[ kW ]</div>
+        <div class="pvsim-power-row">
+          <div class="pvsim-slider-wrap">
+            <input type="range" min="1" max="15" value="3" step="0.5" class="pvsim-slider amber" id="pvsim-heater">
+          </div>
+          <div class="pvsim-value-box amber"><span id="pvsim-heater-val">3,0</span><span class="unit">kW</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="pvsim-label amber">Pojemność zasobnika &nbsp;[ l ]</div>
+        <div class="pvsim-power-row">
+          <div class="pvsim-slider-wrap">
+            <input type="range" min="200" max="3000" value="500" step="50" class="pvsim-slider amber" id="pvsim-tank">
+          </div>
+          <div class="pvsim-value-box amber"><span id="pvsim-tank-val">500</span><span class="unit">l</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WYKRES TEMPERATURY ZASOBNIKA -->
+  <div class="pvsim-chart-section">
+    <div class="pvsim-chart-header">
+      <div class="pvsim-chart-title">
+        Temperatura zasobnika &mdash; cykl dobowy
+        <span class="ctx" id="pvsim-tank-ctx" style="color:var(--pvsim-amber);">— start zimny 15°C</span>
+      </div>
+      <div class="pvsim-chart-axis-label">[ °C &nbsp;·&nbsp; grzałka ON ]</div>
+    </div>
+    <div class="pvsim-chart-wrap">
+      <svg class="pvsim-chart" id="pvsim-tank-chart" viewBox="0 0 780 300" preserveAspectRatio="none"></svg>
+    </div>
+  </div>
+
+  <!-- STATY MODUŁU 03 -->
+  <div class="pvsim-stats">
+    <div class="pvsim-stat amber">
+      <div class="pvsim-stat-label">Pokrycie CWU &nbsp;/ z PV</div>
+      <div class="pvsim-stat-value dual">
+        <div class="primary"><span id="pvsim-cover">0</span><span class="unit">%</span></div>
+        <div class="secondary"><span id="pvsim-cover-kwh">0</span><span class="unit">kWh / dobę → ECO mniej</span></div>
+      </div>
+    </div>
+    <div class="pvsim-stat amber">
+      <div class="pvsim-stat-label">Oszczędność ECO</div>
+      <div class="pvsim-stat-value dual">
+        <div class="primary"><span id="pvsim-save-d">0,00</span><span class="unit">zł / dobę</span></div>
+        <div class="secondary"><span id="pvsim-save-m">0</span><span class="unit">zł / mc</span></div>
+      </div>
+    </div>
+    <div class="pvsim-stat amber">
+      <div class="pvsim-stat-label">Grzałka &nbsp;/ czas pracy</div>
+      <div class="pvsim-stat-value dual">
+        <div class="primary"><span id="pvsim-heater-hrs">0</span><span class="unit">h / dobę</span></div>
+        <div class="secondary"><span id="pvsim-heater-kwh">0,0</span><span class="unit">kWh wsadzone z PV</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="pvsim-footer">
+    <div class="status">PROTECHNOLOGIA.PL</div>
+  </div>
+
+</div>
+
+<script src="pv-sim.config.js"></script>
+<script src="pv-sim.physics.js"></script>
+<script src="pv-sim.render.js"></script>
+<script src="pv-sim.app.js"></script>
+</body>
+</html>

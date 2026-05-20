@@ -1,0 +1,231 @@
+/* =========================================================
+   PV.SIM — Komponenty wielokrotnego użytku
+
+   Zawiera style dla samodzielnych bloków UI:
+   - sekcja wykresu SVG (.pvsim-chart-section, -wrap, -chart)
+     z nagłówkiem, tytułem i etykietą osi
+   - karty statystyk (.pvsim-stat) z wariantami kolorów
+     oraz układem dwuwierszowym (primary + secondary)
+   - separator modułów (.pvsim-module-divider) z animowaną
+     kropką i gradientową linią
+   - warianty teal (kolor turkusowy) dla modułu 02 — CWU:
+     suwak, value-box, etykieta
+   - warianty amber (kolor bursztynowy) dla modułu 03 — grzałka:
+     separator, suwak, value-box, etykieta, karta statystyki
+   ========================================================= */
+
+/* -------- CHART -------- */
+.pvsim-chart-section {
+  padding: 24px 28px;
+  background: var(--pvsim-bg-0);
+}
+.pvsim-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 18px;
+}
+.pvsim-chart-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 13px;
+  color: var(--pvsim-text-0);
+  font-weight: 500;
+}
+.pvsim-chart-title .ctx {
+  color: var(--pvsim-orange);
+  font-weight: 600;
+  margin-left: 6px;
+}
+.pvsim-chart-axis-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--pvsim-text-2);
+  text-transform: uppercase;
+}
+
+.pvsim-chart-wrap {
+  background: var(--pvsim-bg-1);
+  border: 1px solid var(--pvsim-border);
+  padding: 12px 8px 4px 4px;
+  position: relative;
+}
+.pvsim-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* -------- STATS -------- */
+.pvsim-stats {
+  padding: 0 28px 28px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background: var(--pvsim-bg-0);
+}
+.pvsim-stats.four { grid-template-columns: repeat(4, 1fr); }
+.pvsim-stat {
+  background: var(--pvsim-bg-1);
+  border: 1px solid var(--pvsim-border);
+  padding: 16px 18px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+.pvsim-stat:hover { border-color: var(--pvsim-border-strong); }
+.pvsim-stat::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 24px;
+  height: 1px;
+  background: var(--pvsim-orange);
+}
+.pvsim-stat.teal::before { background: var(--pvsim-teal); }
+.pvsim-stat-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pvsim-text-2);
+  margin-bottom: 10px;
+}
+.pvsim-stat-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 28px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--pvsim-text-0);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.pvsim-stat.orange .pvsim-stat-value { color: var(--pvsim-orange); }
+.pvsim-stat.teal .pvsim-stat-value { color: var(--pvsim-teal); }
+.pvsim-stat-value .unit {
+  font-size: 12px;
+  color: var(--pvsim-text-1);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+/* -------- MODULE DIVIDER -------- */
+.pvsim-module-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 28px 14px;
+  background: var(--pvsim-bg-0);
+  border-top: 1px dashed var(--pvsim-border-strong);
+  margin-top: 18px;
+}
+.pvsim-module-divider .tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: var(--pvsim-teal);
+  text-transform: uppercase;
+}
+.pvsim-module-divider .tag .num { color: var(--pvsim-text-2); margin-right: 4px; }
+.pvsim-module-divider .rule {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--pvsim-teal) 0%, transparent 100%);
+  opacity: 0.4;
+}
+.pvsim-module-divider .dot {
+  width: 6px;
+  height: 6px;
+  background: var(--pvsim-teal);
+  box-shadow: 0 0 8px var(--pvsim-teal);
+}
+
+/* -------- TEAL VARIANTS (Moduł 02 — CWU) -------- */
+.pvsim-slider.teal::-webkit-slider-runnable-track {
+  background: linear-gradient(90deg,
+    var(--pvsim-teal) 0%,
+    var(--pvsim-teal) var(--pvsim-fill, 18%),
+    var(--pvsim-bg-3) var(--pvsim-fill, 18%),
+    var(--pvsim-bg-3) 100%);
+}
+.pvsim-slider.teal::-moz-range-progress { background: var(--pvsim-teal); }
+.pvsim-slider.teal::-webkit-slider-thumb {
+  background: var(--pvsim-teal);
+  box-shadow: 0 0 0 1px var(--pvsim-teal), 0 0 12px rgba(45, 212, 191, 0.4);
+}
+.pvsim-slider.teal::-moz-range-thumb {
+  background: var(--pvsim-teal);
+  box-shadow: 0 0 0 1px var(--pvsim-teal);
+}
+.pvsim-value-box.teal { color: var(--pvsim-teal); }
+.pvsim-label.teal::before { background: var(--pvsim-teal); }
+
+/* -------- DUAL STAT VALUES (daily + monthly) -------- */
+.pvsim-stat-value.dual {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  line-height: 1;
+}
+.pvsim-stat-value .primary {
+  font-size: 24px;
+  font-weight: 600;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.pvsim-stat-value .secondary {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--pvsim-text-1);
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.005em;
+}
+.pvsim-stat-value .secondary .unit {
+  font-size: 10px;
+  color: var(--pvsim-text-2);
+}
+.pvsim-stat-value .secondary::before {
+  content: '↳';
+  color: var(--pvsim-text-2);
+  margin-right: 3px;
+  font-weight: 400;
+}
+
+/* -------- AMBER VARIANTS (Moduł 03 — grzanie) -------- */
+.pvsim-module-divider.amber .tag { color: var(--pvsim-amber); }
+.pvsim-module-divider.amber .rule {
+  background: linear-gradient(90deg, var(--pvsim-amber) 0%, transparent 100%);
+}
+.pvsim-module-divider.amber .dot {
+  background: var(--pvsim-amber);
+  box-shadow: 0 0 8px var(--pvsim-amber);
+}
+
+.pvsim-slider.amber::-webkit-slider-runnable-track {
+  background: linear-gradient(90deg,
+    var(--pvsim-amber) 0%,
+    var(--pvsim-amber) var(--pvsim-fill, 18%),
+    var(--pvsim-bg-3) var(--pvsim-fill, 18%),
+    var(--pvsim-bg-3) 100%);
+}
+.pvsim-slider.amber::-moz-range-progress { background: var(--pvsim-amber); }
+.pvsim-slider.amber::-webkit-slider-thumb {
+  background: var(--pvsim-amber);
+  box-shadow: 0 0 0 1px var(--pvsim-amber), 0 0 12px rgba(245, 158, 11, 0.4);
+}
+.pvsim-slider.amber::-moz-range-thumb {
+  background: var(--pvsim-amber);
+  box-shadow: 0 0 0 1px var(--pvsim-amber);
+}
+.pvsim-value-box.amber { color: var(--pvsim-amber); }
+.pvsim-label.amber::before { background: var(--pvsim-amber); }
+.pvsim-stat.amber::before { background: var(--pvsim-amber); }
+.pvsim-stat.amber .pvsim-stat-value { color: var(--pvsim-amber); }

@@ -1,0 +1,62 @@
+/* =========================================================
+   PV.SIM — Tokeny projektowe i kontener bazowy
+
+   Zawiera zmienne CSS (custom properties) dla całej aplikacji:
+   paleta kolorów tła (bg-0..bg-3), tekstu, obramowań,
+   kolory akcentów (orange, teal, amber z wariantami dim).
+   Definiuje też bazowy kontener .pvsim: krój pisma, wymiary,
+   układ oraz dekoracyjne narożniki (pseudo-elementy ::before/::after).
+
+   Musi być ładowany jako PIERWSZY spośród arkuszy CSS,
+   bo pozostałe pliki korzystają ze zdefiniowanych tu zmiennych.
+   ========================================================= */
+
+.pvsim {
+  --pvsim-bg-0: #0a0a0b;
+  --pvsim-bg-1: #121214;
+  --pvsim-bg-2: #18181b;
+  --pvsim-bg-3: #1f1f23;
+  --pvsim-border: #26262b;
+  --pvsim-border-strong: #36363d;
+  --pvsim-text-0: #f4f4f5;
+  --pvsim-text-1: #a1a1aa;
+  --pvsim-text-2: #6b6b73;
+  --pvsim-orange: #ff7a1a;
+  --pvsim-orange-soft: #ff9a4d;
+  --pvsim-orange-dim: rgba(255, 122, 26, 0.15);
+  --pvsim-teal: #2dd4bf;
+  --pvsim-teal-dim: rgba(45, 212, 191, 0.12);
+  --pvsim-amber: #f59e0b;
+  --pvsim-amber-dim: rgba(245, 158, 11, 0.12);
+
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  background: var(--pvsim-bg-0);
+  color: var(--pvsim-text-0);
+  border: 1px solid var(--pvsim-border);
+  border-radius: 4px;
+  max-width: 880px;
+  margin: 0 auto;
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 1.5;
+  position: relative;
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 122, 26, 0.04);
+}
+
+/* decorative corner ticks — industrial signal */
+.pvsim::before, .pvsim::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: var(--pvsim-orange);
+  pointer-events: none;
+}
+.pvsim::before {
+  top: 8px; left: 8px;
+  border-top: 1px solid; border-left: 1px solid;
+}
+.pvsim::after {
+  bottom: 8px; right: 8px;
+  border-bottom: 1px solid; border-right: 1px solid;
+}

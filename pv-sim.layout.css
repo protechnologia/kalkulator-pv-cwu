@@ -1,0 +1,323 @@
+/* =========================================================
+   PV.SIM — Układ strukturalny interfejsu
+
+   Odpowiada za rozmieszczenie głównych elementów UI:
+   - nagłówek (logo, tytuł, metadane lokalizacji)
+   - etykiety sekcji z poziomą linią dekoracyjną
+   - panel sterowania z siatką miesiący i przełącznikiem trybu PV
+   - suwaki (WebKit i Firefox) z animowanym wypełnieniem toru
+   - pole wartości liczbowej (value-box) obok suwaka
+   - dwa suwaki obok siebie w module 03 (.pvsim-controls-row)
+   - stopka z komunikatem o statusie
+   - breakpoint responsywny ≤640 px (układ jednokolumnowy)
+   ========================================================= */
+
+/* -------- HEADER -------- */
+.pvsim-header {
+  padding: 22px 28px 18px;
+  border-bottom: 1px solid var(--pvsim-border);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  background: linear-gradient(180deg, var(--pvsim-bg-1) 0%, var(--pvsim-bg-0) 100%);
+}
+.pvsim-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pvsim-logo-dot {
+  width: 10px;
+  height: 10px;
+  background: var(--pvsim-orange);
+  box-shadow: 0 0 12px var(--pvsim-orange);
+  animation: pvsim-pulse 2.4s ease-in-out infinite;
+}
+@keyframes pvsim-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 12px var(--pvsim-orange); }
+  50% { opacity: 0.55; box-shadow: 0 0 4px var(--pvsim-orange); }
+}
+.pvsim-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  color: var(--pvsim-text-0);
+}
+.pvsim-title .accent { color: var(--pvsim-orange); }
+.pvsim-subtitle {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-top: 6px;
+  color: var(--pvsim-text-0);
+}
+.pvsim-meta {
+  text-align: right;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  color: var(--pvsim-text-2);
+  line-height: 1.7;
+  text-transform: uppercase;
+}
+.pvsim-meta .ok { color: var(--pvsim-teal); }
+
+/* -------- SECTION LABEL -------- */
+.pvsim-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pvsim-text-2);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pvsim-label::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  background: var(--pvsim-orange);
+}
+.pvsim-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--pvsim-border) 0%, transparent 100%);
+}
+
+/* -------- CONTROLS -------- */
+.pvsim-controls {
+  padding: 24px 28px 8px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 28px;
+  background: var(--pvsim-bg-0);
+}
+
+.pvsim-power-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Slider */
+.pvsim-slider-wrap {
+  flex: 1;
+  position: relative;
+  height: 36px;
+  display: flex;
+  align-items: center;
+}
+.pvsim-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--pvsim-bg-3);
+  border-radius: 0;
+  outline: none;
+  margin: 0;
+  cursor: pointer;
+}
+.pvsim-slider::-webkit-slider-runnable-track {
+  height: 4px;
+  background: linear-gradient(90deg,
+    var(--pvsim-orange) 0%,
+    var(--pvsim-orange) var(--pvsim-fill, 18%),
+    var(--pvsim-bg-3) var(--pvsim-fill, 18%),
+    var(--pvsim-bg-3) 100%);
+}
+.pvsim-slider::-moz-range-track {
+  height: 4px;
+  background: var(--pvsim-bg-3);
+}
+.pvsim-slider::-moz-range-progress {
+  height: 4px;
+  background: var(--pvsim-orange);
+}
+.pvsim-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--pvsim-orange);
+  border: 2px solid var(--pvsim-bg-0);
+  border-radius: 0;
+  cursor: grab;
+  margin-top: -7px;
+  box-shadow: 0 0 0 1px var(--pvsim-orange), 0 0 12px rgba(255, 122, 26, 0.4);
+  transition: transform 0.15s ease;
+}
+.pvsim-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+.pvsim-slider::-webkit-slider-thumb:active { cursor: grabbing; transform: scale(1.1); }
+.pvsim-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: var(--pvsim-orange);
+  border: 2px solid var(--pvsim-bg-0);
+  border-radius: 0;
+  cursor: grab;
+  box-shadow: 0 0 0 1px var(--pvsim-orange);
+}
+
+.pvsim-value-box {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 22px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--pvsim-orange);
+  background: var(--pvsim-bg-2);
+  border: 1px solid var(--pvsim-border);
+  padding: 8px 14px;
+  min-width: 120px;
+  text-align: right;
+  letter-spacing: -0.01em;
+}
+.pvsim-value-box .unit {
+  font-size: 12px;
+  color: var(--pvsim-text-1);
+  margin-left: 4px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+/* Month grid */
+.pvsim-month-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
+.pvsim-month-btn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: var(--pvsim-bg-2);
+  border: 1px solid var(--pvsim-border);
+  color: var(--pvsim-text-1);
+  padding: 11px 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+}
+.pvsim-month-btn:hover {
+  background: var(--pvsim-bg-3);
+  color: var(--pvsim-text-0);
+  border-color: var(--pvsim-border-strong);
+}
+.pvsim-month-btn.active {
+  background: var(--pvsim-orange-dim);
+  border-color: var(--pvsim-orange);
+  color: var(--pvsim-orange);
+  box-shadow: inset 0 -2px 0 var(--pvsim-orange);
+}
+.pvsim-month-btn .num {
+  display: block;
+  font-size: 9px;
+  color: var(--pvsim-text-2);
+  margin-bottom: 2px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+.pvsim-month-btn.active .num {
+  color: var(--pvsim-orange);
+  opacity: 0.7;
+}
+
+/* -------- TOGGLE (radio-like) -------- */
+.pvsim-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+.pvsim-toggle-btn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: var(--pvsim-bg-2);
+  border: 1px solid var(--pvsim-border);
+  color: var(--pvsim-text-1);
+  padding: 11px 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+.pvsim-toggle-btn:hover {
+  background: var(--pvsim-bg-3);
+  color: var(--pvsim-text-0);
+  border-color: var(--pvsim-border-strong);
+}
+.pvsim-toggle-btn.active {
+  background: var(--pvsim-orange-dim);
+  border-color: var(--pvsim-orange);
+  color: var(--pvsim-orange);
+  box-shadow: inset 0 -2px 0 var(--pvsim-orange);
+}
+.pvsim-toggle-btn .num {
+  display: block;
+  font-size: 9px;
+  color: var(--pvsim-text-2);
+  margin-bottom: 2px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+.pvsim-toggle-btn.active .num {
+  color: var(--pvsim-orange);
+  opacity: 0.7;
+}
+
+/* dwa slidery obok siebie w module 03 */
+.pvsim-controls-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+}
+
+/* -------- FOOTER -------- */
+.pvsim-footer {
+  padding: 12px 28px;
+  border-top: 1px solid var(--pvsim-border);
+  background: var(--pvsim-bg-1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pvsim-text-2);
+}
+.pvsim-footer .status { display: flex; align-items: center; gap: 8px; }
+.pvsim-footer .status::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: var(--pvsim-teal);
+  border-radius: 50%;
+  box-shadow: 0 0 6px var(--pvsim-teal);
+}
+
+/* -------- RESPONSIVE -------- */
+@media (max-width: 640px) {
+  .pvsim-header { flex-direction: column; align-items: flex-start; padding: 18px 18px 14px; }
+  .pvsim-meta { text-align: left; }
+  .pvsim-controls { padding: 18px; gap: 22px; }
+  .pvsim-chart-section { padding: 18px; }
+  .pvsim-stats { padding: 0 18px 18px; grid-template-columns: 1fr; }
+  .pvsim-footer { padding: 12px 18px; flex-direction: column; gap: 6px; align-items: flex-start; }
+  .pvsim-power-row { flex-direction: column; align-items: stretch; gap: 12px; }
+  .pvsim-value-box { text-align: center; }
+  .pvsim-month-grid { grid-template-columns: repeat(4, 1fr); }
+  .pvsim-stat-value { font-size: 22px; }
+  .pvsim-subtitle { font-size: 18px; }
+  .pvsim-controls-row { grid-template-columns: 1fr; gap: 22px; }
+}

@@ -122,3 +122,9 @@ Stałe osi Y: `P.Y_MAX_KW = 45`, `P.Y_MAX_M3H = 1.0`, `P.Y_MAX_KW_DHW = 60`, `P.
 **Zmiana zakresu suwaka** → atrybut `min`/`max` w HTML + ewentualnie wartość domyślna w `P.state`
 
 **Nowy kolor akcentu** → zdefiniuj zmienne w `tokens.css`, dodaj warianty `.pvsim-slider.nowy-kolor` w `components.css`
+
+## Commity
+
+- Komunikat commita: jedno zdanie, po polsku.
+- Bez stopki `Co-Authored-By`.
+- Zaczynaj od najważniejszej zmiany w zestawie.

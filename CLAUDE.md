@@ -60,9 +60,10 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 - Taryfa: ECO Opole od 01.01.2026 → `P.PRICE_PER_KWH ≈ 0.7091 zł/kWh`
 
 ### Moduł 03 — Zasobnik z grzałką
-- Parametry: moc grzałki (1–6 kW), pojemność zasobnika (100–1000 L)
+- Parametry: moc grzałki (1–15 kW), próg włączenia (10–100%), pojemność zasobnika (100–1000 L)
 - Model: 1-węzłowy (fully-mixed), 6 podkroków na godzinę
-- Logika off-grid: grzałka włącza się tylko gdy `P_PV ≥ P_grzałki`
+- Logika off-grid (power diverter): grzałka throttluje moc do nadwyżki PV,
+  włącza się gdy `P_PV ≥ próg`, gdzie `próg = heaterThreshold × heaterKW`
 - Termostat: max 60°C (granica higieniczna anty-Legionella)
 - Straty: `UA(V) = UA_REF · (V/V_REF)^(2/3)`, klasa B/C wg PN-EN 12897
 
@@ -78,6 +79,7 @@ P.state = {
   residents: 50,      // liczba mieszkańców
   T_hot: 50,          // temperatura CWU [°C]
   heaterKW: 3.0,      // moc grzałki [kW]
+  heaterThreshold: 0.1, // próg włączenia: PV >= threshold * heaterKW
   tankL: 500,         // pojemność zasobnika [L]
   buildingType: 'old' // 'old' | 'new' — straty cyrkulacji (60% / 35%)
 }

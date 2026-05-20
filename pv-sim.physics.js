@@ -19,7 +19,8 @@
    P.simulateTank(simPV, simDHW, heaterKW, tankL)
      Model zasobnika 1-węzłowego (fully-mixed) z 6 podkrokami na godzinę.
      Symuluje: pobór CWU (rozcieńczenie), grzanie grzałką off-grid
-     (włącza się tylko gdy P_PV ≥ P_grzałki), straty postojowe do otoczenia.
+     (power diverter — grzałka throttluje moc do nadwyżki PV, włącza się
+     gdy P_PV ≥ progu = heaterThreshold × P_grzałki), straty postojowe.
      Śledzi pokrycie zapotrzebowania CWU i oszczędności w zł.
    ========================================================= */
 window.PVSIM = window.PVSIM || {};

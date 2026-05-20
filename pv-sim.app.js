@@ -14,6 +14,7 @@
      - suwak temperatury docelowej CWU (moduł 02)
      - przełącznik typu budynku (stary/nowy — współczynnik strat cyrkulacji)
      - suwak mocy grzałki (moduł 03)
+     - suwak progu włączenia grzałki (moduł 03)
      - suwak pojemności zasobnika (moduł 03)
    Każdy suwak przy zmianie aktualizuje P.state, odświeża etykietę
    wartości, ustawia zmienną CSS --pvsim-fill (WebKit track fill)

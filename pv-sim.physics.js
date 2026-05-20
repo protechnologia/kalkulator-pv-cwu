@@ -168,8 +168,14 @@ window.PVSIM = window.PVSIM || {};
       const P_PV    = simPV.hours[h].power;
       const m_pobor = simDHW.hours[h].water * 1000;
 
-      const heaterOn = P_PV >= heaterKW;
-      const Q_heater_target = heaterOn ? heaterKW : 0;
+      // Sterowanie mocą grzałki (power diverter):
+      // - PV < threshold               → wyłączona
+      // - threshold ≤ PV < heaterKW   → moc = PV (throttling, cała nadwyżka do grzałki)
+      // - PV ≥ heaterKW               → moc = heaterKW (100%)
+      // threshold = heaterThreshold [0.1–1.0] × heaterKW
+      const threshold = P.state.heaterThreshold * heaterKW;
+      const heaterOn = P_PV >= threshold;
+      const Q_heater_target = heaterOn ? Math.min(P_PV, heaterKW) : 0;
 
       const m_per = m_pobor / P.TANK_SUBSTEPS;
       const Q_per = Q_heater_target / P.TANK_SUBSTEPS;
@@ -228,6 +234,10 @@ window.PVSIM = window.PVSIM || {};
     const savingPLN_d = dailyQ_saved * P.PRICE_PER_KWH;
     const days = P.MONTHS[P.state.monthIdx].days;
 
+    // Ciepło zmagazynowane w zasobniku o 24:00 — energia ponad T_in,
+    // która nie została pobrana przez CWU (start zimny, model jednodobowy).
+    const Q_residual = Math.max(T - T_in, 0) * m_zas * cw;
+
     return {
       hours,
       T_in,
@@ -238,6 +248,7 @@ window.PVSIM = window.PVSIM || {};
         Q_wasted:    dailyQ_wasted,
         heaterHours: dailyHeaterOnHours,
         coveragePct,
+        Q_residual,
         savingPLN:   savingPLN_d
       },
       monthly: {

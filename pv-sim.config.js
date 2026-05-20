@@ -120,6 +120,7 @@ window.PVSIM = window.PVSIM || {};
     residents: 50,
     T_hot: 50,          // °C — temperatura docelowa CWU
     heaterKW: 3.0,      // moc grzałki [kW]
+    heaterThreshold: 0.1, // próg włączenia: PV >= threshold * heaterKW
     tankL: 500,         // pojemność zasobnika [l]
     buildingType: 'old' // 'new' | 'old' — typ budynku (straty cyrkulacji)
   };

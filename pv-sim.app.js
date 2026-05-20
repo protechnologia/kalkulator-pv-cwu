@@ -138,6 +138,20 @@ window.PVSIM = window.PVSIM || {};
     const minH = parseFloat(sliderH.min), maxH = parseFloat(sliderH.max);
     sliderH.style.setProperty('--pvsim-fill', ((P.state.heaterKW - minH) / (maxH - minH) * 100) + '%');
 
+    // Suwak progu włączenia grzałki (Moduł 03)
+    const sliderHT = document.getElementById('pvsim-heater-threshold');
+    const sliderHTVal = document.getElementById('pvsim-heater-threshold-val');
+    function updateHeaterThreshold() {
+      P.state.heaterThreshold = parseInt(sliderHT.value, 10) / 100;
+      sliderHTVal.textContent = sliderHT.value;
+      const min = parseFloat(sliderHT.min), max = parseFloat(sliderHT.max);
+      sliderHT.style.setProperty('--pvsim-fill', ((parseInt(sliderHT.value) - min) / (max - min) * 100) + '%');
+      P.update();
+    }
+    sliderHT.addEventListener('input', updateHeaterThreshold);
+    const minHT = parseFloat(sliderHT.min), maxHT = parseFloat(sliderHT.max);
+    sliderHT.style.setProperty('--pvsim-fill', ((parseInt(sliderHT.value) - minHT) / (maxHT - minHT) * 100) + '%');
+
     // Suwak pojemności zasobnika (Moduł 03)
     const sliderT = document.getElementById('pvsim-tank');
     const sliderTVal = document.getElementById('pvsim-tank-val');

@@ -205,6 +205,15 @@
         </div>
       </div>
       <div>
+        <div class="pvsim-label amber">Próg włączenia grzałki &nbsp;[ % mocy grzałki ]</div>
+        <div class="pvsim-power-row">
+          <div class="pvsim-slider-wrap">
+            <input type="range" min="10" max="100" value="10" step="10" class="pvsim-slider amber" id="pvsim-heater-threshold">
+          </div>
+          <div class="pvsim-value-box amber"><span id="pvsim-heater-threshold-val">10</span><span class="unit">%</span></div>
+        </div>
+      </div>
+      <div>
         <div class="pvsim-label amber">Pojemność zasobnika &nbsp;[ l ]</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
@@ -237,8 +246,9 @@
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-cover">0</span><span class="unit">%</span></div>
         <div class="secondary"><span id="pvsim-cover-kwh">0</span><span class="unit">kWh dostarczone do CWU</span></div>
+        <div class="secondary"><span id="pvsim-cover-residual">0</span><span class="unit">kWh pozostaje w zasobniku</span></div>
+        <div class="secondary"><span id="pvsim-cover-strat">0</span><span class="unit">kWh straty zasobnika</span></div>
       </div>
-      <div class="pvsim-stats-note">Energia dostarczona z PV do grzałki, pomniejszona o straty cieplne zasobnika.</div>
     </div>
     <div class="pvsim-stat amber">
       <div class="pvsim-stat-label">Grzałka</div>

@@ -245,6 +245,16 @@
 .pvsim-label.amber::before { background: var(--pvsim-amber); }
 .pvsim-stat.amber::before { background: var(--pvsim-amber); }
 .pvsim-stat.amber .pvsim-stat-value { color: var(--pvsim-amber); }
+.pvsim-toggle-btn.amber.active {
+  background: var(--pvsim-amber-dim);
+  border-color: var(--pvsim-amber);
+  color: var(--pvsim-amber);
+  box-shadow: inset 0 -2px 0 var(--pvsim-amber);
+}
+.pvsim-toggle-btn.amber.active .num {
+  color: var(--pvsim-amber);
+  opacity: 0.7;
+}
 
 /* -------- VIOLET VARIANTS (Moduł 04 — sieć) -------- */
 .pvsim-module-divider.violet .tag { color: var(--pvsim-violet); }

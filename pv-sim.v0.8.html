@@ -25,7 +25,7 @@
       <div class="pvsim-subtitle" id="pvsim-subtitle">Symulacja godzinowa &mdash; układ PV + CWU</div>
     </div>
     <div class="pvsim-meta">
-      v0.7.0<br>
+      v0.8.0<br>
       LAT 50.67° N &nbsp;·&nbsp; OPOLE
     </div>
   </div>
@@ -261,7 +261,7 @@
   <!-- ========================================== -->
   <div class="pvsim-module-divider amber">
     <div class="dot"></div>
-    <div class="tag"><span class="num">04 //</span> ZASOBNIK CWU + GRZAŁKI PV (off-grid)</div>
+    <div class="tag"><span class="num">04 //</span> ZASOBNIK CWU + GRZAŁKA</div>
     <div class="rule"></div>
   </div>
 
@@ -296,6 +296,36 @@
         </div>
       </div>
     </div>
+    <div class="pvsim-controls-row">
+      <div>
+        <div class="pvsim-label amber">Strategia grzałki &nbsp;/ strefa dzienna</div>
+        <div class="pvsim-toggle three" id="pvsim-strat-day-toggle">
+          <button class="pvsim-toggle-btn amber" data-strat="off">
+            <span class="num">01</span>WYŁĄCZONA
+          </button>
+          <button class="pvsim-toggle-btn amber active" data-strat="off-grid">
+            <span class="num">02</span>OFF-GRID
+          </button>
+          <button class="pvsim-toggle-btn amber" data-strat="on-grid">
+            <span class="num">03</span>ON-GRID
+          </button>
+        </div>
+      </div>
+      <div>
+        <div class="pvsim-label amber">Strategia grzałki &nbsp;/ strefa nocna</div>
+        <div class="pvsim-toggle three" id="pvsim-strat-night-toggle">
+          <button class="pvsim-toggle-btn amber" data-strat="off">
+            <span class="num">01</span>WYŁĄCZONA
+          </button>
+          <button class="pvsim-toggle-btn amber active" data-strat="off-grid">
+            <span class="num">02</span>OFF-GRID
+          </button>
+          <button class="pvsim-toggle-btn amber" data-strat="on-grid">
+            <span class="num">03</span>ON-GRID
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- WYKRES TEMPERATURY ZASOBNIKA -->
@@ -312,8 +342,22 @@
     </div>
   </div>
 
+  <!-- WYKRES MOCY ELEKTRYCZNEJ GRZAŁKI -->
+  <div class="pvsim-chart-section">
+    <div class="pvsim-chart-header">
+      <div class="pvsim-chart-title">
+        Moc elektryczna grzałki &mdash; źródło energii
+        <span class="ctx" id="pvsim-tank-elec-ctx" style="color:var(--pvsim-amber);"></span>
+      </div>
+      <div class="pvsim-chart-axis-label">[ kW vs &nbsp;hh:mm ]</div>
+    </div>
+    <div class="pvsim-chart-wrap">
+      <svg class="pvsim-chart" id="pvsim-tank-elec-chart" viewBox="0 0 780 300" preserveAspectRatio="none"></svg>
+    </div>
+  </div>
+
   <!-- STATY MODUŁU 04 -->
-  <div class="pvsim-stats">
+  <div class="pvsim-stats four">
     <div class="pvsim-stat amber">
       <div class="pvsim-stat-label">Pokrycie CWU</div>
       <div class="pvsim-stat-value dual">
@@ -327,7 +371,21 @@
       <div class="pvsim-stat-label">Grzałka</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-heater-hrs">0</span><span class="unit">h / dobę</span></div>
-        <div class="secondary"><span id="pvsim-heater-kwh">0,0</span><span class="unit">kWh dostarczone z PV</span></div>
+        <div class="secondary"><span id="pvsim-heater-kwh">0,0</span><span class="unit">kWh dostarczone do zasobnika</span></div>
+      </div>
+    </div>
+    <div class="pvsim-stat amber">
+      <div class="pvsim-stat-label">Zużycie prądu</div>
+      <div class="pvsim-stat-value dual">
+        <div class="primary"><span id="pvsim-elec-total">0,0</span><span class="unit">kWh / dobę</span></div>
+        <div class="secondary"><span id="pvsim-elec-pv">0,0</span><span class="unit">kWh z PV</span></div>
+        <div class="secondary"><span id="pvsim-elec-grid">0,0</span><span class="unit">kWh z sieci</span></div>
+      </div>
+    </div>
+    <div class="pvsim-stat amber">
+      <div class="pvsim-stat-label">Koszt energii z sieci</div>
+      <div class="pvsim-stat-value dual">
+        <div class="primary"><span id="pvsim-grid-cost-d">0,00</span><span class="unit">zł / dobę</span></div>
       </div>
     </div>
   </div>

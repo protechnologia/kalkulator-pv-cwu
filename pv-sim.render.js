@@ -25,9 +25,13 @@
                          oś Y z ładnymi krokami (nie wywołuje P.update — brak symulacji)
 
    Moduł 04 — Zasobnik:
-     renderTankChart() — wykres temperatury zasobnika (°C) z tłem grzania,
-                         linia termostatu i linea T_CWU, kolor bursztynowy
-     renderTankStats() — karty: pokrycie CWU, energia z PV, oszczędność w zł
+     renderTankChart()     — wykres temperatury zasobnika (°C) z tłem grzania
+                             (osobny odcień dla strefy dziennej i nocnej),
+                             linia termostatu i linia T_CWU, kolor bursztynowy
+     renderTankElecChart() — wykres słupkowy mocy elektrycznej grzałki:
+                             część z PV (bursztyn) + część z sieci (fiolet)
+     renderTankStats()     — karty: pokrycie CWU, grzałka, zużycie prądu
+                             (PV vs sieć), koszt energii z sieci
    ========================================================= */
 window.PVSIM = window.PVSIM || {};
 (function(P) {
@@ -362,12 +366,15 @@ window.PVSIM = window.PVSIM || {};
                         font-variant-numeric="tabular-nums">${hh}:00</text>`;
     }
 
+    // Tło godzin pracy grzałki — jaśniejszy odcień dla strefy dziennej taryfy,
+    // ciemniejszy dla nocnej, by rozróżnić strefy bez dodatkowej legendy.
     let heaterBg = '';
     simTank.hours.forEach(d => {
       if (d.heaterOn) {
         const x1 = x(d.hour), x2 = x(d.hour + 1);
+        const op = d.day ? '0.12' : '0.05';
         heaterBg += `<rect x="${x1.toFixed(2)}" y="${padT}" width="${(x2 - x1).toFixed(2)}" height="${ch}"
-                           fill="#f59e0b" opacity="0.08"/>`;
+                           fill="#f59e0b" opacity="${op}"/>`;
       }
     });
 
@@ -410,6 +417,96 @@ window.PVSIM = window.PVSIM || {};
     `;
   };
 
+  // ===== RENDER WYKRESU MOCY ELEKTRYCZNEJ GRZAŁKI =====
+  // Słupki skumulowane: dół = moc z PV (bursztyn), góra = moc z sieci (fiolet).
+  // Energia godzinowa [kWh] = średnia moc [kW] w danej godzinie (1 h).
+  P.renderTankElecChart = function(simTank) {
+    const svg = document.getElementById('pvsim-tank-elec-chart');
+    if (!svg) return;
+    const W = 780, H = 300;
+    const padL = 50, padR = 18, padT = 14, padB = 36;
+    const cw = W - padL - padR;
+    const ch = H - padT - padB;
+
+    const rawMax = Math.max(
+      ...simTank.hours.map(d => d.elec_pv + d.elec_grid), 0.001
+    );
+    const niceSteps = [0.5, 1, 2, 2.5, 5, 10, 20];
+    const step = niceSteps.find(s => rawMax / s <= 6) || 20;
+    const yMax = Math.ceil(rawMax / step + 0.001) * step;
+
+    const x = h => padL + (h / 24) * cw;
+    const y = v => padT + ch - (v / yMax) * ch;
+    const bw = cw / 24;
+
+    let bars = '';
+    for (let h = 0; h < 24; h++) {
+      const d = simTank.hours[h];
+      const pvH   = (d.elec_pv   / yMax) * ch;
+      const gridH = (d.elec_grid / yMax) * ch;
+      if (pvH > 0.1) {
+        bars += `<rect x="${x(h).toFixed(2)}" y="${y(d.elec_pv).toFixed(2)}"
+                       width="${(bw - 1).toFixed(2)}" height="${pvH.toFixed(2)}"
+                       fill="#f59e0b" opacity="0.8"/>`;
+      }
+      if (gridH > 0.1) {
+        bars += `<rect x="${x(h).toFixed(2)}" y="${y(d.elec_pv + d.elec_grid).toFixed(2)}"
+                       width="${(bw - 1).toFixed(2)}" height="${gridH.toFixed(2)}"
+                       fill="#a78bfa" opacity="0.75"/>`;
+      }
+    }
+
+    const ticks = Math.round(yMax / step);
+    let gridLines = '', yLabels = '';
+    for (let i = 0; i <= ticks; i++) {
+      const v = i * step;
+      const yy = y(v);
+      gridLines += `<line x1="${padL}" y1="${yy.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yy.toFixed(2)}"
+                          stroke="#26262b" stroke-width="1" ${i === 0 ? '' : 'stroke-dasharray="2,3"'}/>`;
+      yLabels += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end"
+                        font-family="'IBM Plex Mono', monospace" font-size="10" fill="#6b6b73"
+                        font-variant-numeric="tabular-nums">${P.fmt.pl1(v)}</text>`;
+    }
+
+    let xLabels = '', xGrid = '';
+    for (let h = 0; h <= 24; h += 3) {
+      const xx = x(h);
+      xGrid += `<line x1="${xx.toFixed(2)}" y1="${padT}" x2="${xx.toFixed(2)}" y2="${(padT + ch).toFixed(2)}"
+                      stroke="#26262b" stroke-width="1" stroke-dasharray="1,4"/>`;
+      xLabels += `<text x="${xx.toFixed(2)}" y="${(padT + ch + 18).toFixed(2)}" text-anchor="middle"
+                        font-family="'IBM Plex Mono', monospace" font-size="10" fill="#6b6b73"
+                        font-variant-numeric="tabular-nums">${String(h % 24).padStart(2, '0')}:00</text>`;
+    }
+
+    const axes = `
+      <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${(padT + ch).toFixed(2)}" stroke="#36363d" stroke-width="1"/>
+      <line x1="${padL}" y1="${(padT + ch).toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${(padT + ch).toFixed(2)}" stroke="#36363d" stroke-width="1"/>
+    `;
+
+    // Legenda — dwa znaczniki w prawym górnym rogu
+    const lx = W - padR - 150;
+    const legend = `
+      <rect x="${lx}" y="${padT + 2}" width="10" height="10" fill="#f59e0b" opacity="0.8"/>
+      <text x="${lx + 15}" y="${padT + 11}" font-family="'IBM Plex Mono', monospace" font-size="10"
+            fill="#a1a1aa">z PV</text>
+      <rect x="${lx + 60}" y="${padT + 2}" width="10" height="10" fill="#a78bfa" opacity="0.75"/>
+      <text x="${lx + 75}" y="${padT + 11}" font-family="'IBM Plex Mono', monospace" font-size="10"
+            fill="#a1a1aa">z sieci</text>
+    `;
+
+    svg.innerHTML = `
+      ${gridLines}${xGrid}${axes}${bars}${legend}${yLabels}${xLabels}
+      <text x="${padL - 30}" y="${padT - 2}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
+            fill="#6b6b73" letter-spacing="1.4">[kW]</text>
+    `;
+
+    const ctxEl = document.getElementById('pvsim-tank-elec-ctx');
+    if (ctxEl) {
+      ctxEl.textContent = `— z PV ${P.fmt.pl1(simTank.daily.elec_pv)} kWh`
+        + ` · z sieci ${P.fmt.pl1(simTank.daily.elec_grid)} kWh`;
+    }
+  };
+
   // ===== RENDER STATÓW ZASOBNIKA =====
   P.renderTankStats = function(simTank) {
     document.getElementById('pvsim-cover').textContent      = simTank.daily.coveragePct.toFixed(0);
@@ -419,7 +516,14 @@ window.PVSIM = window.PVSIM || {};
     document.getElementById('pvsim-heater-hrs').textContent = simTank.daily.heaterHours;
     document.getElementById('pvsim-heater-kwh').textContent = P.fmt.pl1(simTank.daily.Q_heater);
 
-    const ctx = `— grzałka ${P.fmt.pl1(P.state.heaterKW)} kW · zasobnik ${P.state.tankL} l`;
+    document.getElementById('pvsim-elec-total').textContent = P.fmt.pl1(simTank.daily.elec_total);
+    document.getElementById('pvsim-elec-pv').textContent    = P.fmt.pl1(simTank.daily.elec_pv);
+    document.getElementById('pvsim-elec-grid').textContent  = P.fmt.pl1(simTank.daily.elec_grid);
+    document.getElementById('pvsim-grid-cost-d').textContent = P.fmt.pl2(simTank.daily.gridCost);
+
+    const stratLabel = { 'off': 'wył.', 'off-grid': 'off-grid', 'on-grid': 'on-grid' };
+    const ctx = `— grzałka ${P.fmt.pl1(P.state.heaterKW)} kW · zasobnik ${P.state.tankL} l`
+      + ` · dzień: ${stratLabel[P.state.heaterStratDay]} · noc: ${stratLabel[P.state.heaterStratNight]}`;
     document.getElementById('pvsim-tank-ctx').textContent = ctx;
   };
 

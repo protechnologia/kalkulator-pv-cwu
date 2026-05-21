@@ -257,6 +257,9 @@
   grid-template-columns: 1fr 1fr;
   gap: 4px;
 }
+.pvsim-toggle.three {
+  grid-template-columns: 1fr 1fr 1fr;
+}
 .pvsim-toggle-btn {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;

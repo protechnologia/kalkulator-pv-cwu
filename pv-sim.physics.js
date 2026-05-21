@@ -18,10 +18,11 @@
 
    P.simulateTank(simPV, simDHW, heaterKW, tankL)
      Model zasobnika 1-węzłowego (fully-mixed) z 6 podkrokami na godzinę.
-     Symuluje: pobór CWU (rozcieńczenie), grzanie grzałką off-grid
-     (power diverter — grzałka throttluje moc do nadwyżki PV, włącza się
-     gdy P_PV ≥ progu = heaterThreshold × P_grzałki), straty postojowe.
-     Śledzi pokrycie zapotrzebowania CWU i oszczędności w zł.
+     Symuluje: pobór CWU (rozcieńczenie), grzanie grzałką wg strategii
+     wybranej osobno dla strefy dziennej i nocnej taryfy, straty postojowe.
+     Strategie: 'off' (wyłączona), 'off-grid' (power diverter — moc do nadwyżki
+     PV), 'on-grid' (moc proporcjonalna do T_hot, pobór z PV + sieci).
+     Śledzi pokrycie CWU, oszczędności oraz zużycie energii (PV vs sieć).
    ========================================================= */
 window.PVSIM = window.PVSIM || {};
 (function(P) {
@@ -145,7 +146,11 @@ window.PVSIM = window.PVSIM || {};
 
   // ===== SYMULACJA ZASOBNIKA (Moduł 04) =====
   // Model 1-węzłowy (fully-mixed) z 6 podkrokami na godzinę.
-  // Off-grid: grzałka pracuje tylko gdy P_PV >= P_grzałki w danej godzinie.
+  // Strategia grzałki wybierana osobno dla strefy dziennej i nocnej taryfy:
+  //   'off'      — grzałka wyłączona
+  //   'off-grid' — moc throttlowana do nadwyżki PV (power diverter), energia z PV
+  //   'on-grid'  — moc proporcjonalna do (T_hot - T)/BAND; nadwyżkę PV
+  //                wykorzystujemy w pierwszej kolejności, resztę dobiera sieć
   // Start zimny: T_zas(00:00) = T_in (temp. wody wodociągowej w danym miesiącu).
   P.simulateTank = function(simPV, simDHW, heaterKW, tankL) {
     const cw    = P.C_WATER / 3600;                           // kWh/(kg·K)
@@ -154,34 +159,41 @@ window.PVSIM = window.PVSIM || {};
     const UA_kWh = UA / 1000;                                // kWh/(K·h)
     const dt    = 1 / P.TANK_SUBSTEPS;
 
-    const T_in = simDHW.T_in;
+    const T_in  = simDHW.T_in;
+    const T_hot = P.state.T_hot;
+    const band  = P.TANK_ONGRID_BAND;
+    const threshold = P.state.heaterThreshold * heaterKW;
     let T = T_in;
     const hours = [];
+
+    // Przynależność godziny do strefy dziennej taryfy (Moduł 03)
+    const dayStart = P.state.gridDayStart, dayEnd = P.state.gridDayEnd;
+    const isDay = h => dayStart < dayEnd
+      ? h >= dayStart && h < dayEnd
+      : h >= dayStart || h < dayEnd;
 
     let dailyHeaterOnHours = 0;
     let dailyQ_heater = 0;
     let dailyQ_saved  = 0;
     let dailyQ_strat  = 0;
     let dailyQ_wasted = 0;
+    let dailyElec_pv   = 0;
+    let dailyElec_grid = 0;
+    let dailyGridCost  = 0;
 
     for (let h = 0; h < 24; h++) {
       const T_start = T;
       const P_PV    = simPV.hours[h].power;
       const m_pobor = simDHW.hours[h].water * 1000;
-
-      // Sterowanie mocą grzałki (power diverter):
-      // - PV < threshold               → wyłączona
-      // - threshold ≤ PV < heaterKW   → moc = PV (throttling, cała nadwyżka do grzałki)
-      // - PV ≥ heaterKW               → moc = heaterKW (100%)
-      // threshold = heaterThreshold [0.1–1.0] × heaterKW
-      const threshold = P.state.heaterThreshold * heaterKW;
-      const heaterOn = P_PV >= threshold;
-      const Q_heater_target = heaterOn ? Math.min(P_PV, heaterKW) : 0;
+      const day     = isDay(h);
+      const strat   = day ? P.state.heaterStratDay : P.state.heaterStratNight;
+      const gridPrice = day ? P.state.gridPriceDay : P.state.gridPriceNight;
 
       const m_per = m_pobor / P.TANK_SUBSTEPS;
-      const Q_per = Q_heater_target / P.TANK_SUBSTEPS;
 
       let Q_saved_h = 0, Q_strat_h = 0, Q_wasted_h = 0, Q_heater_actual_h = 0;
+      let elec_pv_h = 0, elec_grid_h = 0;
+      let heaterOn = false;
 
       for (let s = 0; s < P.TANK_SUBSTEPS; s++) {
         // 1) Pobór — oszczędność = ile mniej musi włożyć węzeł ECO (Δ od T_in)
@@ -192,22 +204,43 @@ window.PVSIM = window.PVSIM || {};
           T = (T * (m_zas - m_per) + T_in * m_per) / m_zas;
         }
 
-        // 2) Grzanie z PV (z termostatem T_MAX)
+        // 2) Wyznaczenie mocy grzałki dla tego podkroku wg strategii
+        let Q_per = 0;    // docelowa energia podkroku [kWh]
+        let pvShare = 0;  // udział PV w tej energii [0..1]
+        if (strat === 'off-grid') {
+          if (P_PV >= threshold) {
+            Q_per   = Math.min(P_PV, heaterKW) * dt;
+            pvShare = 1;
+          }
+        } else if (strat === 'on-grid') {
+          const frac = Math.max(0, Math.min(1, (T_hot - T) / band));
+          const Q_kW = heaterKW * frac;
+          if (Q_kW > 0) {
+            Q_per   = Q_kW * dt;
+            pvShare = Math.min(Q_kW, P_PV) / Q_kW;
+          }
+        }
+
+        // 3) Grzanie (z termostatem T_MAX)
         if (Q_per > 0) {
+          heaterOn = true;
           const dT_full = Q_per / (m_zas * cw);
           let T_after = T + dT_full;
+          let Q_actual;
           if (T_after > P.TANK_T_MAX) {
-            const Q_actual = Math.max((P.TANK_T_MAX - T) * m_zas * cw, 0);
+            Q_actual = Math.max((P.TANK_T_MAX - T) * m_zas * cw, 0);
             Q_wasted_h += Math.max(Q_per - Q_actual, 0);
-            Q_heater_actual_h += Q_actual;
             T_after = P.TANK_T_MAX;
           } else {
-            Q_heater_actual_h += Q_per;
+            Q_actual = Q_per;
           }
+          Q_heater_actual_h += Q_actual;
+          elec_pv_h   += Q_actual * pvShare;
+          elec_grid_h += Q_actual * (1 - pvShare);
           T = T_after;
         }
 
-        // 3) Straty postojowe (do otoczenia)
+        // 4) Straty postojowe (do otoczenia)
         const Q_loss = UA_kWh * Math.max(T - P.TANK_T_AMB, 0) * dt;
         Q_strat_h += Q_loss;
         T = Math.max(T - Q_loss / (m_zas * cw), T_in);
@@ -217,17 +250,24 @@ window.PVSIM = window.PVSIM || {};
         hour: h,
         T_start, T_end: T,
         heaterOn,
+        day,
+        strategy: strat,
         P_heater_eff: Q_heater_actual_h,
         Q_saved: Q_saved_h,
         Q_strat: Q_strat_h,
-        Q_wasted: Q_wasted_h
+        Q_wasted: Q_wasted_h,
+        elec_pv: elec_pv_h,
+        elec_grid: elec_grid_h
       });
 
       if (heaterOn) dailyHeaterOnHours++;
-      dailyQ_heater += Q_heater_actual_h;
-      dailyQ_saved  += Q_saved_h;
-      dailyQ_strat  += Q_strat_h;
-      dailyQ_wasted += Q_wasted_h;
+      dailyQ_heater  += Q_heater_actual_h;
+      dailyQ_saved   += Q_saved_h;
+      dailyQ_strat   += Q_strat_h;
+      dailyQ_wasted  += Q_wasted_h;
+      dailyElec_pv   += elec_pv_h;
+      dailyElec_grid += elec_grid_h;
+      dailyGridCost  += elec_grid_h * gridPrice;
     }
 
     const Q_CWU_total = simDHW.daily.energy;
@@ -250,11 +290,19 @@ window.PVSIM = window.PVSIM || {};
         heaterHours: dailyHeaterOnHours,
         coveragePct,
         Q_residual,
-        savingPLN:   savingPLN_d
+        savingPLN:   savingPLN_d,
+        elec_pv:     dailyElec_pv,
+        elec_grid:   dailyElec_grid,
+        elec_total:  dailyElec_pv + dailyElec_grid,
+        gridCost:    dailyGridCost
       },
       monthly: {
         Q_saved:   dailyQ_saved * days,
-        savingPLN: savingPLN_d * days
+        savingPLN: savingPLN_d * days,
+        elec_pv:    dailyElec_pv   * days,
+        elec_grid:  dailyElec_grid * days,
+        elec_total: (dailyElec_pv + dailyElec_grid) * days,
+        gridCost:   dailyGridCost  * days
       },
       params: { heaterKW, tankL, UA }
     };

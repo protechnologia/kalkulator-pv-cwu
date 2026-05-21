@@ -19,6 +19,7 @@
      - suwak mocy grzałki (moduł 04)
      - suwak progu włączenia grzałki (moduł 04)
      - suwak pojemności zasobnika (moduł 04)
+     - przełączniki strategii grzałki dzień/noc (moduł 04)
    Każda kontrolka przy zmianie synchronizuje P.state, odświeża etykietę,
    ustawia CSS --pvsim-fill (WebKit track fill) i wywołuje P.update()
    lub renderGridChart() (moduł 03 nie uruchamia pełnej symulacji).
@@ -42,6 +43,7 @@ window.PVSIM = window.PVSIM || {};
 
     const simTank = P.simulateTank(sim, simDHW, P.state.heaterKW, P.state.tankL);
     P.renderTankChart(simTank);
+    P.renderTankElecChart(simTank);
     P.renderTankStats(simTank);
 
     P.renderGridChart();
@@ -179,6 +181,21 @@ window.PVSIM = window.PVSIM || {};
     }
     sliderT.addEventListener('input', updateTank);
     updateTank();
+
+    // Toggle strategii grzałki — strefa dzienna i nocna (Moduł 04)
+    function wireStratToggle(toggleId, stateKey) {
+      const btns = document.querySelectorAll('#' + toggleId + ' .pvsim-toggle-btn');
+      btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          P.state[stateKey] = btn.dataset.strat;
+          btns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          P.update();
+        });
+      });
+    }
+    wireStratToggle('pvsim-strat-day-toggle', 'heaterStratDay');
+    wireStratToggle('pvsim-strat-night-toggle', 'heaterStratNight');
 
     // Pola cen energii elektrycznej (Moduł 03)
     const inputGridDay = document.getElementById('pvsim-grid-price-day');

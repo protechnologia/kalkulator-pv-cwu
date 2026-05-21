@@ -9,11 +9,13 @@
      współczynniki strat cyrkulacji CIRC_LOSS (stary/nowy budynek)
    - godzinowy profil zużycia CWU znormalizowany do 1.0
      (źródło: Chmielewska 2025, Energies 18(17), 42 budynki w PL)
-   - parametry zasobnika: termostat, straty UA, liczba podkroków
+   - parametry zasobnika: termostat, straty UA, liczba podkroków,
+     pasmo proporcjonalne sterowania on-grid (TANK_ONGRID_BAND)
    - tablicę MONTHS z danymi PVGIS dla każdego miesiąca
      (doy, dni w miesiącu, przeciętna dzienna produkcja kWh/kWp)
    - obiekt state — bieżące wartości wszystkich suwaków i pól UI,
-     w tym parametry taryfy elektrycznej (moduł 03 — on-grid w przygotowaniu)
+     w tym parametry taryfy elektrycznej (moduł 03) oraz strategie
+     grzałki dla strefy dziennej i nocnej (moduł 04)
 
    Musi być ładowany jako PIERWSZY spośród plików JS,
    bo physics.js, render.js i app.js korzystają z P.state i stałych.
@@ -95,6 +97,9 @@ window.PVSIM = window.PVSIM || {};
   P.TANK_V_REF   = 500;  // L
   P.TANK_SUBSTEPS = 6;   // 6 podkroków × 10 min — stabilność numeryczna
   P.Y_MAX_TEMP   = 70;   // °C — skala osi temperatury zasobnika
+  // Pasmo proporcjonalne regulatora on-grid [°C]: pełna moc gdy T ≤ T_hot - BAND,
+  // moc 0 gdy T ≥ T_hot, liniowo modulowana pomiędzy.
+  P.TANK_ONGRID_BAND = 5;
 
   // ===== MIESIĄCE =====
   // dailyYield = przeciętna dobowa produkcja [kWh/kWp], dane PSH z PVGIS dla PL, 30° opt.
@@ -122,6 +127,12 @@ window.PVSIM = window.PVSIM || {};
     T_hot: 50,          // °C — temperatura docelowa CWU
     heaterKW: 3.0,      // moc grzałki [kW]
     heaterThreshold: 0.1, // próg włączenia: PV >= threshold * heaterKW
+    // Strategia grzałki, osobno dla strefy dziennej i nocnej taryfy elektrycznej:
+    //   'off'      — grzałka wyłączona w danej strefie
+    //   'off-grid' — moc modulowana do nadwyżki PV (power diverter)
+    //   'on-grid'  — moc modulowana proporcjonalnie do T_hot (pobór z PV + sieci)
+    heaterStratDay:   'off-grid',
+    heaterStratNight: 'off-grid',
     tankL: 500,         // pojemność zasobnika [l]
     buildingType: 'old', // 'new' | 'old' — typ budynku (straty cyrkulacji)
     // Moduł 03 — taryfa energii elektrycznej z sieci (G12 Tauron 2026)

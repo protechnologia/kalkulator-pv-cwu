@@ -6,12 +6,12 @@ Napisany w czystym HTML/CSS/JS, bez frameworków i bundlerów.
 
 ## Uruchamianie
 
-Otwórz `pv-sim.v0.7.html` w przeglądarce. Nie wymaga żadnej instalacji ani serwera.
+Otwórz `pv-sim.v0.8.html` w przeglądarce. Nie wymaga żadnej instalacji ani serwera.
 
 ## Struktura plików
 
 ```
-pv-sim.v0.7.html      — jedyna strona HTML; ładuje CSS i JS w odpowiedniej kolejności
+pv-sim.v0.8.html      — jedyna strona HTML; ładuje CSS i JS w odpowiedniej kolejności
 pv-sim.tokens.css     — zmienne CSS (kolory, tła, akcenty); bazowy kontener .pvsim
 pv-sim.layout.css     — nagłówek, suwaki, siatka miesięcy, stopka, responsive
 pv-sim.components.css — wykresy SVG, karty statystyk, separatory modułów, warianty kolorów
@@ -63,15 +63,24 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 - Parametry: cena strefy dziennej [zł/kWh], cena strefy nocnej [zł/kWh], godziny strefy dziennej (start/koniec)
 - Wartości domyślne: G12 Tauron 2026 — dzień 0,6950 zł/kWh, noc 0,3500 zł/kWh, strefa 6:00–22:00
 - Wykres krokowy 24h — słupki fioletowe (dzień) i szare (noc), oś Y z ładnymi krokami
-- Moduł UI-only — dane w `P.state`, obliczenia on-grid w przygotowaniu
+- Ceny stref i godziny granic taryfy wykorzystuje Moduł 04 (strategie grzałki, koszt energii z sieci)
 
 ### Moduł 04 — Zasobnik z grzałką
-- Parametry: moc grzałki (1–15 kW), próg włączenia (10–100%), pojemność zasobnika (100–1000 L)
+- Parametry: moc grzałki (1–15 kW), próg włączenia (10–100%), pojemność zasobnika (100–1000 L),
+  strategia grzałki — wybierana osobno dla strefy dziennej i nocnej taryfy (Moduł 03)
 - Model: 1-węzłowy (fully-mixed), 6 podkroków na godzinę
-- Logika off-grid (power diverter): grzałka throttluje moc do nadwyżki PV,
-  włącza się gdy `P_PV ≥ próg`, gdzie `próg = heaterThreshold × heaterKW`
+- Trzy strategie grzałki:
+  - `off` — grzałka wyłączona w danej strefie
+  - `off-grid` (power diverter) — moc throttlowana do nadwyżki PV,
+    włącza się gdy `P_PV ≥ próg`, gdzie `próg = heaterThreshold × heaterKW`; energia z PV
+  - `on-grid` — moc proporcjonalna: `heaterKW × clamp((T_hot − T)/TANK_ONGRID_BAND, 0, 1)`;
+    nadwyżkę PV wykorzystuje w pierwszej kolejności, resztę dobiera z sieci
 - Termostat: max 60°C (granica higieniczna anty-Legionella)
 - Straty: `UA(V) = UA_REF · (V/V_REF)^(2/3)`, klasa B/C wg PN-EN 12897
+- Wykresy: temperatura zasobnika (tło grzania w osobnym odcieniu dla strefy
+  dziennej i nocnej) oraz słupkowy wykres mocy elektrycznej grzałki (PV vs sieć)
+- Statystyki: pokrycie CWU, godziny pracy, zużycie prądu (PV vs sieć),
+  koszt energii z sieci wg cen stref z Modułu 03
 
 ## Stan aplikacji
 
@@ -86,6 +95,8 @@ P.state = {
   T_hot: 50,            // temperatura CWU [°C]
   heaterKW: 3.0,        // moc grzałki [kW]
   heaterThreshold: 0.1, // próg włączenia: PV >= threshold * heaterKW
+  heaterStratDay:   'off-grid', // strategia w strefie dziennej: 'off'|'off-grid'|'on-grid'
+  heaterStratNight: 'off-grid', // strategia w strefie nocnej
   tankL: 500,           // pojemność zasobnika [L]
   buildingType: 'old',  // 'old' | 'new' — straty cyrkulacji (60% / 35%)
   // Moduł 03 — taryfa energii elektrycznej (on-grid w przygotowaniu)
@@ -96,7 +107,7 @@ P.state = {
 }
 ```
 
-Każda zmiana w UI → `P.update()` → trzy symulacje + `renderGridChart()` → siedem funkcji render.
+Każda zmiana w UI → `P.update()` → trzy symulacje + `renderGridChart()` → osiem funkcji render.
 
 ## CSS — kolory akcentów
 

@@ -13,7 +13,7 @@
    - tablicę MONTHS z danymi PVGIS dla każdego miesiąca
      (doy, dni w miesiącu, przeciętna dzienna produkcja kWh/kWp)
    - obiekt state — bieżące wartości wszystkich suwaków i pól UI,
-     w tym parametry taryfy elektrycznej (moduł 04 — on-grid w przygotowaniu)
+     w tym parametry taryfy elektrycznej (moduł 03 — on-grid w przygotowaniu)
 
    Musi być ładowany jako PIERWSZY spośród plików JS,
    bo physics.js, render.js i app.js korzystają z P.state i stałych.
@@ -86,7 +86,7 @@ window.PVSIM = window.PVSIM || {};
   // Źródło rzędów wielkości: POBE, Feist & Schnieders (2009), Badescu & Staicovici (2006)
   P.CIRC_LOSS = { new: 0.35, old: 0.60 };
 
-  // ===== ZASOBNIK + GRZAŁKA (Moduł 03) =====
+  // ===== ZASOBNIK + GRZAŁKA (Moduł 04) =====
   P.TANK_T_MAX  = 60;    // °C — termostat (granica higieniczna anti-legionella)
   P.TANK_T_AMB  = 15;    // °C — otoczenie zasobnika (piwnica/kotłownia)
   // UA dla zasobnika izolowanego pianką PU 50mm, smukły walec H/D≈3:
@@ -124,7 +124,7 @@ window.PVSIM = window.PVSIM || {};
     heaterThreshold: 0.1, // próg włączenia: PV >= threshold * heaterKW
     tankL: 500,         // pojemność zasobnika [l]
     buildingType: 'old', // 'new' | 'old' — typ budynku (straty cyrkulacji)
-    // Moduł 04 — taryfa energii elektrycznej z sieci (G12 Tauron 2026)
+    // Moduł 03 — taryfa energii elektrycznej z sieci (G12 Tauron 2026)
     gridPriceDay:   0.6950, // zł/kWh — strefa dzienna
     gridPriceNight: 0.3500, // zł/kWh — strefa nocna
     gridDayStart:   6,      // godz. początku strefy dziennej (0–23)

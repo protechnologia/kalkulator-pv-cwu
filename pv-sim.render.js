@@ -19,15 +19,15 @@
                         dwie osie Y, kolor turkusowy
      renderDHWStats() — karty: dobowe/miesięczne zużycie wody, energii i koszt
 
-   Moduł 03 — Zasobnik:
-     renderTankChart() — wykres temperatury zasobnika (°C) z tłem grzania,
-                         linia termostatu i linea T_CWU, kolor bursztynowy
-     renderTankStats() — karty: pokrycie CWU, energia z PV, oszczędność w zł
-
-   Moduł 04 — Sieć:
+   Moduł 03 — Sieć:
      renderGridChart() — wykres krokowy ceny energii elektrycznej (zł/kWh) przez dobę,
                          strefa dzienna (fiolet) vs nocna (szary), kolor fioletowy;
                          oś Y z ładnymi krokami (nie wywołuje P.update — brak symulacji)
+
+   Moduł 04 — Zasobnik:
+     renderTankChart() — wykres temperatury zasobnika (°C) z tłem grzania,
+                         linia termostatu i linea T_CWU, kolor bursztynowy
+     renderTankStats() — karty: pokrycie CWU, energia z PV, oszczędność w zł
    ========================================================= */
 window.PVSIM = window.PVSIM || {};
 (function(P) {
@@ -423,7 +423,7 @@ window.PVSIM = window.PVSIM || {};
     document.getElementById('pvsim-tank-ctx').textContent = ctx;
   };
 
-  // ===== RENDER WYKRESU TARYFY SIECIOWEJ (Moduł 04) =====
+  // ===== RENDER WYKRESU TARYFY SIECIOWEJ (Moduł 03) =====
   // Wykres krokowy (step) ceny energii elektrycznej przez dobę.
   // Strefa dzienna i nocna zaznaczone różnymi kolorami słupków.
   P.renderGridChart = function() {

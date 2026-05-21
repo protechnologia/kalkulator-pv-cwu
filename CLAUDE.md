@@ -59,19 +59,19 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 - Temperatura wody zimnej: model sinusoidalny, min luty ~6°C, max sierpień ~16°C
 - Taryfa: ECO Opole od 01.01.2026 → domyślnie `P.PRICE_PER_GJ = 196.95 zł/GJ` (edytowalna z UI)
 
-### Moduł 03 — Zasobnik z grzałką
+### Moduł 03 — Sieć (taryfa energii elektrycznej)
+- Parametry: cena strefy dziennej [zł/kWh], cena strefy nocnej [zł/kWh], godziny strefy dziennej (start/koniec)
+- Wartości domyślne: G12 Tauron 2026 — dzień 0,6950 zł/kWh, noc 0,3500 zł/kWh, strefa 6:00–22:00
+- Wykres krokowy 24h — słupki fioletowe (dzień) i szare (noc), oś Y z ładnymi krokami
+- Moduł UI-only — dane w `P.state`, obliczenia on-grid w przygotowaniu
+
+### Moduł 04 — Zasobnik z grzałką
 - Parametry: moc grzałki (1–15 kW), próg włączenia (10–100%), pojemność zasobnika (100–1000 L)
 - Model: 1-węzłowy (fully-mixed), 6 podkroków na godzinę
 - Logika off-grid (power diverter): grzałka throttluje moc do nadwyżki PV,
   włącza się gdy `P_PV ≥ próg`, gdzie `próg = heaterThreshold × heaterKW`
 - Termostat: max 60°C (granica higieniczna anty-Legionella)
 - Straty: `UA(V) = UA_REF · (V/V_REF)^(2/3)`, klasa B/C wg PN-EN 12897
-
-### Moduł 04 — Sieć (taryfa energii elektrycznej)
-- Parametry: cena strefy dziennej [zł/kWh], cena strefy nocnej [zł/kWh], godziny strefy dziennej (start/koniec)
-- Wartości domyślne: G12 Tauron 2026 — dzień 0,6950 zł/kWh, noc 0,3500 zł/kWh, strefa 6:00–22:00
-- Wykres krokowy 24h — słupki fioletowe (dzień) i szare (noc), oś Y z ładnymi krokami
-- Moduł UI-only — dane w `P.state`, obliczenia on-grid w przygotowaniu
 
 ## Stan aplikacji
 
@@ -88,7 +88,7 @@ P.state = {
   heaterThreshold: 0.1, // próg włączenia: PV >= threshold * heaterKW
   tankL: 500,           // pojemność zasobnika [L]
   buildingType: 'old',  // 'old' | 'new' — straty cyrkulacji (60% / 35%)
-  // Moduł 04 — taryfa energii elektrycznej (on-grid w przygotowaniu)
+  // Moduł 03 — taryfa energii elektrycznej (on-grid w przygotowaniu)
   gridPriceDay:   0.6950, // zł/kWh — strefa dzienna
   gridPriceNight: 0.3500, // zł/kWh — strefa nocna
   gridDayStart:   6,      // godz. początku strefy dziennej
@@ -104,8 +104,8 @@ Każda zmiana w UI → `P.update()` → trzy symulacje + `renderGridChart()` →
 |------------------------|-------------|----------------|
 | `--pvsim-orange`       | #ff7a1a     | 01 PV          |
 | `--pvsim-teal`         | #2dd4bf     | 02 CWU         |
-| `--pvsim-amber`        | #f59e0b     | 03 Zasobnik    |
-| `--pvsim-violet`       | #a78bfa     | 04 Sieć        |
+| `--pvsim-violet`       | #a78bfa     | 03 Sieć        |
+| `--pvsim-amber`        | #f59e0b     | 04 Zasobnik    |
 
 Warianty `-dim` (`--pvsim-orange-dim` itp.) używane jako tło aktywnych przycisków.
 

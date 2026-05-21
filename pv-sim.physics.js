@@ -143,7 +143,7 @@ window.PVSIM = window.PVSIM || {};
     };
   };
 
-  // ===== SYMULACJA ZASOBNIKA (Moduł 03) =====
+  // ===== SYMULACJA ZASOBNIKA (Moduł 04) =====
   // Model 1-węzłowy (fully-mixed) z 6 podkrokami na godzinę.
   // Off-grid: grzałka pracuje tylko gdy P_PV >= P_grzałki w danej godzinie.
   // Start zimny: T_zas(00:00) = T_in (temp. wody wodociągowej w danym miesiącu).

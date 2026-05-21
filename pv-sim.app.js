@@ -14,14 +14,14 @@
      - suwak temperatury docelowej CWU (moduł 02)
      - pole ceny energii cieplnej w zł/GJ (moduł 02)
      - przełącznik typu budynku (stary/nowy — współczynnik strat cyrkulacji)
-     - suwak mocy grzałki (moduł 03)
-     - suwak progu włączenia grzałki (moduł 03)
-     - suwak pojemności zasobnika (moduł 03)
-     - pola cen energii elektrycznej dzień/noc w zł/kWh (moduł 04)
-     - suwaki początku i końca strefy dziennej (moduł 04)
+     - pola cen energii elektrycznej dzień/noc w zł/kWh (moduł 03)
+     - suwaki początku i końca strefy dziennej (moduł 03)
+     - suwak mocy grzałki (moduł 04)
+     - suwak progu włączenia grzałki (moduł 04)
+     - suwak pojemności zasobnika (moduł 04)
    Każda kontrolka przy zmianie synchronizuje P.state, odświeża etykietę,
    ustawia CSS --pvsim-fill (WebKit track fill) i wywołuje P.update()
-   lub renderGridChart() (moduł 04 nie uruchamia pełnej symulacji).
+   lub renderGridChart() (moduł 03 nie uruchamia pełnej symulacji).
 
    Musi być ładowany jako OSTATNI spośród plików JS —
    po config.js, physics.js i render.js.
@@ -139,7 +139,7 @@ window.PVSIM = window.PVSIM || {};
     sliderTH.addEventListener('input', updateThot);
     updateThot();
 
-    // Suwak mocy grzałki (Moduł 03)
+    // Suwak mocy grzałki (Moduł 04)
     const sliderH = document.getElementById('pvsim-heater');
     const sliderHVal = document.getElementById('pvsim-heater-val');
     function updateHeater() {
@@ -153,7 +153,7 @@ window.PVSIM = window.PVSIM || {};
     sliderH.addEventListener('input', updateHeater);
     updateHeater();
 
-    // Suwak progu włączenia grzałki (Moduł 03)
+    // Suwak progu włączenia grzałki (Moduł 04)
     const sliderHT = document.getElementById('pvsim-heater-threshold');
     const sliderHTVal = document.getElementById('pvsim-heater-threshold-val');
     function updateHeaterThreshold() {
@@ -166,7 +166,7 @@ window.PVSIM = window.PVSIM || {};
     sliderHT.addEventListener('input', updateHeaterThreshold);
     updateHeaterThreshold();
 
-    // Suwak pojemności zasobnika (Moduł 03)
+    // Suwak pojemności zasobnika (Moduł 04)
     const sliderT = document.getElementById('pvsim-tank');
     const sliderTVal = document.getElementById('pvsim-tank-val');
     function updateTank() {
@@ -180,7 +180,7 @@ window.PVSIM = window.PVSIM || {};
     sliderT.addEventListener('input', updateTank);
     updateTank();
 
-    // Pola cen energii elektrycznej (Moduł 04)
+    // Pola cen energii elektrycznej (Moduł 03)
     const inputGridDay = document.getElementById('pvsim-grid-price-day');
     const inputGridNight = document.getElementById('pvsim-grid-price-night');
     function syncGridPrice(input, key) {
@@ -196,7 +196,7 @@ window.PVSIM = window.PVSIM || {};
     syncGridPrice(inputGridDay, 'gridPriceDay');
     syncGridPrice(inputGridNight, 'gridPriceNight');
 
-    // Suwaki strefy dziennej (Moduł 04)
+    // Suwaki strefy dziennej (Moduł 03)
     const sliderGS = document.getElementById('pvsim-grid-day-start');
     const sliderGSVal = document.getElementById('pvsim-grid-day-start-val');
     function updateGridDayStart() {

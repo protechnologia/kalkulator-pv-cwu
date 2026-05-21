@@ -25,7 +25,7 @@
       <div class="pvsim-subtitle" id="pvsim-subtitle">Symulacja godzinowa &mdash; układ PV + CWU</div>
     </div>
     <div class="pvsim-meta">
-      v0.9.0<br>
+      v1.0.0<br>
       LAT 50.67° N &nbsp;·&nbsp; OPOLE
     </div>
   </div>
@@ -546,6 +546,78 @@
     </div>
   </div>
 
+  <!-- ========================================== -->
+  <!-- MODUŁ 07 — INWESTYCJA                       -->
+  <!-- ========================================== -->
+  <div class="pvsim-module-divider rose">
+    <div class="dot"></div>
+    <div class="tag"><span class="num">07 //</span> INWESTYCJA &mdash; Koszt i zwrot</div>
+    <div class="rule"></div>
+  </div>
+
+  <!-- KONTROLKI MODUŁU 07 -->
+  <div class="pvsim-controls">
+    <div class="pvsim-controls-row">
+      <div>
+        <div class="pvsim-label rose">Cena instalacji PV &nbsp;[ zł / kWp ]</div>
+        <div class="pvsim-power-row">
+          <div class="pvsim-slider-wrap">
+            <input type="range" min="2000" max="8000" value="4500" step="100" class="pvsim-slider rose" id="pvsim-price-pv">
+          </div>
+          <div class="pvsim-value-box rose"><span id="pvsim-price-pv-val">4 500</span><span class="unit">zł/kWp</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="pvsim-label rose">Cena grzałek &nbsp;[ zł / kW ]</div>
+        <div class="pvsim-power-row">
+          <div class="pvsim-slider-wrap">
+            <input type="range" min="100" max="2000" value="500" step="50" class="pvsim-slider rose" id="pvsim-price-heater">
+          </div>
+          <div class="pvsim-value-box rose"><span id="pvsim-price-heater-val">500</span><span class="unit">zł/kW</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="pvsim-label rose">Cena zasobnika &nbsp;[ zł / 100 l ]</div>
+        <div class="pvsim-power-row">
+          <div class="pvsim-slider-wrap">
+            <input type="range" min="300" max="3000" value="1100" step="100" class="pvsim-slider rose" id="pvsim-price-tank">
+          </div>
+          <div class="pvsim-value-box rose"><span id="pvsim-price-tank-val">1 100</span><span class="unit">zł/100l</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="pvsim-label rose">Automatyka + SCADA &nbsp;[ zł ]</div>
+        <div class="pvsim-power-row">
+          <div class="pvsim-slider-wrap">
+            <input type="range" min="0" max="50000" value="10000" step="1000" class="pvsim-slider rose" id="pvsim-price-scada">
+          </div>
+          <div class="pvsim-value-box rose"><span id="pvsim-price-scada-val">10 000</span><span class="unit">zł</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATY MODUŁU 07 -->
+  <div class="pvsim-stats two">
+    <div class="pvsim-stat rose">
+      <div class="pvsim-stat-label">Koszt inwestycji</div>
+      <div class="pvsim-stat-value dual">
+        <div class="primary"><span id="pvsim-inv-total">0</span><span class="unit">zł</span></div>
+        <div class="secondary"><span id="pvsim-inv-pv">0</span><span class="unit">zł instalacja PV</span></div>
+        <div class="secondary"><span id="pvsim-inv-heater">0</span><span class="unit">zł grzałki</span></div>
+        <div class="secondary"><span id="pvsim-inv-tank">0</span><span class="unit">zł zasobnik</span></div>
+        <div class="secondary"><span id="pvsim-inv-scada">0</span><span class="unit">zł automatyka + SCADA</span></div>
+      </div>
+    </div>
+    <div class="pvsim-stat rose">
+      <div class="pvsim-stat-label">Zwrot inwestycji</div>
+      <div class="pvsim-stat-value dual">
+        <div class="primary"><span id="pvsim-inv-payback">0</span><span class="unit">lat</span></div>
+        <div class="secondary"><span id="pvsim-inv-annual">0,00</span><span class="unit">zł bilans roczny netto</span></div>
+      </div>
+    </div>
+  </div>
+
   <!-- SIDEBAR — STAŁE PODSUMOWANIE ROCZNE -->
   <button class="pvsim-sidebar-toggle" id="pvsim-sidebar-toggle" aria-expanded="true">Podsumowanie ▾</button>
   <aside class="pvsim-sidebar" id="pvsim-sidebar">
@@ -578,6 +650,23 @@
         <div class="primary"><span id="pvsim-sb-balance">0,00</span><span class="unit">zł / rok</span></div>
         <div class="secondary"><span id="pvsim-sb-balance-saving">0,00</span><span class="unit">zł oszczędność na cieple</span></div>
         <div class="secondary"><span id="pvsim-sb-balance-cost">0,00</span><span class="unit">zł koszt energii z sieci</span></div>
+      </div>
+    </div>
+    <div class="pvsim-stat rose">
+      <div class="pvsim-stat-label">Koszt inwestycji</div>
+      <div class="pvsim-stat-value dual">
+        <div class="primary"><span id="pvsim-sb-inv-total">0</span><span class="unit">zł</span></div>
+        <div class="secondary"><span id="pvsim-sb-inv-pv">0</span><span class="unit">zł instalacja PV</span></div>
+        <div class="secondary"><span id="pvsim-sb-inv-heater">0</span><span class="unit">zł grzałki</span></div>
+        <div class="secondary"><span id="pvsim-sb-inv-tank">0</span><span class="unit">zł zasobnik</span></div>
+        <div class="secondary"><span id="pvsim-sb-inv-scada">0</span><span class="unit">zł automatyka + SCADA</span></div>
+      </div>
+    </div>
+    <div class="pvsim-stat rose">
+      <div class="pvsim-stat-label">Zwrot inwestycji</div>
+      <div class="pvsim-stat-value dual">
+        <div class="primary"><span id="pvsim-sb-inv-payback">0</span><span class="unit">lat</span></div>
+        <div class="secondary"><span id="pvsim-sb-inv-annual">0,00</span><span class="unit">zł bilans roczny netto</span></div>
       </div>
     </div>
   </aside>

@@ -6,18 +6,18 @@ Napisany w czystym HTML/CSS/JS, bez frameworków i bundlerów.
 
 ## Uruchamianie
 
-Otwórz `pv-sim.v0.9.html` w przeglądarce. Nie wymaga żadnej instalacji ani serwera.
+Otwórz `pv-sim.v1.0.html` w przeglądarce. Nie wymaga żadnej instalacji ani serwera.
 
 ## Struktura plików
 
 ```
-pv-sim.v0.9.html      — jedyna strona HTML; ładuje CSS i JS w odpowiedniej kolejności
+pv-sim.v1.0.html      — jedyna strona HTML; ładuje CSS i JS w odpowiedniej kolejności
 pv-sim.tokens.css     — zmienne CSS (kolory, tła, akcenty); bazowy kontener .pvsim
 pv-sim.layout.css     — nagłówek, suwaki, siatka miesięcy, stopka, responsive
 pv-sim.components.css — wykresy SVG, karty statystyk, separatory modułów, warianty kolorów
 pv-sim.config.js      — stałe, MONTHS[], state{}, T_cold(), kWh_per_m3()
-pv-sim.physics.js     — simulateDay(), simulateDHW(), simulateTank(), simulateTankMonth(), simulateTankYear()
-pv-sim.render.js      — fmt, smoothPath(), renderChart/Stats dla 6 modułów
+pv-sim.physics.js     — simulateDay(), simulateDHW(), simulateTank(), simulateTankMonth(), simulateTankYear(), computeInvestment()
+pv-sim.render.js      — fmt, smoothPath(), renderChart/Stats dla 7 modułów
 pv-sim.app.js         — P.update(), init(), listenery suwaków i przycisków
 ```
 
@@ -112,12 +112,28 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 - Statystyki roczne: pokrycie CWU, godziny pracy grzałki, zużycie prądu
   (PV vs sieć), koszt energii z sieci, ciepło zaoszczędzone, bilans roczny.
 
-### Sidebar — stałe podsumowanie miesięczne
+### Moduł 07 — Inwestycja
+- Kalkulator kosztu całej inwestycji i czasu jej zwrotu. Inwestycja
+  obejmuje cztery pozycje: instalację PV, grzałki, zasobnik oraz
+  automatykę + SCADA.
+- Ma własne kontrolki — cztery suwaki cen jednostkowych (`pvsim-price-*`):
+  cena PV [zł/kWp], cena grzałek [zł/kW], cena zasobnika [zł/100 l],
+  automatyka + SCADA [zł, ryczałt]. Domyślne wartości: 4500 / 500 /
+  1100 / 10000 (research rynkowy PL 2025).
+- `P.computeInvestment(simYear)` liczy:
+  `koszt = kWp·cenaPV + heaterKW·cenaGrzałki + (tankL/100)·cenaZasobnika
+  + cenaScada` oraz `lata na zwrot = koszt ÷ bilans roczny netto`
+  (`simYear.yearly.balancePLN`). Gdy bilans ≤ 0 → `paybackYears =
+  Infinity`, panel pokazuje „—".
+- Statystyki (2 panele): koszt inwestycji (z rozbiciem na 4 pozycje)
+  oraz zwrot inwestycji w latach.
+
+### Sidebar — stałe podsumowanie roczne
 - `<aside class="pvsim-sidebar">` — panel `position: fixed` przy prawej krawędzi
   okna, stale widoczny podczas przewijania. Zawiera kopie 4 najważniejszych
-  paneli statystyk Modułu 05: zużycie prądu, koszt energii z sieci, ciepło
-  zaoszczędzone, bilans miesięczny (id-ki `pvsim-sb-*`).
-- `P.renderMonthStats()` wpisuje te same wartości równolegle do paneli Modułu 05
+  paneli statystyk Modułu 06: zużycie prądu, koszt energii z sieci, ciepło
+  zaoszczędzone, bilans roczny (id-ki `pvsim-sb-*`).
+- `P.renderYearStats()` wpisuje te same wartości równolegle do paneli Modułu 06
   i do sidebara (helper `set(txt, ...ids)`).
 - Przycisk `pvsim-sidebar-toggle` pokazuje/ukrywa sidebar. Stan startowy zależy
   od szerokości okna: ≥ 1100 px → widoczny, mniej → ukryty. Ukrycie = klasa
@@ -144,11 +160,16 @@ P.state = {
   gridPriceDay:   0.6950, // zł/kWh — strefa dzienna
   gridPriceNight: 0.3500, // zł/kWh — strefa nocna
   gridDayStart:   6,      // godz. początku strefy dziennej
-  gridDayEnd:     22      // godz. końca strefy dziennej
+  gridDayEnd:     22,     // godz. końca strefy dziennej
+  // Moduł 07 — inwestycja (ceny jednostkowe)
+  pricePVkWp:    4500,    // zł / 1 kWp instalacji PV
+  priceHeaterKW: 500,     // zł / 1 kW grzałki
+  priceTank100:  1100,    // zł / 100 l zasobnika
+  priceScada:    10000    // zł — automatyka + SCADA (ryczałt)
 }
 ```
 
-Każda zmiana w UI → `P.update()` → pięć symulacji + `renderGridChart()` → trzynaście funkcji render.
+Każda zmiana w UI → `P.update()` → pięć symulacji + `computeInvestment()` + `renderGridChart()` → funkcje render wszystkich modułów.
 
 ## CSS — kolory akcentów
 
@@ -160,6 +181,7 @@ Każda zmiana w UI → `P.update()` → pięć symulacji + `renderGridChart()` �
 | `--pvsim-amber`        | #f59e0b     | 04 Zasobnik    |
 | `--pvsim-sky`          | #38bdf8     | 05 Sym. mies.  |
 | `--pvsim-lime`         | #a3e635     | 06 Sym. roczna |
+| `--pvsim-rose`         | #fb7185     | 07 Inwestycja  |
 
 Warianty `-dim` (`--pvsim-orange-dim` itp.) używane jako tło aktywnych przycisków.
 

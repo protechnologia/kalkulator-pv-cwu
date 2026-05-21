@@ -139,7 +139,12 @@ window.PVSIM = window.PVSIM || {};
     gridPriceDay:   0.6950, // zł/kWh — strefa dzienna
     gridPriceNight: 0.3500, // zł/kWh — strefa nocna
     gridDayStart:   6,      // godz. początku strefy dziennej (0–23)
-    gridDayEnd:     22      // godz. końca strefy dziennej (0–23)
+    gridDayEnd:     22,     // godz. końca strefy dziennej (0–23)
+    // Moduł 07 — inwestycja (ceny jednostkowe)
+    pricePVkWp:    4500,    // zł / 1 kWp instalacji PV
+    priceHeaterKW: 500,     // zł / 1 kW grzałki
+    priceTank100:  1100,    // zł / 100 l zasobnika
+    priceScada:    10000    // zł — automatyka + SCADA (ryczałt)
   };
 
 })(window.PVSIM);

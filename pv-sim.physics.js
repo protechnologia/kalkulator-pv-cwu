@@ -35,6 +35,11 @@
      Symulacja roczna — wywołuje P.simulateTankMonth() dla każdego z 12
      miesięcy z osobnymi wejściami PV i CWU. Zwraca agregaty miesięczne
      (do wykresu słupkowego) oraz sumy roczne.
+
+   P.computeInvestment(simYear)
+     Kalkulator inwestycji — sumuje koszt instalacji PV, grzałki,
+     zasobnika i automatyki + SCADA (ceny jednostkowe z P.state) oraz
+     liczy zwrot inwestycji względem bilansu rocznego netto.
    ========================================================= */
 window.PVSIM = window.PVSIM || {};
 (function(P) {
@@ -450,6 +455,25 @@ window.PVSIM = window.PVSIM || {};
         coveragePct: Q_CWU > 0 ? (Q_saved / Q_CWU * 100) : 0
       }
     };
+  };
+
+  // ===== KALKULATOR INWESTYCJI (Moduł 07) =====
+  // Sumuje koszt całej inwestycji z czterech pozycji: instalacja PV,
+  // grzałki, zasobnik i automatyka + SCADA. Ceny jednostkowe pochodzą
+  // z P.state (suwaki Modułu 07), mnożniki — z modułów 01/04.
+  // Zwrot inwestycji liczony względem bilansu rocznego netto
+  // (oszczędność na cieple − koszt prądu z sieci). Gdy bilans ≤ 0,
+  // paybackYears = Infinity (brak zwrotu).
+  P.computeInvestment = function(simYear) {
+    const s = P.state;
+    const costPV     = s.kWp * s.pricePVkWp;
+    const costHeater = s.heaterKW * s.priceHeaterKW;
+    const costTank   = (s.tankL / 100) * s.priceTank100;
+    const costScada  = s.priceScada;
+    const total      = costPV + costHeater + costTank + costScada;
+    const annual     = simYear.yearly.balancePLN;
+    const paybackYears = annual > 0 ? total / annual : Infinity;
+    return { costPV, costHeater, costTank, costScada, total, annual, paybackYears };
   };
 
 })(window.PVSIM);

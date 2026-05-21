@@ -3,8 +3,8 @@
 
    P.update() — wywołuje kolejno wszystkie symulacje/rendery
      (simulateDay → simulateDHW → simulateTank → simulateTankMonth →
-     simulateTankYear → renderGridChart) i przekazuje wyniki do
-     odpowiednich funkcji render.
+     simulateTankYear → computeInvestment → renderGridChart)
+     i przekazuje wyniki do odpowiednich funkcji render.
      Wywoływana przy każdej zmianie parametrów przez użytkownika.
 
    Prywatna init() — jednorazowa inicjalizacja UI:
@@ -21,6 +21,7 @@
      - suwak progu włączenia grzałki (moduł 04)
      - suwak pojemności zasobnika (moduł 04)
      - przełączniki strategii grzałki dzień/noc (moduł 04)
+     - suwaki cen inwestycji: PV, grzałki, zasobnik, SCADA (moduł 07)
      - przycisk pokaż/ukryj sidebar z podsumowaniem miesięcznym
        (start: widoczny dla okna ≥1100 px, ukryty poniżej)
    Każda kontrolka przy zmianie synchronizuje P.state, odświeża etykietę,
@@ -57,6 +58,9 @@ window.PVSIM = window.PVSIM || {};
     const simYear = P.simulateTankYear();
     P.renderYearChart(simYear);
     P.renderYearStats(simYear);
+
+    const inv = P.computeInvestment(simYear);
+    P.renderInvestStats(inv);
 
     P.renderGridChart();
   };
@@ -249,6 +253,26 @@ window.PVSIM = window.PVSIM || {};
     }
     sliderGE.addEventListener('input', updateGridDayEnd);
     updateGridDayEnd();
+
+    // Suwaki cen inwestycji (Moduł 07)
+    function wirePriceSlider(sliderId, valId, stateKey) {
+      const sl  = document.getElementById(sliderId);
+      const val = document.getElementById(valId);
+      function upd() {
+        P.state[stateKey] = parseInt(sl.value, 10);
+        val.textContent = P.fmt.pl0(P.state[stateKey]);
+        const min = parseFloat(sl.min), max = parseFloat(sl.max);
+        const pct = ((P.state[stateKey] - min) / (max - min)) * 100;
+        sl.style.setProperty('--pvsim-fill', pct + '%');
+        P.update();
+      }
+      sl.addEventListener('input', upd);
+      upd();
+    }
+    wirePriceSlider('pvsim-price-pv',     'pvsim-price-pv-val',     'pricePVkWp');
+    wirePriceSlider('pvsim-price-heater', 'pvsim-price-heater-val', 'priceHeaterKW');
+    wirePriceSlider('pvsim-price-tank',   'pvsim-price-tank-val',   'priceTank100');
+    wirePriceSlider('pvsim-price-scada',  'pvsim-price-scada-val',  'priceScada');
 
     // Przycisk pokaż/ukryj sidebar — start widoczny na szerokich ekranach
     const sidebar = document.getElementById('pvsim-sidebar');

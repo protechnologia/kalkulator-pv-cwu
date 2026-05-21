@@ -66,6 +66,7 @@
   background: var(--pvsim-bg-0);
 }
 .pvsim-stats.four { grid-template-columns: repeat(4, 1fr); }
+.pvsim-stats.two { grid-template-columns: repeat(2, 1fr); }
 .pvsim-stats-note {
   padding: 12px 0 0;
   font-size: 10px;
@@ -310,6 +311,36 @@
 }
 .pvsim-stat.lime::before { background: var(--pvsim-lime); }
 .pvsim-stat.lime .pvsim-stat-value { color: var(--pvsim-lime); }
+
+/* -------- ROSE VARIANTS (Moduł 07 — inwestycja) -------- */
+.pvsim-module-divider.rose .tag { color: var(--pvsim-rose); }
+.pvsim-module-divider.rose .rule {
+  background: linear-gradient(90deg, var(--pvsim-rose) 0%, transparent 100%);
+}
+.pvsim-module-divider.rose .dot {
+  background: var(--pvsim-rose);
+  box-shadow: 0 0 8px var(--pvsim-rose);
+}
+.pvsim-slider.rose::-webkit-slider-runnable-track {
+  background: linear-gradient(90deg,
+    var(--pvsim-rose) 0%,
+    var(--pvsim-rose) var(--pvsim-fill, 18%),
+    var(--pvsim-bg-3) var(--pvsim-fill, 18%),
+    var(--pvsim-bg-3) 100%);
+}
+.pvsim-slider.rose::-moz-range-progress { background: var(--pvsim-rose); }
+.pvsim-slider.rose::-webkit-slider-thumb {
+  background: var(--pvsim-rose);
+  box-shadow: 0 0 0 1px var(--pvsim-rose), 0 0 12px rgba(251, 113, 133, 0.4);
+}
+.pvsim-slider.rose::-moz-range-thumb {
+  background: var(--pvsim-rose);
+  box-shadow: 0 0 0 1px var(--pvsim-rose);
+}
+.pvsim-value-box.rose { color: var(--pvsim-rose); }
+.pvsim-label.rose::before { background: var(--pvsim-rose); }
+.pvsim-stat.rose::before { background: var(--pvsim-rose); }
+.pvsim-stat.rose .pvsim-stat-value { color: var(--pvsim-rose); }
 
 /* -------- SIDEBAR — stałe podsumowanie miesięczne -------- */
 .pvsim-sidebar-toggle {

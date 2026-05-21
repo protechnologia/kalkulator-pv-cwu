@@ -30,6 +30,12 @@
     </div>
   </div>
 
+  <!-- MODUŁ 01 — PV                                -->
+  <div class="pvsim-module-divider orange">
+    <div class="tag"><span class="num">01 //</span> PV &mdash; Produkcja energii fotowoltaicznej</div>
+    <div class="rule"></div>
+  </div>
+
   <!-- CONTROLS -->
   <div class="pvsim-controls">
 
@@ -79,15 +85,15 @@
   <!-- STATS -->
   <div class="pvsim-stats">
     <div class="pvsim-stat orange">
-      <div class="pvsim-stat-label">E.dobowa &nbsp;/ E_day</div>
+      <div class="pvsim-stat-label">PRODUKCJA DOBOWA</div>
       <div class="pvsim-stat-value"><span id="pvsim-daily">0,00</span><span class="unit">kWh</span></div>
     </div>
     <div class="pvsim-stat orange">
-      <div class="pvsim-stat-label">E.miesięczna &nbsp;/ E_mth</div>
+      <div class="pvsim-stat-label">PRODUKCJA MIESIĘCZNA</div>
       <div class="pvsim-stat-value"><span id="pvsim-monthly">0</span><span class="unit">kWh</span></div>
     </div>
     <div class="pvsim-stat teal">
-      <div class="pvsim-stat-label">P.szczyt &nbsp;/ P_peak</div>
+      <div class="pvsim-stat-label">MOC SZCZYTOWA</div>
       <div class="pvsim-stat-value"><span id="pvsim-peak">0,00</span><span class="unit">kW</span></div>
     </div>
   </div>
@@ -123,6 +129,13 @@
         </div>
       </div>
       <div>
+        <div class="pvsim-label teal">Cena energii cieplnej &nbsp;[ zł/GJ ]</div>
+        <div class="pvsim-power-row">
+          <input type="number" min="50" max="600" step="0.01" value="196.95" class="pvsim-number-input teal" id="pvsim-price-gj">
+          <div class="pvsim-value-box teal"><span class="unit">zł/GJ</span></div>
+        </div>
+      </div>
+      <div>
         <div class="pvsim-label teal">Typ budynku &nbsp;/ straty cyrkulacji</div>
         <div class="pvsim-toggle" id="pvsim-building-toggle">
           <button class="pvsim-toggle-btn teal active" data-building="old">
@@ -153,29 +166,29 @@
   <!-- STATY CWU -->
   <div class="pvsim-stats four">
     <div class="pvsim-stat teal">
-      <div class="pvsim-stat-label">V.woda &nbsp;/ CWU</div>
+      <div class="pvsim-stat-label">ZUŻYCIE WODY</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-dhw-water-d">0,00</span><span class="unit">m³ / dobę</span></div>
         <div class="secondary"><span id="pvsim-dhw-water-m">0</span><span class="unit">m³ / mc</span></div>
       </div>
     </div>
     <div class="pvsim-stat teal">
-      <div class="pvsim-stat-label">E.cieplna &nbsp;/ Q_total</div>
+      <div class="pvsim-stat-label">ENERGIA (całkowita)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-dhw-energy-d">0</span><span class="unit">kWh / dobę</span></div>
         <div class="secondary"><span id="pvsim-dhw-energy-m">0</span><span class="unit">kWh / mc</span></div>
       </div>
     </div>
     <div class="pvsim-stat teal">
-      <div class="pvsim-stat-label">Straty cyrk. &nbsp;/ Q_circ</div>
+      <div class="pvsim-stat-label">STRATY CYRKULACJI</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-dhw-circ-d">0</span><span class="unit">kWh / dobę</span></div>
-        <div class="secondary"><span id="pvsim-dhw-circ-pct">0</span><span class="unit">% z Q_podgrzew</span></div>
-        <div class="secondary"><span id="pvsim-dhw-circ-pct-tot">0</span><span class="unit">% z Q_total</span></div>
+        <div class="secondary"><span id="pvsim-dhw-circ-pct">0</span><span class="unit">% użytecznej</span></div>
+        <div class="secondary"><span id="pvsim-dhw-circ-pct-tot">0</span><span class="unit">% całkowitej</span></div>
       </div>
     </div>
     <div class="pvsim-stat teal">
-      <div class="pvsim-stat-label">Koszt &nbsp;/ ECO Opole</div>
+      <div class="pvsim-stat-label">KOSZT (Z SIECI)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-dhw-cost-d">0,00</span><span class="unit">zł / dobę</span></div>
         <div class="secondary"><span id="pvsim-dhw-cost-m">0</span><span class="unit">zł / mc</span></div>

@@ -179,6 +179,26 @@
   text-align: right;
   letter-spacing: -0.01em;
 }
+.pvsim-number-input {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 22px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--pvsim-orange);
+  background: var(--pvsim-bg-2);
+  border: 1px solid var(--pvsim-border);
+  padding: 8px 14px;
+  width: 140px;
+  text-align: right;
+  letter-spacing: -0.01em;
+  -moz-appearance: textfield;
+}
+.pvsim-number-input::-webkit-inner-spin-button,
+.pvsim-number-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.pvsim-number-input:focus { outline: 1px solid var(--pvsim-orange); }
+.pvsim-number-input.teal { color: var(--pvsim-teal); }
+.pvsim-number-input.teal:focus { outline-color: var(--pvsim-teal); }
+
 .pvsim-value-box .unit {
   font-size: 12px;
   color: var(--pvsim-text-1);

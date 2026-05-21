@@ -94,6 +94,17 @@ window.PVSIM = window.PVSIM || {};
       });
     });
 
+    // Pole ceny energii cieplnej (Moduł 02 / CWU)
+    const inputPrice = document.getElementById('pvsim-price-gj');
+    inputPrice.addEventListener('input', function() {
+      const val = parseFloat(this.value);
+      if (!isNaN(val) && val > 0) {
+        P.PRICE_PER_GJ  = val;
+        P.PRICE_PER_KWH = P.PRICE_PER_GJ / P.KWH_PER_GJ;
+        P.update();
+      }
+    });
+
     // Suwak mieszkańców (Moduł 02 / CWU)
     const sliderR = document.getElementById('pvsim-residents');
     const sliderRVal = document.getElementById('pvsim-residents-val');

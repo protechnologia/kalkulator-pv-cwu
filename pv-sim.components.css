@@ -205,6 +205,16 @@
   font-weight: 400;
 }
 
+/* -------- ORANGE VARIANTS (Moduł 01 — PV) -------- */
+.pvsim-module-divider.orange .tag { color: var(--pvsim-orange); }
+.pvsim-module-divider.orange .rule {
+  background: linear-gradient(90deg, var(--pvsim-orange) 0%, transparent 100%);
+}
+.pvsim-module-divider.orange .dot {
+  background: var(--pvsim-orange);
+  box-shadow: 0 0 8px var(--pvsim-orange);
+}
+
 /* -------- AMBER VARIANTS (Moduł 03 — grzanie) -------- */
 .pvsim-module-divider.amber .tag { color: var(--pvsim-amber); }
 .pvsim-module-divider.amber .rule {

@@ -286,6 +286,18 @@
 .pvsim-number-input.violet { color: var(--pvsim-violet); }
 .pvsim-number-input.violet:focus { outline-color: var(--pvsim-violet); }
 
+/* -------- SKY VARIANTS (Moduł 05 — symulacja miesięczna) -------- */
+.pvsim-module-divider.sky .tag { color: var(--pvsim-sky); }
+.pvsim-module-divider.sky .rule {
+  background: linear-gradient(90deg, var(--pvsim-sky) 0%, transparent 100%);
+}
+.pvsim-module-divider.sky .dot {
+  background: var(--pvsim-sky);
+  box-shadow: 0 0 8px var(--pvsim-sky);
+}
+.pvsim-stat.sky::before { background: var(--pvsim-sky); }
+.pvsim-stat.sky .pvsim-stat-value { color: var(--pvsim-sky); }
+
 .pvsim-grid-tariff-note {
   font-size: 11px;
   color: var(--pvsim-text-2);

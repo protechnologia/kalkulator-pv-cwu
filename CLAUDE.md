@@ -16,8 +16,8 @@ pv-sim.tokens.css     — zmienne CSS (kolory, tła, akcenty); bazowy kontener .
 pv-sim.layout.css     — nagłówek, suwaki, siatka miesięcy, stopka, responsive
 pv-sim.components.css — wykresy SVG, karty statystyk, separatory modułów, warianty kolorów
 pv-sim.config.js      — stałe, MONTHS[], state{}, T_cold(), kWh_per_m3()
-pv-sim.physics.js     — simulateDay(), simulateDHW(), simulateTank()
-pv-sim.render.js      — fmt, smoothPath(), renderChart/Stats dla 4 modułów
+pv-sim.physics.js     — simulateDay(), simulateDHW(), simulateTank(), simulateTankMonth()
+pv-sim.render.js      — fmt, smoothPath(), renderChart/Stats dla 5 modułów
 pv-sim.app.js         — P.update(), init(), listenery suwaków i przycisków
 ```
 
@@ -82,6 +82,20 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 - Statystyki: pokrycie CWU, godziny pracy, zużycie prądu (PV vs sieć),
   koszt energii z sieci wg cen stref z Modułu 03
 
+### Moduł 05 — Symulacja miesięczna
+- Symulacja ciągła zasobnika przez cały miesiąc (`days × 24 h`): pierwsza doba
+  startuje zimna (`T_in`), każda następna dziedziczy temperaturę końcową
+  poprzedniej. Po kilku dobach układ wchodzi w stan ustalony.
+- Bez własnych kontrolek — dziedziczy parametry Modułu 04 (grzałka, zasobnik,
+  strategie dzień/noc). Każda zmiana suwaka odświeża też Moduł 05.
+- `P.simulateTankMonth()` wywołuje `P.simulateTank()` raz na dobę z temperaturą
+  startową = `T_end` poprzedniej doby (opcjonalny 5. parametr `T_init`).
+- Wykresy: temperatura zasobnika (ciągła linia, cały miesiąc) oraz słupkowy
+  wykres dobowego bilansu energii elektrycznej grzałki (jeden słupek na dobę,
+  PV vs sieć).
+- Statystyki miesięczne: pokrycie CWU, godziny pracy grzałki, zużycie prądu
+  (PV vs sieć), koszt energii z sieci.
+
 ## Stan aplikacji
 
 Cały stan UI trzymany jest w `P.state` (zdefiniowany w `config.js`):
@@ -107,7 +121,7 @@ P.state = {
 }
 ```
 
-Każda zmiana w UI → `P.update()` → trzy symulacje + `renderGridChart()` → osiem funkcji render.
+Każda zmiana w UI → `P.update()` → cztery symulacje + `renderGridChart()` → jedenaście funkcji render.
 
 ## CSS — kolory akcentów
 
@@ -117,6 +131,7 @@ Każda zmiana w UI → `P.update()` → trzy symulacje + `renderGridChart()` →
 | `--pvsim-teal`         | #2dd4bf     | 02 CWU         |
 | `--pvsim-violet`       | #a78bfa     | 03 Sieć        |
 | `--pvsim-amber`        | #f59e0b     | 04 Zasobnik    |
+| `--pvsim-sky`          | #38bdf8     | 05 Sym. mies.  |
 
 Warianty `-dim` (`--pvsim-orange-dim` itp.) używane jako tło aktywnych przycisków.
 
@@ -125,7 +140,8 @@ Warianty `-dim` (`--pvsim-orange-dim` itp.) używane jako tło aktywnych przycis
 Wykresy generowane dynamicznie przez `render.js` jako inline SVG wstrzykiwany do `.pvsim-chart`.
 Krzywe wygładzane interpolacją Catmull-Rom (prywatna `smoothPath()`).
 Stałe osi Y: `P.Y_MAX_KW = 45`, `P.Y_MAX_M3H = 1.0`, `P.Y_MAX_TEMP = 70`.
-Moduły 02 i 04 dobierają `yMax` dynamicznie z ładnymi krokami osi (nie ma stałej).
+Moduły 02, 04 i 05 dobierają `yMax` dynamicznie z ładnymi krokami osi (nie ma stałej).
+Moduł 05 rozciąga oś X na `days × 24` godzin (cały miesiąc), z siatką pionową co dobę.
 
 ## Dane źródłowe
 

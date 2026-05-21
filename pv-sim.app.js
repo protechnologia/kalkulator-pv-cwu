@@ -1,10 +1,10 @@
 /* =========================================================
    PV.SIM — Główna logika aplikacji i obsługa interfejsu
 
-   P.update() — wywołuje kolejno wszystkie cztery symulacje/rendery
-     (simulateDay → simulateDHW → simulateTank → renderGridChart) i przekazuje
-     wyniki do odpowiednich funkcji render. Wywoływana przy
-     każdej zmianie parametrów przez użytkownika.
+   P.update() — wywołuje kolejno wszystkie symulacje/rendery
+     (simulateDay → simulateDHW → simulateTank → simulateTankMonth →
+     renderGridChart) i przekazuje wyniki do odpowiednich funkcji render.
+     Wywoływana przy każdej zmianie parametrów przez użytkownika.
 
    Prywatna init() — jednorazowa inicjalizacja UI:
      - suwak mocy PV (kWp)
@@ -45,6 +45,11 @@ window.PVSIM = window.PVSIM || {};
     P.renderTankChart(simTank);
     P.renderTankElecChart(simTank);
     P.renderTankStats(simTank);
+
+    const simMonth = P.simulateTankMonth(sim, simDHW, P.state.heaterKW, P.state.tankL);
+    P.renderMonthTankChart(simMonth);
+    P.renderMonthElecChart(simMonth);
+    P.renderMonthStats(simMonth);
 
     P.renderGridChart();
   };

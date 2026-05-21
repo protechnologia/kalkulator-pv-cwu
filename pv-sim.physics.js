@@ -151,8 +151,10 @@ window.PVSIM = window.PVSIM || {};
   //   'off-grid' — moc throttlowana do nadwyżki PV (power diverter), energia z PV
   //   'on-grid'  — moc proporcjonalna do (T_hot - T)/BAND; nadwyżkę PV
   //                wykorzystujemy w pierwszej kolejności, resztę dobiera sieć
-  // Start zimny: T_zas(00:00) = T_in (temp. wody wodociągowej w danym miesiącu).
-  P.simulateTank = function(simPV, simDHW, heaterKW, tankL) {
+  // Temperatura startowa T_zas(00:00):
+  //   T_init === undefined → start zimny = T_in (temp. wody wodociągowej),
+  //   T_init podane         → ciągłość dobowa (Moduł 05 — symulacja miesięczna).
+  P.simulateTank = function(simPV, simDHW, heaterKW, tankL, T_init) {
     const cw    = P.C_WATER / 3600;                           // kWh/(kg·K)
     const m_zas = tankL;                                      // kg
     const UA    = P.TANK_UA_REF * Math.pow(tankL / P.TANK_V_REF, 2/3);  // W/K
@@ -163,7 +165,7 @@ window.PVSIM = window.PVSIM || {};
     const T_hot = P.state.T_hot;
     const band  = P.TANK_ONGRID_BAND;
     const threshold = P.state.heaterThreshold * heaterKW;
-    let T = T_in;
+    let T = (T_init === undefined ? T_in : T_init);
     const hours = [];
 
     // Przynależność godziny do strefy dziennej taryfy (Moduł 03)
@@ -282,6 +284,7 @@ window.PVSIM = window.PVSIM || {};
     return {
       hours,
       T_in,
+      T_end: T,
       daily: {
         Q_heater:    dailyQ_heater,
         Q_saved:     dailyQ_saved,
@@ -305,6 +308,65 @@ window.PVSIM = window.PVSIM || {};
         gridCost:   dailyGridCost  * days
       },
       params: { heaterKW, tankL, UA }
+    };
+  };
+
+  // ===== SYMULACJA MIESIĘCZNA ZASOBNIKA (Moduł 05) =====
+  // Symulacja ciągła przez cały miesiąc: pierwsza doba startuje zimna (T_in),
+  // każda następna dziedziczy temperaturę końcową poprzedniej. Wejścia PV i CWU
+  // są takie same dla każdej doby — jedyne, co przenosi się między dobami, to
+  // temperatura zasobnika, więc po kilku dobach układ wchodzi w stan ustalony.
+  P.simulateTankMonth = function(simPV, simDHW, heaterKW, tankL) {
+    const days  = P.MONTHS[P.state.monthIdx].days;
+    const T_in  = simDHW.T_in;
+    const hours = [];
+
+    const daysData = [];   // agregaty na dobę — wykres dobowy energii (Moduł 05)
+    let T = T_in;  // start zimny
+    let monthQ_saved = 0, monthQ_strat = 0;
+    let monthElec_pv = 0, monthElec_grid = 0;
+    let monthGridCost = 0, monthHeaterHours = 0;
+
+    for (let d = 0; d < days; d++) {
+      const day = P.simulateTank(simPV, simDHW, heaterKW, tankL, T);
+      day.hours.forEach(h => {
+        hours.push(Object.assign({}, h, { day: d, gh: d * 24 + h.hour }));
+      });
+      T = day.T_end;
+      daysData.push({
+        day:       d,
+        elec_pv:   day.daily.elec_pv,
+        elec_grid: day.daily.elec_grid,
+        gridCost:  day.daily.gridCost
+      });
+      monthQ_saved     += day.daily.Q_saved;
+      monthQ_strat     += day.daily.Q_strat;
+      monthElec_pv     += day.daily.elec_pv;
+      monthElec_grid   += day.daily.elec_grid;
+      monthGridCost    += day.daily.gridCost;
+      monthHeaterHours += day.daily.heaterHours;
+    }
+
+    const Q_CWU_month = simDHW.daily.energy * days;
+    const coveragePct = Q_CWU_month > 0 ? (monthQ_saved / Q_CWU_month * 100) : 0;
+
+    return {
+      hours,
+      daysData,
+      days,
+      T_in,
+      monthly: {
+        Q_saved:     monthQ_saved,
+        Q_strat:     monthQ_strat,
+        coveragePct,
+        heaterHours: monthHeaterHours,
+        savingPLN:   monthQ_saved * P.PRICE_PER_KWH,
+        elec_pv:     monthElec_pv,
+        elec_grid:   monthElec_grid,
+        elec_total:  monthElec_pv + monthElec_grid,
+        gridCost:    monthGridCost
+      },
+      params: { heaterKW, tankL }
     };
   };
 

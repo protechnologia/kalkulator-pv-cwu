@@ -5,14 +5,15 @@
    - stałe fizyczno-geograficzne (szerokość Opola, skaler clear-sky)
    - parametry CWU: zużycie wody na osobę, ciepło właściwe wody,
      model temperatury wody zimnej (sinusoida z opóźnieniem fazowym),
-     taryfę ciepła ECO Opole (od 01.01.2026),
+     taryfę ciepła ECO Opole (P.PRICE_PER_GJ — edytowalna z UI),
      współczynniki strat cyrkulacji CIRC_LOSS (stary/nowy budynek)
    - godzinowy profil zużycia CWU znormalizowany do 1.0
      (źródło: Chmielewska 2025, Energies 18(17), 42 budynki w PL)
    - parametry zasobnika: termostat, straty UA, liczba podkroków
    - tablicę MONTHS z danymi PVGIS dla każdego miesiąca
      (doy, dni w miesiącu, przeciętna dzienna produkcja kWh/kWp)
-   - obiekt state — bieżące wartości wszystkich suwaków UI
+   - obiekt state — bieżące wartości wszystkich suwaków i pól UI,
+     w tym parametry taryfy elektrycznej (moduł 04 — on-grid w przygotowaniu)
 
    Musi być ładowany jako PIERWSZY spośród plików JS,
    bo physics.js, render.js i app.js korzystają z P.state i stałych.
@@ -122,7 +123,12 @@ window.PVSIM = window.PVSIM || {};
     heaterKW: 3.0,      // moc grzałki [kW]
     heaterThreshold: 0.1, // próg włączenia: PV >= threshold * heaterKW
     tankL: 500,         // pojemność zasobnika [l]
-    buildingType: 'old' // 'new' | 'old' — typ budynku (straty cyrkulacji)
+    buildingType: 'old', // 'new' | 'old' — typ budynku (straty cyrkulacji)
+    // Moduł 04 — taryfa energii elektrycznej z sieci (G12 Tauron 2026)
+    gridPriceDay:   0.6950, // zł/kWh — strefa dzienna
+    gridPriceNight: 0.3500, // zł/kWh — strefa nocna
+    gridDayStart:   6,      // godz. początku strefy dziennej (0–23)
+    gridDayEnd:     22      // godz. końca strefy dziennej (0–23)
   };
 
 })(window.PVSIM);

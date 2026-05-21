@@ -28,6 +28,8 @@
   --pvsim-teal-dim: rgba(45, 212, 191, 0.12);
   --pvsim-amber: #f59e0b;
   --pvsim-amber-dim: rgba(245, 158, 11, 0.12);
+  --pvsim-violet: #a78bfa;
+  --pvsim-violet-dim: rgba(167, 139, 250, 0.12);
 
   font-family: 'IBM Plex Sans', system-ui, sans-serif;
   background: var(--pvsim-bg-0);

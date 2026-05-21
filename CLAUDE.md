@@ -17,7 +17,7 @@ pv-sim.layout.css     — nagłówek, suwaki, siatka miesięcy, stopka, responsi
 pv-sim.components.css — wykresy SVG, karty statystyk, separatory modułów, warianty kolorów
 pv-sim.config.js      — stałe, MONTHS[], state{}, T_cold(), kWh_per_m3()
 pv-sim.physics.js     — simulateDay(), simulateDHW(), simulateTank()
-pv-sim.render.js      — fmt, smoothPath(), renderChart/Stats dla 3 modułów
+pv-sim.render.js      — fmt, smoothPath(), renderChart/Stats dla 4 modułów
 pv-sim.app.js         — P.update(), init(), listenery suwaków i przycisków
 ```
 
@@ -54,10 +54,10 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 - Model słońca: deklinacja Coopera (1969), model clear-sky Hottela
 
 ### Moduł 02 — CWU (ciepła woda użytkowa)
-- Parametry: liczba mieszkańców (1–200), temperatura docelowa T_hot (35–65°C)
+- Parametry: liczba mieszkańców (1–200), temperatura docelowa T_hot (35–65°C), cena energii cieplnej [zł/GJ]
 - Profil godzinowy: Chmielewska 2025, Energies 18(17), 42 budynki w Polsce
 - Temperatura wody zimnej: model sinusoidalny, min luty ~6°C, max sierpień ~16°C
-- Taryfa: ECO Opole od 01.01.2026 → `P.PRICE_PER_KWH ≈ 0.7091 zł/kWh`
+- Taryfa: ECO Opole od 01.01.2026 → domyślnie `P.PRICE_PER_GJ = 196.95 zł/GJ` (edytowalna z UI)
 
 ### Moduł 03 — Zasobnik z grzałką
 - Parametry: moc grzałki (1–15 kW), próg włączenia (10–100%), pojemność zasobnika (100–1000 L)
@@ -67,25 +67,36 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 - Termostat: max 60°C (granica higieniczna anty-Legionella)
 - Straty: `UA(V) = UA_REF · (V/V_REF)^(2/3)`, klasa B/C wg PN-EN 12897
 
+### Moduł 04 — Sieć (taryfa energii elektrycznej)
+- Parametry: cena strefy dziennej [zł/kWh], cena strefy nocnej [zł/kWh], godziny strefy dziennej (start/koniec)
+- Wartości domyślne: G12 Tauron 2026 — dzień 0,6950 zł/kWh, noc 0,3500 zł/kWh, strefa 6:00–22:00
+- Wykres krokowy 24h — słupki fioletowe (dzień) i szare (noc), oś Y z ładnymi krokami
+- Moduł UI-only — dane w `P.state`, obliczenia on-grid w przygotowaniu
+
 ## Stan aplikacji
 
 Cały stan UI trzymany jest w `P.state` (zdefiniowany w `config.js`):
 
 ```js
 P.state = {
-  kWp: 10.0,          // moc instalacji PV [kWp]
-  monthIdx: 4,        // indeks miesiąca 0..11 (4 = maj)
-  pvMode: 'avg',      // 'avg' | 'clear'
-  residents: 50,      // liczba mieszkańców
-  T_hot: 50,          // temperatura CWU [°C]
-  heaterKW: 3.0,      // moc grzałki [kW]
+  kWp: 10.0,            // moc instalacji PV [kWp]
+  monthIdx: 4,          // indeks miesiąca 0..11 (4 = maj)
+  pvMode: 'avg',        // 'avg' | 'clear'
+  residents: 50,        // liczba mieszkańców
+  T_hot: 50,            // temperatura CWU [°C]
+  heaterKW: 3.0,        // moc grzałki [kW]
   heaterThreshold: 0.1, // próg włączenia: PV >= threshold * heaterKW
-  tankL: 500,         // pojemność zasobnika [L]
-  buildingType: 'old' // 'old' | 'new' — straty cyrkulacji (60% / 35%)
+  tankL: 500,           // pojemność zasobnika [L]
+  buildingType: 'old',  // 'old' | 'new' — straty cyrkulacji (60% / 35%)
+  // Moduł 04 — taryfa energii elektrycznej (on-grid w przygotowaniu)
+  gridPriceDay:   0.6950, // zł/kWh — strefa dzienna
+  gridPriceNight: 0.3500, // zł/kWh — strefa nocna
+  gridDayStart:   6,      // godz. początku strefy dziennej
+  gridDayEnd:     22      // godz. końca strefy dziennej
 }
 ```
 
-Każda zmiana w UI → `P.update()` → trzy symulacje → sześć funkcji render.
+Każda zmiana w UI → `P.update()` → trzy symulacje + `renderGridChart()` → siedem funkcji render.
 
 ## CSS — kolory akcentów
 
@@ -94,6 +105,7 @@ Każda zmiana w UI → `P.update()` → trzy symulacje → sześć funkcji rende
 | `--pvsim-orange`       | #ff7a1a     | 01 PV          |
 | `--pvsim-teal`         | #2dd4bf     | 02 CWU         |
 | `--pvsim-amber`        | #f59e0b     | 03 Zasobnik    |
+| `--pvsim-violet`       | #a78bfa     | 04 Sieć        |
 
 Warianty `-dim` (`--pvsim-orange-dim` itp.) używane jako tło aktywnych przycisków.
 
@@ -101,7 +113,8 @@ Warianty `-dim` (`--pvsim-orange-dim` itp.) używane jako tło aktywnych przycis
 
 Wykresy generowane dynamicznie przez `render.js` jako inline SVG wstrzykiwany do `.pvsim-chart`.
 Krzywe wygładzane interpolacją Catmull-Rom (prywatna `smoothPath()`).
-Stałe osi Y: `P.Y_MAX_KW = 45`, `P.Y_MAX_M3H = 1.0`, `P.Y_MAX_KW_DHW = 60`, `P.Y_MAX_TEMP = 70`.
+Stałe osi Y: `P.Y_MAX_KW = 45`, `P.Y_MAX_M3H = 1.0`, `P.Y_MAX_TEMP = 70`.
+Moduły 02 i 04 dobierają `yMax` dynamicznie z ładnymi krokami osi (nie ma stałej).
 
 ## Dane źródłowe
 

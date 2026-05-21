@@ -23,6 +23,11 @@
      renderTankChart() — wykres temperatury zasobnika (°C) z tłem grzania,
                          linia termostatu i linea T_CWU, kolor bursztynowy
      renderTankStats() — karty: pokrycie CWU, energia z PV, oszczędność w zł
+
+   Moduł 04 — Sieć:
+     renderGridChart() — wykres krokowy ceny energii elektrycznej (zł/kWh) przez dobę,
+                         strefa dzienna (fiolet) vs nocna (szary), kolor fioletowy;
+                         oś Y z ładnymi krokami (nie wywołuje P.update — brak symulacji)
    ========================================================= */
 window.PVSIM = window.PVSIM || {};
 (function(P) {
@@ -157,9 +162,16 @@ window.PVSIM = window.PVSIM || {};
     const cw = W - padL - padR;
     const ch = H - padT - padB;
 
-    const yMaxL = P.Y_MAX_M3H;
-    const yMaxR = yMaxL * simDHW.kwhM3;
     const xMax = 24;
+
+    // Prawa oś (kW) — dobieramy ładny krok, lewa (m³/h) wynika z proporcji
+    const kwhM3 = simDHW.kwhM3;
+    const rawMaxR = P.Y_MAX_M3H * kwhM3;
+    const niceStepsR = [1, 2, 5, 10, 20, 50, 100];
+    const stepR = niceStepsR.find(s => rawMaxR / s <= 6) || 10;
+    const yMaxR = Math.ceil(rawMaxR / stepR + 1) * stepR;
+    const yMaxL = yMaxR / kwhM3;
+    const ticksR = Math.round(yMaxR / stepR);
 
     const x = h => padL + (h / xMax) * cw;
     const y = v => padT + ch - (v / yMaxL) * ch;
@@ -171,22 +183,21 @@ window.PVSIM = window.PVSIM || {};
     const linePath = smoothPath(pts);
     const areaPath = linePath + ` L ${x(24).toFixed(2)} ${y(0).toFixed(2)} L ${x(0).toFixed(2)} ${y(0).toFixed(2)} Z`;
 
-    const yTicks = 5;
     let gridLines = '';
     let yLabelsL = '';
     let yLabelsR = '';
-    for (let i = 0; i <= yTicks; i++) {
-      const vL = (yMaxL * i / yTicks);
-      const vR = (yMaxR * i / yTicks);
+    for (let i = 0; i <= ticksR; i++) {
+      const vR = i * stepR;
+      const vL = vR / kwhM3;
       const yy = y(vL);
       gridLines += `<line x1="${padL}" y1="${yy.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yy.toFixed(2)}"
                           stroke="#26262b" stroke-width="1" ${i === 0 ? '' : 'stroke-dasharray="2,3"'}/>`;
       yLabelsL += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end"
                          font-family="'IBM Plex Mono', monospace" font-size="10" fill="#6b6b73"
-                         font-variant-numeric="tabular-nums">${P.fmt.pl1(vL)}</text>`;
+                         font-variant-numeric="tabular-nums">${P.fmt.pl2(vL)}</text>`;
       yLabelsR += `<text x="${(W - padR + 8).toFixed(2)}" y="${(yy + 3.5).toFixed(2)}" text-anchor="start"
                          font-family="'IBM Plex Mono', monospace" font-size="10" fill="#6b6b73"
-                         font-variant-numeric="tabular-nums">${P.fmt.pl1(vR)}</text>`;
+                         font-variant-numeric="tabular-nums">${Math.round(vR)}</text>`;
     }
 
     let xLabels = '', xGrid = '';
@@ -410,6 +421,83 @@ window.PVSIM = window.PVSIM || {};
 
     const ctx = `— grzałka ${P.fmt.pl1(P.state.heaterKW)} kW · zasobnik ${P.state.tankL} l`;
     document.getElementById('pvsim-tank-ctx').textContent = ctx;
+  };
+
+  // ===== RENDER WYKRESU TARYFY SIECIOWEJ (Moduł 04) =====
+  // Wykres krokowy (step) ceny energii elektrycznej przez dobę.
+  // Strefa dzienna i nocna zaznaczone różnymi kolorami słupków.
+  P.renderGridChart = function() {
+    const svg = document.getElementById('pvsim-grid-chart');
+    if (!svg) return;
+    const W = 780, H = 300;
+    const padL = 60, padR = 18, padT = 14, padB = 36;
+    const cw = W - padL - padR;
+    const ch = H - padT - padB;
+
+    const dayStart = P.state.gridDayStart;
+    const dayEnd   = P.state.gridDayEnd;
+    const priceDay   = P.state.gridPriceDay;
+    const priceNight = P.state.gridPriceNight;
+    const rawMax = Math.max(priceDay, priceNight);
+    const niceSteps = [0.05, 0.1, 0.2, 0.25, 0.5, 1.0, 2.0];
+    const step = niceSteps.find(s => rawMax / s <= 6) || 1.0;
+    const yMax = Math.ceil(rawMax / step + 1) * step;
+
+    const x  = h => padL + (h / 24) * cw;
+    const y  = v => padT + ch - (v / yMax) * ch;
+    const bw = cw / 24;
+
+    const isDay = h => dayStart < dayEnd
+      ? h >= dayStart && h < dayEnd
+      : h >= dayStart || h < dayEnd;
+
+    let bars = '';
+    for (let h = 0; h < 24; h++) {
+      const day   = isDay(h);
+      const price = day ? priceDay : priceNight;
+      const color = day ? '#a78bfa' : '#6b6b73';
+      const barH  = (price / yMax) * ch;
+      bars += `<rect x="${x(h).toFixed(2)}" y="${y(price).toFixed(2)}"
+                     width="${(bw - 1).toFixed(2)}" height="${barH.toFixed(2)}"
+                     fill="${color}" opacity="${day ? '0.75' : '0.4'}"/>`;
+    }
+
+    const ticks = Math.round(yMax / step);
+    let gridLines = '', yLabels = '';
+    for (let i = 0; i <= ticks; i++) {
+      const v  = i * step;
+      const yy = y(v);
+      gridLines += `<line x1="${padL}" y1="${yy.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yy.toFixed(2)}"
+                          stroke="#26262b" stroke-width="1" ${i === 0 ? '' : 'stroke-dasharray="2,3"'}/>`;
+      yLabels += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end"
+                        font-family="'IBM Plex Mono', monospace" font-size="10" fill="#6b6b73"
+                        font-variant-numeric="tabular-nums">${v.toFixed(2)}</text>`;
+    }
+
+    let xLabels = '', xGrid = '';
+    for (let h = 0; h <= 24; h += 3) {
+      const xx = x(h);
+      xGrid += `<line x1="${xx.toFixed(2)}" y1="${padT}" x2="${xx.toFixed(2)}" y2="${(padT + ch).toFixed(2)}"
+                      stroke="#26262b" stroke-width="1" stroke-dasharray="1,4"/>`;
+      xLabels += `<text x="${xx.toFixed(2)}" y="${(padT + ch + 18).toFixed(2)}" text-anchor="middle"
+                        font-family="'IBM Plex Mono', monospace" font-size="10" fill="#6b6b73"
+                        font-variant-numeric="tabular-nums">${String(h % 24).padStart(2, '0')}:00</text>`;
+    }
+
+    const axes = `
+      <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${(padT + ch).toFixed(2)}" stroke="#36363d" stroke-width="1"/>
+      <line x1="${padL}" y1="${(padT + ch).toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${(padT + ch).toFixed(2)}" stroke="#36363d" stroke-width="1"/>
+    `;
+
+    // linia ceny dziennej i nocnej
+    const refDay   = `<line x1="${padL}" y1="${y(priceDay).toFixed(2)}"   x2="${(W - padR).toFixed(2)}" y2="${y(priceDay).toFixed(2)}"   stroke="#a78bfa" stroke-width="1" stroke-dasharray="4,3" opacity="0.5"/>`;
+    const refNight = `<line x1="${padL}" y1="${y(priceNight).toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${y(priceNight).toFixed(2)}" stroke="#6b6b73" stroke-width="1" stroke-dasharray="4,3" opacity="0.5"/>`;
+
+    svg.innerHTML = `
+      ${gridLines}${xGrid}${axes}${bars}${refDay}${refNight}${yLabels}${xLabels}
+      <text x="${padL - 42}" y="${padT - 2}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
+            fill="#6b6b73" letter-spacing="1.4">[zł/kWh]</text>
+    `;
   };
 
 })(window.PVSIM);

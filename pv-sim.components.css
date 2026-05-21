@@ -245,3 +245,40 @@
 .pvsim-label.amber::before { background: var(--pvsim-amber); }
 .pvsim-stat.amber::before { background: var(--pvsim-amber); }
 .pvsim-stat.amber .pvsim-stat-value { color: var(--pvsim-amber); }
+
+/* -------- VIOLET VARIANTS (Moduł 04 — sieć) -------- */
+.pvsim-module-divider.violet .tag { color: var(--pvsim-violet); }
+.pvsim-module-divider.violet .rule {
+  background: linear-gradient(90deg, var(--pvsim-violet) 0%, transparent 100%);
+}
+.pvsim-module-divider.violet .dot {
+  background: var(--pvsim-violet);
+  box-shadow: 0 0 8px var(--pvsim-violet);
+}
+.pvsim-slider.violet::-webkit-slider-runnable-track {
+  background: linear-gradient(90deg,
+    var(--pvsim-violet) 0%,
+    var(--pvsim-violet) var(--pvsim-fill, 18%),
+    var(--pvsim-bg-3) var(--pvsim-fill, 18%),
+    var(--pvsim-bg-3) 100%);
+}
+.pvsim-slider.violet::-moz-range-progress { background: var(--pvsim-violet); }
+.pvsim-slider.violet::-webkit-slider-thumb {
+  background: var(--pvsim-violet);
+  box-shadow: 0 0 0 1px var(--pvsim-violet), 0 0 12px rgba(167, 139, 250, 0.4);
+}
+.pvsim-slider.violet::-moz-range-thumb {
+  background: var(--pvsim-violet);
+  box-shadow: 0 0 0 1px var(--pvsim-violet);
+}
+.pvsim-value-box.violet { color: var(--pvsim-violet); }
+.pvsim-label.violet::before { background: var(--pvsim-violet); }
+.pvsim-number-input.violet { color: var(--pvsim-violet); }
+.pvsim-number-input.violet:focus { outline-color: var(--pvsim-violet); }
+
+.pvsim-grid-tariff-note {
+  font-size: 11px;
+  color: var(--pvsim-text-2);
+  padding: 4px 0 8px;
+  letter-spacing: 0.02em;
+}

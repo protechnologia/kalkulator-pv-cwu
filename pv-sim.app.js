@@ -1,8 +1,8 @@
 /* =========================================================
    PV.SIM — Główna logika aplikacji i obsługa interfejsu
 
-   P.update() — wywołuje kolejno wszystkie trzy symulacje
-     (simulateDay → simulateDHW → simulateTank) i przekazuje
+   P.update() — wywołuje kolejno wszystkie cztery symulacje/rendery
+     (simulateDay → simulateDHW → simulateTank → renderGridChart) i przekazuje
      wyniki do odpowiednich funkcji render. Wywoływana przy
      każdej zmianie parametrów przez użytkownika.
 
@@ -12,13 +12,16 @@
      - siatka przycisków wyboru miesiąca (generowana dynamicznie z P.MONTHS)
      - suwak liczby mieszkańców (moduł 02 CWU)
      - suwak temperatury docelowej CWU (moduł 02)
+     - pole ceny energii cieplnej w zł/GJ (moduł 02)
      - przełącznik typu budynku (stary/nowy — współczynnik strat cyrkulacji)
      - suwak mocy grzałki (moduł 03)
      - suwak progu włączenia grzałki (moduł 03)
      - suwak pojemności zasobnika (moduł 03)
-   Każdy suwak przy zmianie aktualizuje P.state, odświeża etykietę
-   wartości, ustawia zmienną CSS --pvsim-fill (WebKit track fill)
-   i wywołuje P.update().
+     - pola cen energii elektrycznej dzień/noc w zł/kWh (moduł 04)
+     - suwaki początku i końca strefy dziennej (moduł 04)
+   Każda kontrolka przy zmianie synchronizuje P.state, odświeża etykietę,
+   ustawia CSS --pvsim-fill (WebKit track fill) i wywołuje P.update()
+   lub renderGridChart() (moduł 04 nie uruchamia pełnej symulacji).
 
    Musi być ładowany jako OSTATNI spośród plików JS —
    po config.js, physics.js i render.js.
@@ -40,6 +43,8 @@ window.PVSIM = window.PVSIM || {};
     const simTank = P.simulateTank(sim, simDHW, P.state.heaterKW, P.state.tankL);
     P.renderTankChart(simTank);
     P.renderTankStats(simTank);
+
+    P.renderGridChart();
   };
 
   // ===== INICJALIZACJA UI =====
@@ -96,14 +101,15 @@ window.PVSIM = window.PVSIM || {};
 
     // Pole ceny energii cieplnej (Moduł 02 / CWU)
     const inputPrice = document.getElementById('pvsim-price-gj');
-    inputPrice.addEventListener('input', function() {
-      const val = parseFloat(this.value);
+    function syncPriceGJ() {
+      const val = parseFloat(inputPrice.value);
       if (!isNaN(val) && val > 0) {
         P.PRICE_PER_GJ  = val;
         P.PRICE_PER_KWH = P.PRICE_PER_GJ / P.KWH_PER_GJ;
-        P.update();
       }
-    });
+    }
+    inputPrice.addEventListener('input', function() { syncPriceGJ(); P.update(); });
+    syncPriceGJ();
 
     // Suwak mieszkańców (Moduł 02 / CWU)
     const sliderR = document.getElementById('pvsim-residents');
@@ -117,8 +123,7 @@ window.PVSIM = window.PVSIM || {};
       P.update();
     }
     sliderR.addEventListener('input', updateResidents);
-    const minR = parseFloat(sliderR.min), maxR = parseFloat(sliderR.max);
-    sliderR.style.setProperty('--pvsim-fill', ((P.state.residents - minR) / (maxR - minR) * 100) + '%');
+    updateResidents();
 
     // Suwak temperatury docelowej CWU (Moduł 02)
     const sliderTH = document.getElementById('pvsim-thot');
@@ -132,8 +137,7 @@ window.PVSIM = window.PVSIM || {};
       P.update();
     }
     sliderTH.addEventListener('input', updateThot);
-    const minTH = parseFloat(sliderTH.min), maxTH = parseFloat(sliderTH.max);
-    sliderTH.style.setProperty('--pvsim-fill', ((P.state.T_hot - minTH) / (maxTH - minTH) * 100) + '%');
+    updateThot();
 
     // Suwak mocy grzałki (Moduł 03)
     const sliderH = document.getElementById('pvsim-heater');
@@ -147,8 +151,7 @@ window.PVSIM = window.PVSIM || {};
       P.update();
     }
     sliderH.addEventListener('input', updateHeater);
-    const minH = parseFloat(sliderH.min), maxH = parseFloat(sliderH.max);
-    sliderH.style.setProperty('--pvsim-fill', ((P.state.heaterKW - minH) / (maxH - minH) * 100) + '%');
+    updateHeater();
 
     // Suwak progu włączenia grzałki (Moduł 03)
     const sliderHT = document.getElementById('pvsim-heater-threshold');
@@ -161,8 +164,7 @@ window.PVSIM = window.PVSIM || {};
       P.update();
     }
     sliderHT.addEventListener('input', updateHeaterThreshold);
-    const minHT = parseFloat(sliderHT.min), maxHT = parseFloat(sliderHT.max);
-    sliderHT.style.setProperty('--pvsim-fill', ((parseInt(sliderHT.value) - minHT) / (maxHT - minHT) * 100) + '%');
+    updateHeaterThreshold();
 
     // Suwak pojemności zasobnika (Moduł 03)
     const sliderT = document.getElementById('pvsim-tank');
@@ -176,8 +178,48 @@ window.PVSIM = window.PVSIM || {};
       P.update();
     }
     sliderT.addEventListener('input', updateTank);
-    const minT = parseFloat(sliderT.min), maxT = parseFloat(sliderT.max);
-    sliderT.style.setProperty('--pvsim-fill', ((P.state.tankL - minT) / (maxT - minT) * 100) + '%');
+    updateTank();
+
+    // Pola cen energii elektrycznej (Moduł 04)
+    const inputGridDay = document.getElementById('pvsim-grid-price-day');
+    const inputGridNight = document.getElementById('pvsim-grid-price-night');
+    function syncGridPrice(input, key) {
+      const val = parseFloat(input.value);
+      if (!isNaN(val) && val > 0) { P.state[key] = val; }
+    }
+    inputGridDay.addEventListener('input', function() {
+      syncGridPrice(this, 'gridPriceDay'); P.renderGridChart();
+    });
+    inputGridNight.addEventListener('input', function() {
+      syncGridPrice(this, 'gridPriceNight'); P.renderGridChart();
+    });
+    syncGridPrice(inputGridDay, 'gridPriceDay');
+    syncGridPrice(inputGridNight, 'gridPriceNight');
+
+    // Suwaki strefy dziennej (Moduł 04)
+    const sliderGS = document.getElementById('pvsim-grid-day-start');
+    const sliderGSVal = document.getElementById('pvsim-grid-day-start-val');
+    function updateGridDayStart() {
+      P.state.gridDayStart = parseInt(sliderGS.value, 10);
+      sliderGSVal.textContent = P.state.gridDayStart;
+      const pct = ((P.state.gridDayStart - 0) / 23) * 100;
+      sliderGS.style.setProperty('--pvsim-fill', pct + '%');
+      P.renderGridChart();
+    }
+    sliderGS.addEventListener('input', updateGridDayStart);
+    updateGridDayStart();
+
+    const sliderGE = document.getElementById('pvsim-grid-day-end');
+    const sliderGEVal = document.getElementById('pvsim-grid-day-end-val');
+    function updateGridDayEnd() {
+      P.state.gridDayEnd = parseInt(sliderGE.value, 10);
+      sliderGEVal.textContent = P.state.gridDayEnd;
+      const pct = ((P.state.gridDayEnd - 0) / 23) * 100;
+      sliderGE.style.setProperty('--pvsim-fill', pct + '%');
+      P.renderGridChart();
+    }
+    sliderGE.addEventListener('input', updateGridDayEnd);
+    updateGridDayEnd();
 
     updateSlider();  // pierwsza inicjalizacja + render
   }

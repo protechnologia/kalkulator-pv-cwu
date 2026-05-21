@@ -3,7 +3,8 @@
 
    P.update() — wywołuje kolejno wszystkie symulacje/rendery
      (simulateDay → simulateDHW → simulateTank → simulateTankMonth →
-     renderGridChart) i przekazuje wyniki do odpowiednich funkcji render.
+     simulateTankYear → renderGridChart) i przekazuje wyniki do
+     odpowiednich funkcji render.
      Wywoływana przy każdej zmianie parametrów przez użytkownika.
 
    Prywatna init() — jednorazowa inicjalizacja UI:
@@ -52,6 +53,10 @@ window.PVSIM = window.PVSIM || {};
     P.renderMonthTankChart(simMonth);
     P.renderMonthElecChart(simMonth);
     P.renderMonthStats(simMonth);
+
+    const simYear = P.simulateTankYear();
+    P.renderYearChart(simYear);
+    P.renderYearStats(simYear);
 
     P.renderGridChart();
   };

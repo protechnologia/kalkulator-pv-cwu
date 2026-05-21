@@ -299,6 +299,18 @@
 .pvsim-stat.sky::before { background: var(--pvsim-sky); }
 .pvsim-stat.sky .pvsim-stat-value { color: var(--pvsim-sky); }
 
+/* -------- LIME VARIANTS (Moduł 06 — symulacja roczna) -------- */
+.pvsim-module-divider.lime .tag { color: var(--pvsim-lime); }
+.pvsim-module-divider.lime .rule {
+  background: linear-gradient(90deg, var(--pvsim-lime) 0%, transparent 100%);
+}
+.pvsim-module-divider.lime .dot {
+  background: var(--pvsim-lime);
+  box-shadow: 0 0 8px var(--pvsim-lime);
+}
+.pvsim-stat.lime::before { background: var(--pvsim-lime); }
+.pvsim-stat.lime .pvsim-stat-value { color: var(--pvsim-lime); }
+
 /* -------- SIDEBAR — stałe podsumowanie miesięczne -------- */
 .pvsim-sidebar-toggle {
   position: fixed;

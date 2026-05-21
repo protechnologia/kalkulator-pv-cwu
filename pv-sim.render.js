@@ -41,6 +41,12 @@
      renderMonthStats()     — karty miesięczne: pokrycie CWU, grzałka,
                               zużycie prądu, koszt, ciepło zaoszczędzone,
                               bilans; wartości dublowane też w sidebarze
+
+   Moduł 06 — Symulacja roczna:
+     renderYearChart()      — wykres słupkowy energii elektrycznej grzałki
+                              (jeden słupek na miesiąc, PV vs sieć)
+     renderYearStats()      — karty roczne: pokrycie CWU, grzałka, zużycie
+                              prądu, koszt, ciepło zaoszczędzone, bilans
    ========================================================= */
 window.PVSIM = window.PVSIM || {};
 (function(P) {
@@ -822,11 +828,11 @@ window.PVSIM = window.PVSIM || {};
   // ===== RENDER STATÓW — SYMULACJA MIESIĘCZNA (Moduł 05) =====
   P.renderMonthStats = function(simMonth) {
     const mo = simMonth.monthly;
-    // wpisuje wartość do jednego lub kilku elementów (panel modułu 05 + sidebar)
-    const set = (txt, ...ids) => ids.forEach(id => {
+    // wpisuje wartość do panelu Modułu 05 (sidebar obsługuje renderYearStats)
+    const set = (txt, id) => {
       const el = document.getElementById(id);
       if (el) el.textContent = txt;
-    });
+    };
 
     const elecTotal = P.fmt.pl0(mo.elec_total);
     const elecPv    = P.fmt.pl0(mo.elec_pv);
@@ -841,16 +847,140 @@ window.PVSIM = window.PVSIM || {};
     set(P.fmt.pl0(mo.Q_saved),     'pvsim-month-cover-kwh');
     set(P.fmt.pl0(mo.Q_strat),     'pvsim-month-cover-strat');
     set(mo.heaterHours,            'pvsim-month-heater-hrs');
-    set(elecTotal, 'pvsim-month-elec-total', 'pvsim-sb-elec-total');
-    set(elecPv,    'pvsim-month-elec-pv',    'pvsim-sb-elec-pv');
-    set(elecGrid,  'pvsim-month-elec-grid',  'pvsim-sb-elec-grid');
-    set(gridCost,  'pvsim-month-grid-cost',  'pvsim-sb-grid-cost');
-    set(saving,    'pvsim-month-saving',     'pvsim-sb-saving');
-    set(savingKwh, 'pvsim-month-saving-kwh', 'pvsim-sb-saving-kwh');
-    set(savingGj,  'pvsim-month-saving-gj',  'pvsim-sb-saving-gj');
-    set(balance,   'pvsim-month-balance',        'pvsim-sb-balance');
-    set(saving,    'pvsim-month-balance-saving', 'pvsim-sb-balance-saving');
-    set(gridCost,  'pvsim-month-balance-cost',   'pvsim-sb-balance-cost');
+    set(elecTotal, 'pvsim-month-elec-total');
+    set(elecPv,    'pvsim-month-elec-pv');
+    set(elecGrid,  'pvsim-month-elec-grid');
+    set(gridCost,  'pvsim-month-grid-cost');
+    set(saving,    'pvsim-month-saving');
+    set(savingKwh, 'pvsim-month-saving-kwh');
+    set(savingGj,  'pvsim-month-saving-gj');
+    set(balance,   'pvsim-month-balance');
+    set(saving,    'pvsim-month-balance-saving');
+    set(gridCost,  'pvsim-month-balance-cost');
+  };
+
+  // ===== RENDER WYKRESU ENERGII ELEKTRYCZNEJ — SYMULACJA ROCZNA (Moduł 06) =====
+  // Słupki miesięczne: jeden słupek na miesiąc, dół = energia z PV,
+  // góra = energia z sieci. 12 słupków, oś X — skróty miesięcy.
+  P.renderYearChart = function(simYear) {
+    const svg = document.getElementById('pvsim-year-chart');
+    if (!svg) return;
+    const W = 780, H = 300;
+    const padL = 50, padR = 18, padT = 14, padB = 36;
+    const cw = W - padL - padR;
+    const ch = H - padT - padB;
+
+    const md = simYear.monthsData;
+
+    const rawMax = Math.max(...md.map(d => d.elec_pv + d.elec_grid), 0.001);
+    const niceSteps = [10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000];
+    const step = niceSteps.find(s => rawMax / s <= 6) || 5000;
+    const yMax = Math.ceil(rawMax / step + 0.001) * step;
+
+    const slot = cw / 12;
+    const x = i => padL + i * slot;
+    const y = v => padT + ch - (v / yMax) * ch;
+    const bw = slot * 0.62;
+    const bx = slot * 0.19;   // wcięcie słupka w slocie miesiąca
+
+    let bars = '';
+    md.forEach((d, i) => {
+      const pvH   = (d.elec_pv   / yMax) * ch;
+      const gridH = (d.elec_grid / yMax) * ch;
+      const x0 = x(i) + bx;
+      if (pvH > 0.05) {
+        bars += `<rect x="${x0.toFixed(2)}" y="${y(d.elec_pv).toFixed(2)}"
+                       width="${bw.toFixed(2)}" height="${pvH.toFixed(2)}"
+                       fill="#f59e0b" opacity="0.8"/>`;
+      }
+      if (gridH > 0.05) {
+        bars += `<rect x="${x0.toFixed(2)}" y="${y(d.elec_pv + d.elec_grid).toFixed(2)}"
+                       width="${bw.toFixed(2)}" height="${gridH.toFixed(2)}"
+                       fill="#a78bfa" opacity="0.75"/>`;
+      }
+    });
+
+    const ticks = Math.round(yMax / step);
+    let gridLines = '', yLabels = '';
+    for (let i = 0; i <= ticks; i++) {
+      const v = i * step;
+      const yy = y(v);
+      gridLines += `<line x1="${padL}" y1="${yy.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yy.toFixed(2)}"
+                          stroke="#26262b" stroke-width="1" ${i === 0 ? '' : 'stroke-dasharray="2,3"'}/>`;
+      yLabels += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end"
+                        font-family="'IBM Plex Mono', monospace" font-size="10" fill="#6b6b73"
+                        font-variant-numeric="tabular-nums">${P.fmt.pl0(v)}</text>`;
+    }
+
+    let xLabels = '';
+    md.forEach((d, i) => {
+      xLabels += `<text x="${(x(i) + slot / 2).toFixed(2)}" y="${(padT + ch + 18).toFixed(2)}" text-anchor="middle"
+                        font-family="'IBM Plex Mono', monospace" font-size="9" fill="#6b6b73"
+                        letter-spacing="0.5">${d.abbr}</text>`;
+    });
+
+    const axes = `
+      <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${(padT + ch).toFixed(2)}" stroke="#36363d" stroke-width="1"/>
+      <line x1="${padL}" y1="${(padT + ch).toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${(padT + ch).toFixed(2)}" stroke="#36363d" stroke-width="1"/>
+    `;
+
+    const lx = W - padR - 150;
+    const legend = `
+      <rect x="${lx}" y="${padT + 2}" width="10" height="10" fill="#f59e0b" opacity="0.8"/>
+      <text x="${lx + 15}" y="${padT + 11}" font-family="'IBM Plex Mono', monospace" font-size="10"
+            fill="#a1a1aa">z PV</text>
+      <rect x="${lx + 60}" y="${padT + 2}" width="10" height="10" fill="#a78bfa" opacity="0.75"/>
+      <text x="${lx + 75}" y="${padT + 11}" font-family="'IBM Plex Mono', monospace" font-size="10"
+            fill="#a1a1aa">z sieci</text>
+    `;
+
+    svg.innerHTML = `
+      ${gridLines}${axes}${bars}${legend}${yLabels}${xLabels}
+      <text x="${padL - 30}" y="${padT - 2}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
+            fill="#6b6b73" letter-spacing="1.4">[kWh]</text>
+      <text x="${(padL + cw / 2).toFixed(2)}" y="${(H - 4).toFixed(2)}" text-anchor="middle"
+            font-family="'IBM Plex Mono', monospace" font-size="9" fill="#6b6b73" letter-spacing="1">miesiąc</text>
+    `;
+
+    const ctxEl = document.getElementById('pvsim-year-chart-ctx');
+    if (ctxEl) {
+      ctxEl.textContent = `— z PV ${P.fmt.pl0(simYear.yearly.elec_pv)} kWh`
+        + ` · z sieci ${P.fmt.pl0(simYear.yearly.elec_grid)} kWh`;
+    }
+  };
+
+  // ===== RENDER STATÓW — SYMULACJA ROCZNA (Moduł 06) =====
+  P.renderYearStats = function(simYear) {
+    const yr = simYear.yearly;
+    // wpisuje wartość do panelu Modułu 06 oraz, opcjonalnie, do sidebara
+    const set = (txt, ...ids) => ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = txt;
+    });
+
+    const elecTotal = P.fmt.pl0(yr.elec_total);
+    const elecPv    = P.fmt.pl0(yr.elec_pv);
+    const elecGrid  = P.fmt.pl0(yr.elec_grid);
+    const gridCost  = P.fmt.pl2(yr.gridCost);
+    const saving    = P.fmt.pl2(yr.savingPLN);
+    const savingKwh = P.fmt.pl0(yr.Q_saved);
+    const savingGj  = P.fmt.pl2(yr.Q_saved * 0.0036);
+    const balance   = P.fmt.pl2(yr.balancePLN);
+
+    set(yr.coveragePct.toFixed(0), 'pvsim-year-cover');
+    set(P.fmt.pl0(yr.Q_saved),     'pvsim-year-cover-kwh');
+    set(P.fmt.pl0(yr.Q_strat),     'pvsim-year-cover-strat');
+    set(P.fmt.pl0(yr.heaterHours), 'pvsim-year-heater-hrs');
+    set(elecTotal, 'pvsim-year-elec-total', 'pvsim-sb-elec-total');
+    set(elecPv,    'pvsim-year-elec-pv',    'pvsim-sb-elec-pv');
+    set(elecGrid,  'pvsim-year-elec-grid',  'pvsim-sb-elec-grid');
+    set(gridCost,  'pvsim-year-grid-cost',  'pvsim-sb-grid-cost');
+    set(saving,    'pvsim-year-saving',     'pvsim-sb-saving');
+    set(savingKwh, 'pvsim-year-saving-kwh', 'pvsim-sb-saving-kwh');
+    set(savingGj,  'pvsim-year-saving-gj',  'pvsim-sb-saving-gj');
+    set(balance,   'pvsim-year-balance',        'pvsim-sb-balance');
+    set(saving,    'pvsim-year-balance-saving', 'pvsim-sb-balance-saving');
+    set(gridCost,  'pvsim-year-balance-cost',   'pvsim-sb-balance-cost');
   };
 
 })(window.PVSIM);

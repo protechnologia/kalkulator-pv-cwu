@@ -25,11 +25,16 @@
      pobór z PV + sieci).
      Śledzi pokrycie CWU, oszczędności oraz zużycie energii (PV vs sieć).
 
-   P.simulateTankMonth(simPV, simDHW, heaterKW, tankL)
+   P.simulateTankMonth(simPV, simDHW, heaterKW, tankL, monthIdx)
      Ciągła symulacja zasobnika przez cały miesiąc — wywołuje
      P.simulateTank() raz na dobę, przekazując temperaturę końcową
      poprzedniej doby jako startową kolejnej (5. parametr T_init).
      Zwraca dobowe szeregi czasowe i zagregowane statystyki miesięczne.
+
+   P.simulateTankYear()
+     Symulacja roczna — wywołuje P.simulateTankMonth() dla każdego z 12
+     miesięcy z osobnymi wejściami PV i CWU. Zwraca agregaty miesięczne
+     (do wykresu słupkowego) oraz sumy roczne.
    ========================================================= */
 window.PVSIM = window.PVSIM || {};
 (function(P) {
@@ -327,8 +332,9 @@ window.PVSIM = window.PVSIM || {};
   // każda następna dziedziczy temperaturę końcową poprzedniej. Wejścia PV i CWU
   // są takie same dla każdej doby — jedyne, co przenosi się między dobami, to
   // temperatura zasobnika, więc po kilku dobach układ wchodzi w stan ustalony.
-  P.simulateTankMonth = function(simPV, simDHW, heaterKW, tankL) {
-    const days  = P.MONTHS[P.state.monthIdx].days;
+  P.simulateTankMonth = function(simPV, simDHW, heaterKW, tankL, monthIdx) {
+    const mi    = (monthIdx === undefined ? P.state.monthIdx : monthIdx);
+    const days  = P.MONTHS[mi].days;
     const T_in  = simDHW.T_in;
     const hours = [];
 
@@ -380,6 +386,69 @@ window.PVSIM = window.PVSIM || {};
         balancePLN:  monthQ_saved * P.PRICE_PER_KWH - monthGridCost
       },
       params: { heaterKW, tankL }
+    };
+  };
+
+  // ===== SYMULACJA ROCZNA ZASOBNIKA (Moduł 06) =====
+  // Uruchamia symulację miesięczną P.simulateTankMonth() dla każdego z 12
+  // miesięcy. Każdy miesiąc liczony jest niezależnie (start zimny w 1. dobie),
+  // z własnymi wejściami PV i CWU — produkcja PV oraz temperatura wody zimnej
+  // zmieniają się sezonowo. Zwraca agregaty miesięczne (jeden wpis na miesiąc,
+  // do wykresu słupkowego) oraz sumy roczne.
+  P.simulateTankYear = function() {
+    const monthsData = [];
+    let elec_pv = 0, elec_grid = 0, gridCost = 0;
+    let savingPLN = 0, Q_saved = 0, Q_strat = 0, Q_CWU = 0;
+    let heaterHours = 0, balancePLN = 0;
+
+    for (let mi = 0; mi < 12; mi++) {
+      const days   = P.MONTHS[mi].days;
+      const simPV  = P.simulateDay(P.state.kWp, mi, P.state.pvMode);
+      const simDHW = P.simulateDHW(P.state.residents, mi, P.state.T_hot);
+      const simMonth = P.simulateTankMonth(simPV, simDHW, P.state.heaterKW, P.state.tankL, mi);
+      const mo = simMonth.monthly;
+      const cwu_m = simDHW.daily.energy * days;
+
+      monthsData.push({
+        monthIdx:    mi,
+        abbr:        P.MONTHS[mi].abbr,
+        elec_pv:     mo.elec_pv,
+        elec_grid:   mo.elec_grid,
+        elec_total:  mo.elec_total,
+        gridCost:    mo.gridCost,
+        savingPLN:   mo.savingPLN,
+        Q_saved:     mo.Q_saved,
+        Q_strat:     mo.Q_strat,
+        heaterHours: mo.heaterHours,
+        balancePLN:  mo.balancePLN,
+        Q_CWU:       cwu_m
+      });
+
+      elec_pv     += mo.elec_pv;
+      elec_grid   += mo.elec_grid;
+      gridCost    += mo.gridCost;
+      savingPLN   += mo.savingPLN;
+      Q_saved     += mo.Q_saved;
+      Q_strat     += mo.Q_strat;
+      heaterHours += mo.heaterHours;
+      balancePLN  += mo.balancePLN;
+      Q_CWU       += cwu_m;
+    }
+
+    return {
+      monthsData,
+      yearly: {
+        elec_pv,
+        elec_grid,
+        elec_total:  elec_pv + elec_grid,
+        gridCost,
+        savingPLN,
+        Q_saved,
+        Q_strat,
+        heaterHours,
+        balancePLN,
+        coveragePct: Q_CWU > 0 ? (Q_saved / Q_CWU * 100) : 0
+      }
     };
   };
 

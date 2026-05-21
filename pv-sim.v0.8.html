@@ -465,7 +465,51 @@
         <div class="secondary"><span id="pvsim-month-saving-gj">0,00</span><span class="unit">GJ zaoszczędzonych</span></div>
       </div>
     </div>
+    <div class="pvsim-stat sky">
+      <div class="pvsim-stat-label">Bilans miesięczny</div>
+      <div class="pvsim-stat-value dual">
+        <div class="primary"><span id="pvsim-month-balance">0,00</span><span class="unit">zł / mc</span></div>
+        <div class="secondary"><span id="pvsim-month-balance-saving">0,00</span><span class="unit">zł oszczędność na cieple</span></div>
+        <div class="secondary"><span id="pvsim-month-balance-cost">0,00</span><span class="unit">zł koszt energii z sieci</span></div>
+      </div>
+    </div>
   </div>
+
+  <!-- SIDEBAR — STAŁE PODSUMOWANIE MIESIĘCZNE -->
+  <button class="pvsim-sidebar-toggle" id="pvsim-sidebar-toggle" aria-expanded="true">Podsumowanie ▾</button>
+  <aside class="pvsim-sidebar" id="pvsim-sidebar">
+    <div class="pvsim-sidebar-title">Podsumowanie / miesiąc</div>
+    <div class="pvsim-stat sky">
+      <div class="pvsim-stat-label">Zużycie prądu (miesiąc)</div>
+      <div class="pvsim-stat-value dual">
+        <div class="primary"><span id="pvsim-sb-elec-total">0</span><span class="unit">kWh / mc</span></div>
+        <div class="secondary"><span id="pvsim-sb-elec-pv">0</span><span class="unit">kWh z PV</span></div>
+        <div class="secondary"><span id="pvsim-sb-elec-grid">0</span><span class="unit">kWh z sieci</span></div>
+      </div>
+    </div>
+    <div class="pvsim-stat sky">
+      <div class="pvsim-stat-label">Koszt energii z sieci (miesiąc)</div>
+      <div class="pvsim-stat-value dual">
+        <div class="primary"><span id="pvsim-sb-grid-cost">0,00</span><span class="unit">zł / mc</span></div>
+      </div>
+    </div>
+    <div class="pvsim-stat sky">
+      <div class="pvsim-stat-label">Ciepło zaoszczędzone (miesiąc)</div>
+      <div class="pvsim-stat-value dual">
+        <div class="primary"><span id="pvsim-sb-saving">0,00</span><span class="unit">zł / mc</span></div>
+        <div class="secondary"><span id="pvsim-sb-saving-kwh">0</span><span class="unit">kWh zaoszczędzonych</span></div>
+        <div class="secondary"><span id="pvsim-sb-saving-gj">0,00</span><span class="unit">GJ zaoszczędzonych</span></div>
+      </div>
+    </div>
+    <div class="pvsim-stat sky">
+      <div class="pvsim-stat-label">Bilans miesięczny</div>
+      <div class="pvsim-stat-value dual">
+        <div class="primary"><span id="pvsim-sb-balance">0,00</span><span class="unit">zł / mc</span></div>
+        <div class="secondary"><span id="pvsim-sb-balance-saving">0,00</span><span class="unit">zł oszczędność na cieple</span></div>
+        <div class="secondary"><span id="pvsim-sb-balance-cost">0,00</span><span class="unit">zł koszt energii z sieci</span></div>
+      </div>
+    </div>
+  </aside>
 
   <!-- FOOTER -->
   <div class="pvsim-footer">

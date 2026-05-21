@@ -1,7 +1,7 @@
 /* =========================================================
    PV.SIM — Model fizyczny symulacji
 
-   Zawiera trzy główne funkcje obliczeniowe:
+   Zawiera cztery główne funkcje obliczeniowe:
 
    P.simulateDay(kWp, monthIdx, pvMode)
      Godzinowa produkcja PV. Wyznacza wysokość słońca (model Coopera 1969),
@@ -21,8 +21,15 @@
      Symuluje: pobór CWU (rozcieńczenie), grzanie grzałką wg strategii
      wybranej osobno dla strefy dziennej i nocnej taryfy, straty postojowe.
      Strategie: 'off' (wyłączona), 'off-grid' (power diverter — moc do nadwyżki
-     PV), 'on-grid' (moc proporcjonalna do T_hot, pobór z PV + sieci).
+     PV, grzeje tylko do T_hot), 'on-grid' (moc proporcjonalna do T_hot,
+     pobór z PV + sieci).
      Śledzi pokrycie CWU, oszczędności oraz zużycie energii (PV vs sieć).
+
+   P.simulateTankMonth(simPV, simDHW, heaterKW, tankL)
+     Ciągła symulacja zasobnika przez cały miesiąc — wywołuje
+     P.simulateTank() raz na dobę, przekazując temperaturę końcową
+     poprzedniej doby jako startową kolejnej (5. parametr T_init).
+     Zwraca dobowe szeregi czasowe i zagregowane statystyki miesięczne.
    ========================================================= */
 window.PVSIM = window.PVSIM || {};
 (function(P) {
@@ -148,7 +155,8 @@ window.PVSIM = window.PVSIM || {};
   // Model 1-węzłowy (fully-mixed) z 6 podkrokami na godzinę.
   // Strategia grzałki wybierana osobno dla strefy dziennej i nocnej taryfy:
   //   'off'      — grzałka wyłączona
-  //   'off-grid' — moc throttlowana do nadwyżki PV (power diverter), energia z PV
+  //   'off-grid' — moc throttlowana do nadwyżki PV (power diverter), energia z PV;
+  //                grzeje tylko do setpointu T_hot, nadwyżka ponad to → Q_wasted
   //   'on-grid'  — moc proporcjonalna do (T_hot - T)/BAND; nadwyżkę PV
   //                wykorzystujemy w pierwszej kolejności, resztę dobiera sieć
   // Temperatura startowa T_zas(00:00):
@@ -209,7 +217,10 @@ window.PVSIM = window.PVSIM || {};
         // 2) Wyznaczenie mocy grzałki dla tego podkroku wg strategii
         let Q_per = 0;    // docelowa energia podkroku [kWh]
         let pvShare = 0;  // udział PV w tej energii [0..1]
+        let T_cap = P.TANK_T_MAX;  // pułap grzania dla tego podkroku
         if (strat === 'off-grid') {
+          // diverter grzeje tylko do setpointu T_hot (nie wyżej niż termostat)
+          T_cap = Math.min(T_hot, P.TANK_T_MAX);
           if (P_PV >= threshold) {
             Q_per   = Math.min(P_PV, heaterKW) * dt;
             pvShare = 1;
@@ -229,10 +240,10 @@ window.PVSIM = window.PVSIM || {};
           const dT_full = Q_per / (m_zas * cw);
           let T_after = T + dT_full;
           let Q_actual;
-          if (T_after > P.TANK_T_MAX) {
-            Q_actual = Math.max((P.TANK_T_MAX - T) * m_zas * cw, 0);
+          if (T_after > T_cap) {
+            Q_actual = Math.max((T_cap - T) * m_zas * cw, 0);
             Q_wasted_h += Math.max(Q_per - Q_actual, 0);
-            T_after = P.TANK_T_MAX;
+            T_after = T_cap;
           } else {
             Q_actual = Q_per;
           }
@@ -364,7 +375,9 @@ window.PVSIM = window.PVSIM || {};
         elec_pv:     monthElec_pv,
         elec_grid:   monthElec_grid,
         elec_total:  monthElec_pv + monthElec_grid,
-        gridCost:    monthGridCost
+        gridCost:    monthGridCost,
+        // bilans: oszczędność na cieple sieciowym − koszt energii z sieci
+        balancePLN:  monthQ_saved * P.PRICE_PER_KWH - monthGridCost
       },
       params: { heaterKW, tankL }
     };

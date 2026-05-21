@@ -32,6 +32,15 @@
                              część z PV (bursztyn) + część z sieci (fiolet)
      renderTankStats()     — karty: pokrycie CWU, grzałka, zużycie prądu
                              (PV vs sieć), koszt energii z sieci
+
+   Moduł 05 — Symulacja miesięczna:
+     renderMonthTankChart() — wykres temperatury zasobnika przez cały
+                              miesiąc (ciągła linia), kolor błękitny
+     renderMonthElecChart() — wykres słupkowy dobowego bilansu energii
+                              grzałki (jeden słupek na dobę, PV vs sieć)
+     renderMonthStats()     — karty miesięczne: pokrycie CWU, grzałka,
+                              zużycie prądu, koszt, ciepło zaoszczędzone,
+                              bilans; wartości dublowane też w sidebarze
    ========================================================= */
 window.PVSIM = window.PVSIM || {};
 (function(P) {
@@ -813,17 +822,35 @@ window.PVSIM = window.PVSIM || {};
   // ===== RENDER STATÓW — SYMULACJA MIESIĘCZNA (Moduł 05) =====
   P.renderMonthStats = function(simMonth) {
     const mo = simMonth.monthly;
-    document.getElementById('pvsim-month-cover').textContent      = mo.coveragePct.toFixed(0);
-    document.getElementById('pvsim-month-cover-kwh').textContent  = P.fmt.pl0(mo.Q_saved);
-    document.getElementById('pvsim-month-cover-strat').textContent = P.fmt.pl0(mo.Q_strat);
-    document.getElementById('pvsim-month-heater-hrs').textContent = mo.heaterHours;
-    document.getElementById('pvsim-month-elec-total').textContent = P.fmt.pl0(mo.elec_total);
-    document.getElementById('pvsim-month-elec-pv').textContent    = P.fmt.pl0(mo.elec_pv);
-    document.getElementById('pvsim-month-elec-grid').textContent  = P.fmt.pl0(mo.elec_grid);
-    document.getElementById('pvsim-month-grid-cost').textContent  = P.fmt.pl2(mo.gridCost);
-    document.getElementById('pvsim-month-saving').textContent     = P.fmt.pl2(mo.savingPLN);
-    document.getElementById('pvsim-month-saving-kwh').textContent = P.fmt.pl0(mo.Q_saved);
-    document.getElementById('pvsim-month-saving-gj').textContent  = P.fmt.pl2(mo.Q_saved * 0.0036);
+    // wpisuje wartość do jednego lub kilku elementów (panel modułu 05 + sidebar)
+    const set = (txt, ...ids) => ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = txt;
+    });
+
+    const elecTotal = P.fmt.pl0(mo.elec_total);
+    const elecPv    = P.fmt.pl0(mo.elec_pv);
+    const elecGrid  = P.fmt.pl0(mo.elec_grid);
+    const gridCost  = P.fmt.pl2(mo.gridCost);
+    const saving    = P.fmt.pl2(mo.savingPLN);
+    const savingKwh = P.fmt.pl0(mo.Q_saved);
+    const savingGj  = P.fmt.pl2(mo.Q_saved * 0.0036);
+    const balance   = P.fmt.pl2(mo.balancePLN);
+
+    set(mo.coveragePct.toFixed(0), 'pvsim-month-cover');
+    set(P.fmt.pl0(mo.Q_saved),     'pvsim-month-cover-kwh');
+    set(P.fmt.pl0(mo.Q_strat),     'pvsim-month-cover-strat');
+    set(mo.heaterHours,            'pvsim-month-heater-hrs');
+    set(elecTotal, 'pvsim-month-elec-total', 'pvsim-sb-elec-total');
+    set(elecPv,    'pvsim-month-elec-pv',    'pvsim-sb-elec-pv');
+    set(elecGrid,  'pvsim-month-elec-grid',  'pvsim-sb-elec-grid');
+    set(gridCost,  'pvsim-month-grid-cost',  'pvsim-sb-grid-cost');
+    set(saving,    'pvsim-month-saving',     'pvsim-sb-saving');
+    set(savingKwh, 'pvsim-month-saving-kwh', 'pvsim-sb-saving-kwh');
+    set(savingGj,  'pvsim-month-saving-gj',  'pvsim-sb-saving-gj');
+    set(balance,   'pvsim-month-balance',        'pvsim-sb-balance');
+    set(saving,    'pvsim-month-balance-saving', 'pvsim-sb-balance-saving');
+    set(gridCost,  'pvsim-month-balance-cost',   'pvsim-sb-balance-cost');
   };
 
 })(window.PVSIM);

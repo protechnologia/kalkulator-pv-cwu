@@ -3,7 +3,8 @@
 
    Zawiera zmienne CSS (custom properties) dla całej aplikacji:
    paleta kolorów tła (bg-0..bg-3), tekstu, obramowań,
-   kolory akcentów (orange, teal, amber z wariantami dim).
+   kolory akcentów (orange, teal, violet, amber, sky —
+   po jednym na moduł 01–05, każdy z wariantem dim).
    Definiuje też bazowy kontener .pvsim: krój pisma, wymiary,
    układ oraz dekoracyjne narożniki (pseudo-elementy ::before/::after).
 

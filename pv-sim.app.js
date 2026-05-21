@@ -20,6 +20,8 @@
      - suwak progu włączenia grzałki (moduł 04)
      - suwak pojemności zasobnika (moduł 04)
      - przełączniki strategii grzałki dzień/noc (moduł 04)
+     - przycisk pokaż/ukryj sidebar z podsumowaniem miesięcznym
+       (start: widoczny dla okna ≥1100 px, ukryty poniżej)
    Każda kontrolka przy zmianie synchronizuje P.state, odświeża etykietę,
    ustawia CSS --pvsim-fill (WebKit track fill) i wywołuje P.update()
    lub renderGridChart() (moduł 03 nie uruchamia pełnej symulacji).
@@ -242,6 +244,19 @@ window.PVSIM = window.PVSIM || {};
     }
     sliderGE.addEventListener('input', updateGridDayEnd);
     updateGridDayEnd();
+
+    // Przycisk pokaż/ukryj sidebar — start widoczny na szerokich ekranach
+    const sidebar = document.getElementById('pvsim-sidebar');
+    const sidebarToggle = document.getElementById('pvsim-sidebar-toggle');
+    function setSidebar(visible) {
+      sidebar.classList.toggle('hidden', !visible);
+      sidebarToggle.setAttribute('aria-expanded', String(visible));
+      sidebarToggle.textContent = 'Podsumowanie ' + (visible ? '▾' : '▸');
+    }
+    setSidebar(window.innerWidth >= 1100);
+    sidebarToggle.addEventListener('click', () => {
+      setSidebar(sidebar.classList.contains('hidden'));
+    });
 
     updateSlider();  // pierwsza inicjalizacja + render
   }

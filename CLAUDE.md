@@ -72,7 +72,8 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 - Trzy strategie grzałki:
   - `off` — grzałka wyłączona w danej strefie
   - `off-grid` (power diverter) — moc throttlowana do nadwyżki PV,
-    włącza się gdy `P_PV ≥ próg`, gdzie `próg = heaterThreshold × heaterKW`; energia z PV
+    włącza się gdy `P_PV ≥ próg`, gdzie `próg = heaterThreshold × heaterKW`; energia z PV.
+    Grzeje tylko do setpointu `T_hot` — nadwyżka PV ponad to trafia do `Q_wasted`
   - `on-grid` — moc proporcjonalna: `heaterKW × clamp((T_hot − T)/TANK_ONGRID_BAND, 0, 1)`;
     nadwyżkę PV wykorzystuje w pierwszej kolejności, resztę dobiera z sieci
 - Termostat: max 60°C (granica higieniczna anty-Legionella)
@@ -94,7 +95,19 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
   wykres dobowego bilansu energii elektrycznej grzałki (jeden słupek na dobę,
   PV vs sieć).
 - Statystyki miesięczne: pokrycie CWU, godziny pracy grzałki, zużycie prądu
-  (PV vs sieć), koszt energii z sieci.
+  (PV vs sieć), koszt energii z sieci, ciepło zaoszczędzone oraz bilans
+  miesięczny (oszczędność na cieple − koszt energii z sieci).
+
+### Sidebar — stałe podsumowanie miesięczne
+- `<aside class="pvsim-sidebar">` — panel `position: fixed` przy prawej krawędzi
+  okna, stale widoczny podczas przewijania. Zawiera kopie 4 najważniejszych
+  paneli statystyk Modułu 05: zużycie prądu, koszt energii z sieci, ciepło
+  zaoszczędzone, bilans miesięczny (id-ki `pvsim-sb-*`).
+- `P.renderMonthStats()` wpisuje te same wartości równolegle do paneli Modułu 05
+  i do sidebara (helper `set(txt, ...ids)`).
+- Przycisk `pvsim-sidebar-toggle` pokazuje/ukrywa sidebar. Stan startowy zależy
+  od szerokości okna: ≥ 1100 px → widoczny, mniej → ukryty. Ukrycie = klasa
+  `.hidden` na `<aside>`.
 
 ## Stan aplikacji
 

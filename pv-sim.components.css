@@ -8,10 +8,11 @@
      oraz układem dwuwierszowym (primary + secondary)
    - separator modułów (.pvsim-module-divider) z animowaną
      kropką i gradientową linią
-   - warianty teal (kolor turkusowy) dla modułu 02 — CWU:
-     suwak, value-box, etykieta
-   - warianty amber (kolor bursztynowy) dla modułu 03 — grzałka:
+   - warianty kolorów akcentu dla modułów 02–05 (teal — CWU,
+     violet — Sieć, amber — Zasobnik, sky — Symulacja miesięczna):
      separator, suwak, value-box, etykieta, karta statystyki
+   - sidebar (.pvsim-sidebar) ze skróconym podsumowaniem
+     miesięcznym oraz przyciskiem pokaż/ukryj (.pvsim-sidebar-toggle)
    ========================================================= */
 
 /* -------- CHART -------- */
@@ -297,6 +298,62 @@
 }
 .pvsim-stat.sky::before { background: var(--pvsim-sky); }
 .pvsim-stat.sky .pvsim-stat-value { color: var(--pvsim-sky); }
+
+/* -------- SIDEBAR — stałe podsumowanie miesięczne -------- */
+.pvsim-sidebar-toggle {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 51;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  background: var(--pvsim-bg-2);
+  border: 1px solid var(--pvsim-border);
+  color: var(--pvsim-sky);
+  padding: 7px 10px;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+.pvsim-sidebar-toggle:hover { border-color: var(--pvsim-sky); }
+.pvsim-sidebar {
+  position: fixed;
+  top: 58px;
+  right: 24px;
+  width: 188px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 50;
+}
+.pvsim-sidebar.hidden { display: none; }
+.pvsim-sidebar .pvsim-stat { padding: 10px 12px; }
+.pvsim-sidebar .pvsim-stat-label { font-size: 7.5px; margin-bottom: 7px; }
+.pvsim-sidebar .pvsim-stat-value .primary { font-size: 16px; }
+.pvsim-sidebar .pvsim-stat-value .primary .unit { font-size: 9.5px; }
+.pvsim-sidebar .pvsim-stat-value .secondary { font-size: 9.5px; }
+.pvsim-sidebar .pvsim-stat-value .secondary .unit { font-size: 8px; }
+.pvsim-sidebar-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pvsim-sky);
+  padding: 6px 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pvsim-sidebar-title::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: var(--pvsim-sky);
+  box-shadow: 0 0 8px var(--pvsim-sky);
+}
 
 .pvsim-grid-tariff-note {
   font-size: 11px;

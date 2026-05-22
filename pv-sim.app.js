@@ -10,6 +10,7 @@
    Prywatna init() — jednorazowa inicjalizacja UI:
      - suwak mocy PV (kWp)
      - przełącznik trybu PV (doba przeciętna / pełne usłonecznienie)
+     - suwak zmienności pogody dobowej (moduł 01)
      - siatka przycisków wyboru miesiąca (generowana dynamicznie z P.MONTHS)
      - suwak liczby mieszkańców (moduł 02 CWU)
      - suwak temperatury docelowej CWU (moduł 02)
@@ -20,9 +21,11 @@
      - suwak mocy grzałki (moduł 04)
      - suwak progu włączenia grzałki (moduł 04)
      - suwak pojemności zasobnika (moduł 04)
+     - suwak temperatury grzania grzałki (moduł 04)
      - przełączniki strategii grzałki dzień/noc (moduł 04)
      - suwaki cen inwestycji: PV, grzałki, zasobnik, SCADA (moduł 07)
-     - przycisk pokaż/ukryj sidebar z podsumowaniem miesięcznym
+     - suwaki limitu zwrotu i okresu życia + przycisk optymalizacji (moduł 08)
+     - przycisk pokaż/ukryj sidebar z podsumowaniem rocznym
        (start: widoczny dla okna ≥1100 px, ukryty poniżej)
    Każda kontrolka przy zmianie synchronizuje P.state, odświeża etykietę,
    ustawia CSS --pvsim-fill (WebKit track fill) i wywołuje P.update()

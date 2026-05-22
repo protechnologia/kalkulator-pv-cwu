@@ -11,8 +11,10 @@
      wygładza wykresy SVG między próbkami godzinowymi.
 
    Moduł 01 — PV:
-     renderChart()  — wykres mocy chwilowej (kW), kolor pomarańczowy
-     renderStats()  — karty: produkcja dobowa, miesięczna, moc szczytowa
+     renderChart()        — wykres mocy chwilowej (kW), kolor pomarańczowy
+     renderPVMonthChart() — wykres słupkowy produkcji dobowej PV przez cały
+                            miesiąc (jeden słupek na dobę, linia średniej)
+     renderStats()        — karty: produkcja dobowa, miesięczna, moc szczytowa
 
    Moduł 02 — CWU:
      renderDHWChart() — wykres zużycia wody (m³/h) i mocy grzewczej (kW),
@@ -51,6 +53,10 @@
    Moduł 07 — Inwestycja:
      renderInvestStats()    — karty: koszt inwestycji (PV, grzałki,
                               zasobnik, SCADA) i liczba lat na zwrot
+
+   Moduł 08 — Optymalizacja:
+     renderOptimTable()     — tabela 3 najlepszych wariantów grid searcha,
+                              każdy wiersz z przyciskiem „Przenieś →"
    ========================================================= */
 window.PVSIM = window.PVSIM || {};
 (function(P) {

@@ -1,7 +1,7 @@
 /* =========================================================
    PV.SIM — Model fizyczny symulacji
 
-   Zawiera cztery główne funkcje obliczeniowe:
+   Zawiera funkcje obliczeniowe symulacji oraz optymalizacji:
 
    P.simulateDay(kWp, monthIdx, pvMode)
      Godzinowa produkcja PV. Wyznacza wysokość słońca (model Coopera 1969),
@@ -16,13 +16,15 @@
      P.state.buildingType: stary budynek 60%, nowy 35%) i koszt całkowity
      przy aktualnej taryfie ECO.
 
-   P.simulateTank(simPV, simDHW, heaterKW, tankL)
+   P.simulateTank(simPV, simDHW, heaterKW, tankL, T_init)
      Model zasobnika 1-węzłowego (fully-mixed) z 6 podkrokami na godzinę.
      Symuluje: pobór CWU (rozcieńczenie), grzanie grzałką wg strategii
      wybranej osobno dla strefy dziennej i nocnej taryfy, straty postojowe.
+     Grzałka grzeje do setpointu P.state.heaterTargetC (suwak Modułu 04,
+     niezależny od T_hot z Modułu 02).
      Strategie: 'off' (wyłączona), 'off-grid' (power diverter — moc do nadwyżki
-     PV, grzeje tylko do T_hot), 'on-grid' (moc proporcjonalna do T_hot,
-     pobór z PV + sieci).
+     PV, grzeje tylko do setpointu), 'on-grid' (moc proporcjonalna do różnicy
+     setpoint − T, pobór z PV + sieci).
      Śledzi pokrycie CWU, oszczędności oraz zużycie energii (PV vs sieć).
 
    P.simulateTankMonth(simPV, simDHW, heaterKW, tankL, monthIdx)
@@ -40,6 +42,18 @@
      Kalkulator inwestycji — sumuje koszt instalacji PV, grzałki,
      zasobnika i automatyki + SCADA (ceny jednostkowe z P.state) oraz
      liczy zwrot inwestycji względem bilansu rocznego netto.
+
+   P.optimize(maxPayback, lifetime, onProgress)
+     Grid search (Moduł 08) — przeszukuje siatkę P.OPT_GRID po mocy PV,
+     mocy grzałki, progu, pojemności zasobnika, temperaturze grzania
+     i strategiach dzień/noc. Asynchroniczny (porcje + setTimeout 0,
+     callback postępu). Zwraca Promise z 3 najlepszymi wariantami wg
+     zysku netto za cały okres życia inwestycji.
+
+   P.dailyWeatherFactors(monthIdx, days)
+     Deterministyczne mnożniki zmienności pogody dobowej — losują
+     produkcję PV poszczególnych dób przy zachowanej średniej miesięcznej
+     (PRNG ziarnowany per miesiąc, siła z P.state.pvVariability).
    ========================================================= */
 window.PVSIM = window.PVSIM || {};
 (function(P) {

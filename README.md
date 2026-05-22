@@ -13,7 +13,11 @@ Pobierz repozytorium i otwórz `pv-sim.v1.1.html` w przeglądarce.
 ### Moduł 01 — PV (fotowoltaika)
 - Moc instalacji: 1–100 kWp
 - Dwa tryby symulacji: **avg** (dane PVGIS z uwzględnieniem zachmurzenia) i **clear** (bezchmurny dzień)
+- Suwak zmienności pogody dobowej — losowy, powtarzalny rozrzut produkcji
+  poszczególnych dób przy zachowanej średniej miesięcznej (wpływa na moduły 05–08)
 - Model słońca: deklinacja Coopera (1969), model clear-sky Hottela
+- Dwa wykresy: godzinowa moc reprezentatywnej doby oraz produkcja dobowa
+  przez cały miesiąc
 - Dane nasłonecznienia: PVGIS, Opole (φ = 50.67°N), nachylenie 30°, optymalne azymut
 
 ### Moduł 02 — CWU (ciepła woda użytkowa)
@@ -31,21 +35,39 @@ Pobierz repozytorium i otwórz `pv-sim.v1.1.html` w przeglądarce.
 
 ### Moduł 04 — Zasobnik z grzałką elektryczną
 - Moc grzałki: 1–15 kW
-- Pojemność zasobnika: 100–1000 L
+- Pojemność zasobnika: 200–3000 L
+- Temperatura grzania grzałki: 0–60°C (setpoint niezależny od temperatury CWU)
 - Model termodynamiczny 1-węzłowy (fully-mixed), 6 podkroków na godzinę
 - Trzy strategie grzałki wybierane osobno dla strefy dziennej i nocnej:
   **off** (wyłączona), **off-grid** (power diverter — moc do nadwyżki PV,
-  grzeje do T_hot), **on-grid** (moc proporcjonalna, pobór z PV + sieci)
+  grzeje do setpointu), **on-grid** (moc proporcjonalna, pobór z PV + sieci)
 - Termostat: max 60°C (granica anty-Legionella wg PN-EN 12897)
 - Straty ciepła klasy B/C wg PN-EN 12897
 
 ### Moduł 05 — Symulacja miesięczna
 - Ciągła symulacja zasobnika przez cały miesiąc — każda doba dziedziczy
   temperaturę końcową poprzedniej, po kilku dobach układ wchodzi w stan ustalony
-- Dziedziczy parametry Modułu 04 (bez własnych kontrolek)
+- Dziedziczy parametry modułów 01–04 (bez własnych kontrolek)
 - Statystyki miesięczne: pokrycie CWU, zużycie prądu (PV vs sieć),
   koszt energii z sieci, ciepło zaoszczędzone, bilans miesięczny
-- Skrót podsumowania dostępny w stale widocznym sidebarze
+
+### Moduł 06 — Symulacja roczna
+- Symulacja wszystkich 12 miesięcy z osobnymi wejściami PV i CWU
+- Dziedziczy parametry modułów 01–04 (bez własnych kontrolek)
+- Wykres słupkowy energii elektrycznej grzałki (jeden słupek na miesiąc)
+- Statystyki roczne; skrót podsumowania dostępny w stale widocznym sidebarze
+
+### Moduł 07 — Inwestycja
+- Kalkulator kosztu całej inwestycji (PV, grzałki, zasobnik, automatyka + SCADA)
+  i czasu jej zwrotu względem bilansu rocznego netto
+- Cztery suwaki cen jednostkowych (research rynkowy PL 2025)
+
+### Moduł 08 — Optymalizacja (grid search)
+- Automatyczny dobór najlepszej konfiguracji PV, grzałki i zasobnika
+- Użytkownik podaje maksymalny czas zwrotu i zakładany okres życia inwestycji
+- Przeszukuje siatkę kombinacji (moc PV, grzałka, próg, zasobnik, temperatura
+  grzania, strategie dzień/noc) i prezentuje 3 najlepsze warianty
+- Wynik można jednym kliknięciem przenieść do kontrolek Modułu 04
 
 ## Struktura plików
 
@@ -54,8 +76,8 @@ pv-sim.v1.1.html      — jedyna strona HTML
 pv-sim.tokens.css     — zmienne CSS (kolory, tła, akcenty)
 pv-sim.layout.css     — nagłówek, suwaki, siatka miesięcy, stopka, responsive
 pv-sim.components.css — wykresy SVG, karty statystyk, warianty kolorów, sidebar
-pv-sim.config.js      — stałe, MONTHS[], state{}, funkcje pomocnicze
-pv-sim.physics.js     — simulateDay(), simulateDHW(), simulateTank(), simulateTankMonth()
+pv-sim.config.js      — stałe, MONTHS[], state{}, OPT_GRID, funkcje pomocnicze
+pv-sim.physics.js     — simulateDay/DHW/Tank/TankMonth/TankYear, computeInvestment, optimize
 pv-sim.render.js      — renderowanie wykresów SVG i kart statystyk
 pv-sim.app.js         — P.update(), init(), obsługa UI
 ```

@@ -13,9 +13,12 @@
      pasmo proporcjonalne sterowania on-grid (TANK_ONGRID_BAND)
    - tablicę MONTHS z danymi PVGIS dla każdego miesiąca
      (doy, dni w miesiącu, przeciętna dzienna produkcja kWh/kWp)
+   - ziarno PRNG zmienności pogody dobowej (WEATHER_SEED)
    - obiekt state — bieżące wartości wszystkich suwaków i pól UI,
-     w tym parametry taryfy elektrycznej (moduł 03) oraz strategie
-     grzałki dla strefy dziennej i nocnej (moduł 04)
+     w tym parametry taryfy elektrycznej (moduł 03), strategie grzałki
+     dla strefy dziennej i nocnej (moduł 04), ceny inwestycji (moduł 07)
+     oraz parametry optymalizacji (moduł 08)
+   - siatkę OPT_GRID przeszukiwaną przez grid search (moduł 08)
 
    Musi być ładowany jako PIERWSZY spośród plików JS,
    bo physics.js, render.js i app.js korzystają z P.state i stałych.

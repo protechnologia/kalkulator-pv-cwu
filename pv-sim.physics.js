@@ -500,6 +500,7 @@ window.PVSIM = window.PVSIM || {};
     const g = P.OPT_GRID;
     const s = P.state;
     const saved = {
+      kWp:              s.kWp,
       heaterKW:         s.heaterKW,
       heaterThreshold:  s.heaterThreshold,
       tankL:            s.tankL,
@@ -513,10 +514,12 @@ window.PVSIM = window.PVSIM || {};
       for (const stratNight of g.strat) {
         const usesOffGrid = stratDay === 'off-grid' || stratNight === 'off-grid';
         const thresholds = usesOffGrid ? g.threshold : [g.threshold[0]];
-        for (const heaterKW of g.heaterKW) {
-          for (const tankL of g.tankL) {
-            for (const threshold of thresholds) {
-              combos.push({ heaterKW, threshold, tankL, stratDay, stratNight });
+        for (const kWp of g.kWp) {
+          for (const heaterKW of g.heaterKW) {
+            for (const tankL of g.tankL) {
+              for (const threshold of thresholds) {
+                combos.push({ kWp, heaterKW, threshold, tankL, stratDay, stratNight });
+              }
             }
           }
         }
@@ -533,6 +536,7 @@ window.PVSIM = window.PVSIM || {};
         const end = Math.min(i + CHUNK, total);
         for (; i < end; i++) {
           const c = combos[i];
+          s.kWp              = c.kWp;
           s.heaterKW         = c.heaterKW;
           s.heaterThreshold  = c.threshold;
           s.tankL            = c.tankL;
@@ -546,6 +550,7 @@ window.PVSIM = window.PVSIM || {};
           if (inv.paybackYears > maxPayback) continue;
 
           results.push({
+            kWp:            c.kWp,
             heaterKW:       c.heaterKW,
             heaterThreshold: c.threshold,
             tankL:          c.tankL,

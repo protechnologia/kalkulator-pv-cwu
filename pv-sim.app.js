@@ -306,6 +306,7 @@ window.PVSIM = window.PVSIM || {};
         const btn = document.querySelector('#' + toggleId + ' .pvsim-toggle-btn[data-strat="' + strat + '"]');
         if (btn) btn.click();
       };
+      setSlider('pvsim-power', r.kWp);
       setSlider('pvsim-heater', r.heaterKW);
       setSlider('pvsim-heater-threshold', Math.round(r.heaterThreshold * 100));
       setSlider('pvsim-tank', r.tankL);

@@ -153,6 +153,7 @@ window.PVSIM = window.PVSIM || {};
   // ===== SIATKA OPTYMALIZACJI (Moduł 08) =====
   // Zgrubne zbiory wartości przeszukiwane przez P.optimize() — grid search.
   P.OPT_GRID = {
+    kWp:       [5, 10, 15, 20, 30, 40, 50],
     heaterKW:  [2, 3, 4.5, 6, 9, 12, 15],
     threshold: [0.1, 0.2, 0.4, 0.6, 0.8],
     tankL:     [200, 300, 500, 800, 1200, 2000, 3000],

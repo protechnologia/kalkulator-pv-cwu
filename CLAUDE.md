@@ -129,15 +129,15 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
   oraz zwrot inwestycji w latach.
 
 ### Moduł 08 — Optymalizacja (grid search)
-- Automatyczny dobór najlepszej konfiguracji grzałki i zasobnika. Użytkownik
+- Automatyczny dobór najlepszej konfiguracji PV, grzałki i zasobnika. Użytkownik
   podaje maksymalny czas zwrotu inwestycji oraz zakładany okres życia, a
   aplikacja przeszukuje siatkę kombinacji i prezentuje 3 najlepsze warianty.
 - Ma własne kontrolki — dwa suwaki (`pvsim-opt-payback` 1–25 lat,
   `pvsim-opt-lifetime` 5–40 lat) oraz przycisk `pvsim-opt-run` z paskiem
   postępu `pvsim-opt-progress`. Suwaki nie wywołują `P.update()`.
-- `P.OPT_GRID` (`config.js`) definiuje przeszukiwaną siatkę: `heaterKW`,
-  `threshold`, `tankL` oraz `strat` (`off`/`off-grid`/`on-grid` dla strefy
-  dziennej i nocnej).
+- `P.OPT_GRID` (`config.js`) definiuje przeszukiwaną siatkę: `kWp` (moc PV),
+  `heaterKW`, `threshold`, `tankL` oraz `strat` (`off`/`off-grid`/`on-grid`
+  dla strefy dziennej i nocnej).
 - `P.optimize(maxPayback, lifetime, onProgress)` (`physics.js`) — asynchroniczna
   funkcja zwracająca `Promise`. Przeszukuje kombinacje w porcjach (24 na chunk,
   `setTimeout(0)` między porcjami, raportuje postęp przez `onProgress(frac)`),

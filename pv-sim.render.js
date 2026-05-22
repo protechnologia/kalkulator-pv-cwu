@@ -1026,6 +1026,7 @@ window.PVSIM = window.PVSIM || {};
     results.forEach((r, i) => {
       rows += `<tr>
         <td>${i + 1}</td>
+        <td>${P.fmt.pl1(r.kWp)}</td>
         <td>${P.fmt.pl1(r.heaterKW)}</td>
         <td>${Math.round(r.heaterThreshold * 100)}</td>
         <td>${r.tankL}</td>
@@ -1044,6 +1045,7 @@ window.PVSIM = window.PVSIM || {};
         <thead>
           <tr>
             <th>#</th>
+            <th>PV [kWp]</th>
             <th>Grzałka [kW]</th>
             <th>Próg [%]</th>
             <th>Zasobnik [l]</th>

@@ -296,9 +296,6 @@ window.PVSIM = window.PVSIM || {};
   // ===== RENDER STATÓW CWU =====
   P.renderDHWStats = function(simDHW) {
     const circ = simDHW.circulation;
-    const circPct = simDHW.daily.energy > 0
-      ? Math.round(circ.energy / simDHW.daily.energy * 100)
-      : 0;
     const circPctTot = simDHW.daily.totalEnergy > 0
       ? Math.round(circ.energy / simDHW.daily.totalEnergy * 100)
       : 0;
@@ -308,7 +305,6 @@ window.PVSIM = window.PVSIM || {};
     document.getElementById('pvsim-dhw-energy-d').textContent     = P.fmt.pl0(simDHW.daily.totalEnergy);
     document.getElementById('pvsim-dhw-energy-m').textContent     = P.fmt.pl0(simDHW.monthly.totalEnergy);
     document.getElementById('pvsim-dhw-circ-d').textContent       = P.fmt.pl0(circ.energy);
-    document.getElementById('pvsim-dhw-circ-pct').textContent     = circPct;
     document.getElementById('pvsim-dhw-circ-pct-tot').textContent = circPctTot;
     document.getElementById('pvsim-dhw-cost-d').textContent   = P.fmt.pl2(simDHW.daily.totalCost);
     document.getElementById('pvsim-dhw-cost-m').textContent   = P.fmt.pl0(simDHW.monthly.totalCost);

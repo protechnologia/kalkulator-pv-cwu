@@ -408,7 +408,8 @@ window.PVSIM = window.PVSIM || {};
 
     for (let mi = 0; mi < 12; mi++) {
       const days   = P.MONTHS[mi].days;
-      const simPV  = P.simulateDay(P.state.kWp, mi, P.state.pvMode);
+      // Symulacja roczna zawsze korzysta z doby przeciętnej PV (PVGIS), nie z trybu clear-sky
+      const simPV  = P.simulateDay(P.state.kWp, mi, 'avg');
       const simDHW = P.simulateDHW(P.state.residents, mi, P.state.T_hot);
       const simMonth = P.simulateTankMonth(simPV, simDHW, P.state.heaterKW, P.state.tankL, mi);
       const mo = simMonth.monthly;

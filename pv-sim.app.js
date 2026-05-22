@@ -50,7 +50,9 @@ window.PVSIM = window.PVSIM || {};
     P.renderTankElecChart(simTank);
     P.renderTankStats(simTank);
 
-    const simMonth = P.simulateTankMonth(sim, simDHW, P.state.heaterKW, P.state.tankL);
+    // Moduł 05 zawsze korzysta z doby przeciętnej PV (PVGIS), niezależnie od pvMode
+    const simAvg = P.simulateDay(P.state.kWp, P.state.monthIdx, 'avg');
+    const simMonth = P.simulateTankMonth(simAvg, simDHW, P.state.heaterKW, P.state.tankL);
     P.renderMonthTankChart(simMonth);
     P.renderMonthElecChart(simMonth);
     P.renderMonthStats(simMonth);

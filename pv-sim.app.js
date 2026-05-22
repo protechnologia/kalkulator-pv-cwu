@@ -142,6 +142,8 @@ window.PVSIM = window.PVSIM || {};
         P.PRICE_PER_GJ  = val;
         P.PRICE_PER_KWH = P.PRICE_PER_GJ / P.KWH_PER_GJ;
       }
+      const kwhEl = document.getElementById('pvsim-price-kwh');
+      if (kwhEl) kwhEl.textContent = P.fmt.pl2(P.PRICE_PER_KWH);
     }
     inputPrice.addEventListener('input', function() { syncPriceGJ(); P.update(); });
     syncPriceGJ();
@@ -214,6 +216,20 @@ window.PVSIM = window.PVSIM || {};
     }
     sliderT.addEventListener('input', updateTank);
     updateTank();
+
+    // Suwak temperatury grzania grzałki (Moduł 04)
+    const sliderHTg = document.getElementById('pvsim-heater-target');
+    const sliderHTgVal = document.getElementById('pvsim-heater-target-val');
+    function updateHeaterTarget() {
+      P.state.heaterTargetC = parseInt(sliderHTg.value, 10);
+      sliderHTgVal.textContent = P.state.heaterTargetC;
+      const min = parseFloat(sliderHTg.min), max = parseFloat(sliderHTg.max);
+      const pct = ((P.state.heaterTargetC - min) / (max - min)) * 100;
+      sliderHTg.style.setProperty('--pvsim-fill', pct + '%');
+      P.update();
+    }
+    sliderHTg.addEventListener('input', updateHeaterTarget);
+    updateHeaterTarget();
 
     // Toggle strategii grzałki — strefa dzienna i nocna (Moduł 04)
     function wireStratToggle(toggleId, stateKey) {
@@ -327,6 +343,7 @@ window.PVSIM = window.PVSIM || {};
       setSlider('pvsim-heater', r.heaterKW);
       setSlider('pvsim-heater-threshold', Math.round(r.heaterThreshold * 100));
       setSlider('pvsim-tank', r.tankL);
+      setSlider('pvsim-heater-target', r.heaterTargetC);
       clickStrat('pvsim-strat-day-toggle',   r.stratDay);
       clickStrat('pvsim-strat-night-toggle', r.stratNight);
     }

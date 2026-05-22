@@ -139,6 +139,7 @@ window.PVSIM = window.PVSIM || {};
     heaterStratDay:   'off-grid',
     heaterStratNight: 'off-grid',
     tankL: 500,         // pojemność zasobnika [l]
+    heaterTargetC: 50,  // °C — temperatura, do której grzeje grzałka (setpoint, niezależny od T_hot)
     buildingType: 'old', // 'new' | 'old' — typ budynku (straty cyrkulacji)
     // Moduł 03 — taryfa energii elektrycznej z sieci (G12 Tauron 2026)
     gridPriceDay:   0.6950, // zł/kWh — strefa dzienna
@@ -158,11 +159,12 @@ window.PVSIM = window.PVSIM || {};
   // ===== SIATKA OPTYMALIZACJI (Moduł 08) =====
   // Zgrubne zbiory wartości przeszukiwane przez P.optimize() — grid search.
   P.OPT_GRID = {
-    kWp:       [5, 10, 15, 20, 30, 40, 50],
-    heaterKW:  [2, 3, 4.5, 6, 9, 12, 15],
-    threshold: [0.1, 0.2, 0.4, 0.6, 0.8],
-    tankL:     [200, 300, 500, 800, 1200, 2000, 3000],
-    strat:     ['off', 'off-grid', 'on-grid']
+    kWp:           [5, 10, 15, 20, 30, 40, 50],
+    heaterKW:      [2, 3, 4.5, 6, 9, 12, 15],
+    threshold:     [0.1, 0.2, 0.4, 0.6, 0.8],
+    tankL:         [200, 300, 500, 800, 1200, 2000, 3000],
+    heaterTargetC: [45, 50, 55, 60],
+    strat:         ['off', 'off-grid', 'on-grid']
   };
 
 })(window.PVSIM);

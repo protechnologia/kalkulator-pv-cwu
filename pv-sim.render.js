@@ -1113,6 +1113,7 @@ window.PVSIM = window.PVSIM || {};
         <td>${P.fmt.pl1(r.heaterKW)}</td>
         <td>${Math.round(r.heaterThreshold * 100)}</td>
         <td>${r.tankL}</td>
+        <td>${r.heaterTargetC}</td>
         <td>${stratLabel[r.stratDay]}</td>
         <td>${stratLabel[r.stratNight]}</td>
         <td>${P.fmt.pl0(r.cost)}</td>
@@ -1132,6 +1133,7 @@ window.PVSIM = window.PVSIM || {};
             <th>Grzałka [kW]</th>
             <th>Próg [%]</th>
             <th>Zasobnik [l]</th>
+            <th>Temp. grz. [°C]</th>
             <th>Strat. dzień</th>
             <th>Strat. noc</th>
             <th>Koszt inw. [zł]</th>

@@ -158,7 +158,7 @@
         <div class="pvsim-label teal">Cena energii cieplnej &nbsp;[ zł/GJ ]</div>
         <div class="pvsim-power-row">
           <input type="number" min="50" max="600" step="0.01" value="196.95" class="pvsim-number-input teal" id="pvsim-price-gj">
-          <div class="pvsim-value-box teal"><span class="unit">zł/GJ</span></div>
+          <div class="pvsim-value-box teal"><span id="pvsim-price-kwh">0,71</span><span class="unit">zł/kWh</span></div>
         </div>
       </div>
       <div>
@@ -318,6 +318,15 @@
             <input type="range" min="200" max="3000" value="500" step="50" class="pvsim-slider amber" id="pvsim-tank">
           </div>
           <div class="pvsim-value-box amber"><span id="pvsim-tank-val">500</span><span class="unit">l</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="pvsim-label amber">Temperatura grzania grzałki &nbsp;[ °C ]</div>
+        <div class="pvsim-power-row">
+          <div class="pvsim-slider-wrap">
+            <input type="range" min="0" max="60" value="50" step="1" class="pvsim-slider amber" id="pvsim-heater-target">
+          </div>
+          <div class="pvsim-value-box amber"><span id="pvsim-heater-target-val">50</span><span class="unit">°C</span></div>
         </div>
       </div>
     </div>

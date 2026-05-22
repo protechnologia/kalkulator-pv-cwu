@@ -166,8 +166,8 @@ window.PVSIM = window.PVSIM || {};
   // Strategia grzałki wybierana osobno dla strefy dziennej i nocnej taryfy:
   //   'off'      — grzałka wyłączona
   //   'off-grid' — moc throttlowana do nadwyżki PV (power diverter), energia z PV;
-  //                grzeje tylko do setpointu T_hot, nadwyżka ponad to → Q_wasted
-  //   'on-grid'  — moc proporcjonalna do (T_hot - T)/BAND; nadwyżkę PV
+  //                grzeje tylko do setpointu T_set, nadwyżka ponad to → Q_wasted
+  //   'on-grid'  — moc proporcjonalna do (T_set - T)/BAND; nadwyżkę PV
   //                wykorzystujemy w pierwszej kolejności, resztę dobiera sieć
   // Temperatura startowa T_zas(00:00):
   //   T_init === undefined → start zimny = T_in (temp. wody wodociągowej),
@@ -180,7 +180,7 @@ window.PVSIM = window.PVSIM || {};
     const dt    = 1 / P.TANK_SUBSTEPS;
 
     const T_in  = simDHW.T_in;
-    const T_hot = P.state.T_hot;
+    const T_set = P.state.heaterTargetC;  // setpoint grzałki (Moduł 04)
     const band  = P.TANK_ONGRID_BAND;
     const threshold = P.state.heaterThreshold * heaterKW;
     let T = (T_init === undefined ? T_in : T_init);
@@ -229,14 +229,14 @@ window.PVSIM = window.PVSIM || {};
         let pvShare = 0;  // udział PV w tej energii [0..1]
         let T_cap = P.TANK_T_MAX;  // pułap grzania dla tego podkroku
         if (strat === 'off-grid') {
-          // diverter grzeje tylko do setpointu T_hot (nie wyżej niż termostat)
-          T_cap = Math.min(T_hot, P.TANK_T_MAX);
+          // diverter grzeje tylko do setpointu T_set (nie wyżej niż termostat)
+          T_cap = Math.min(T_set, P.TANK_T_MAX);
           if (P_PV >= threshold) {
             Q_per   = Math.min(P_PV, heaterKW) * dt;
             pvShare = 1;
           }
         } else if (strat === 'on-grid') {
-          const frac = Math.max(0, Math.min(1, (T_hot - T) / band));
+          const frac = Math.max(0, Math.min(1, (T_set - T) / band));
           const Q_kW = heaterKW * frac;
           if (Q_kW > 0) {
             Q_per   = Q_kW * dt;
@@ -551,9 +551,10 @@ window.PVSIM = window.PVSIM || {};
   };
 
   // ===== OPTYMALIZACJA — GRID SEARCH (Moduł 08) =====
-  // Przeszukuje zgrubną siatkę P.OPT_GRID po pięciu parametrach: moc grzałki,
-  // próg włączenia, pojemność zasobnika oraz strategia grzałki dla strefy
-  // dziennej i nocnej. Dla każdej kombinacji uruchamia istniejącą symulację
+  // Przeszukuje zgrubną siatkę P.OPT_GRID po parametrach: moc PV, moc grzałki,
+  // próg włączenia, pojemność zasobnika, temperatura grzania grzałki oraz
+  // strategia grzałki dla strefy dziennej i nocnej. Dla każdej kombinacji
+  // uruchamia istniejącą symulację
   // roczną i kalkulator inwestycji, a następnie liczy zysk netto za cały
   // okres życia inwestycji:
   //   lifetimeProfit = bilans roczny netto × lata życia − koszt inwestycji
@@ -578,6 +579,7 @@ window.PVSIM = window.PVSIM || {};
       heaterKW:         s.heaterKW,
       heaterThreshold:  s.heaterThreshold,
       tankL:            s.tankL,
+      heaterTargetC:    s.heaterTargetC,
       heaterStratDay:   s.heaterStratDay,
       heaterStratNight: s.heaterStratNight
     };
@@ -591,8 +593,10 @@ window.PVSIM = window.PVSIM || {};
         for (const kWp of g.kWp) {
           for (const heaterKW of g.heaterKW) {
             for (const tankL of g.tankL) {
-              for (const threshold of thresholds) {
-                combos.push({ kWp, heaterKW, threshold, tankL, stratDay, stratNight });
+              for (const heaterTargetC of g.heaterTargetC) {
+                for (const threshold of thresholds) {
+                  combos.push({ kWp, heaterKW, threshold, tankL, heaterTargetC, stratDay, stratNight });
+                }
               }
             }
           }
@@ -614,6 +618,7 @@ window.PVSIM = window.PVSIM || {};
           s.heaterKW         = c.heaterKW;
           s.heaterThreshold  = c.threshold;
           s.tankL            = c.tankL;
+          s.heaterTargetC    = c.heaterTargetC;
           s.heaterStratDay   = c.stratDay;
           s.heaterStratNight = c.stratNight;
 
@@ -628,6 +633,7 @@ window.PVSIM = window.PVSIM || {};
             heaterKW:       c.heaterKW,
             heaterThreshold: c.threshold,
             tankL:          c.tankL,
+            heaterTargetC:  c.heaterTargetC,
             stratDay:       c.stratDay,
             stratNight:     c.stratNight,
             cost:           inv.total,

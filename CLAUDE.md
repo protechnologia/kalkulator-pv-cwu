@@ -75,14 +75,16 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 
 ### Moduł 04 — Zasobnik z grzałką
 - Parametry: moc grzałki (1–15 kW), próg włączenia (10–100%), pojemność zasobnika (100–1000 L),
+  temperatura grzania grzałki (0–60°C, suwak — setpoint `P.state.heaterTargetC`,
+  niezależny od T_hot z Modułu 02),
   strategia grzałki — wybierana osobno dla strefy dziennej i nocnej taryfy (Moduł 03)
 - Model: 1-węzłowy (fully-mixed), 6 podkroków na godzinę
 - Trzy strategie grzałki:
   - `off` — grzałka wyłączona w danej strefie
   - `off-grid` (power diverter) — moc throttlowana do nadwyżki PV,
     włącza się gdy `P_PV ≥ próg`, gdzie `próg = heaterThreshold × heaterKW`; energia z PV.
-    Grzeje tylko do setpointu `T_hot` — nadwyżka PV ponad to trafia do `Q_wasted`
-  - `on-grid` — moc proporcjonalna: `heaterKW × clamp((T_hot − T)/TANK_ONGRID_BAND, 0, 1)`;
+    Grzeje tylko do setpointu `heaterTargetC` — nadwyżka PV ponad to trafia do `Q_wasted`
+  - `on-grid` — moc proporcjonalna: `heaterKW × clamp((heaterTargetC − T)/TANK_ONGRID_BAND, 0, 1)`;
     nadwyżkę PV wykorzystuje w pierwszej kolejności, resztę dobiera z sieci
 - Termostat: max 60°C (granica higieniczna anty-Legionella)
 - Straty: `UA(V) = UA_REF · (V/V_REF)^(2/3)`, klasa B/C wg PN-EN 12897
@@ -149,8 +151,9 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
   `pvsim-opt-lifetime` 5–40 lat) oraz przycisk `pvsim-opt-run` z paskiem
   postępu `pvsim-opt-progress`. Suwaki nie wywołują `P.update()`.
 - `P.OPT_GRID` (`config.js`) definiuje przeszukiwaną siatkę: `kWp` (moc PV),
-  `heaterKW`, `threshold`, `tankL` oraz `strat` (`off`/`off-grid`/`on-grid`
-  dla strefy dziennej i nocnej).
+  `heaterKW`, `threshold`, `tankL`, `heaterTargetC` (temperatura grzania
+  grzałki) oraz `strat` (`off`/`off-grid`/`on-grid` dla strefy dziennej
+  i nocnej).
 - `P.optimize(maxPayback, lifetime, onProgress)` (`physics.js`) — asynchroniczna
   funkcja zwracająca `Promise`. Przeszukuje kombinacje w porcjach (24 na chunk,
   `setTimeout(0)` między porcjami, raportuje postęp przez `onProgress(frac)`),
@@ -193,6 +196,7 @@ P.state = {
   heaterStratDay:   'off-grid', // strategia w strefie dziennej: 'off'|'off-grid'|'on-grid'
   heaterStratNight: 'off-grid', // strategia w strefie nocnej
   tankL: 500,           // pojemność zasobnika [L]
+  heaterTargetC: 50,    // temperatura grzania grzałki [°C] — setpoint, niezależny od T_hot
   buildingType: 'old',  // 'old' | 'new' — straty cyrkulacji (60% / 35%)
   // Moduł 03 — taryfa energii elektrycznej (on-grid w przygotowaniu)
   gridPriceDay:   0.6950, // zł/kWh — strefa dzienna

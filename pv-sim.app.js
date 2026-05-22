@@ -52,6 +52,7 @@ window.PVSIM = window.PVSIM || {};
 
     // Moduł 05 zawsze korzysta z doby przeciętnej PV (PVGIS), niezależnie od pvMode
     const simAvg = P.simulateDay(P.state.kWp, P.state.monthIdx, 'avg');
+    P.renderPVMonthChart(P.state.monthIdx, simAvg.daily);
     const simMonth = P.simulateTankMonth(simAvg, simDHW, P.state.heaterKW, P.state.tankL);
     P.renderMonthTankChart(simMonth);
     P.renderMonthElecChart(simMonth);
@@ -81,6 +82,20 @@ window.PVSIM = window.PVSIM || {};
       P.update();
     }
     slider.addEventListener('input', updateSlider);
+
+    // Suwak zmienności pogody dobowej (Moduł 01 → wpływa na moduły 05–08)
+    const sliderV = document.getElementById('pvsim-pv-variability');
+    const sliderVVal = document.getElementById('pvsim-pv-variability-val');
+    function updateVariability() {
+      const pctVal = parseInt(sliderV.value, 10);
+      P.state.pvVariability = pctVal / 100;
+      sliderVVal.textContent = pctVal;
+      const min = parseFloat(sliderV.min), max = parseFloat(sliderV.max);
+      sliderV.style.setProperty('--pvsim-fill', ((pctVal - min) / (max - min) * 100) + '%');
+      P.update();
+    }
+    sliderV.addEventListener('input', updateVariability);
+    updateVariability();
 
     // Toggle trybu PV (doba przeciętna vs pełne usłonecznienie)
     const toggleBtns = document.querySelectorAll('#pvsim-mode-toggle .pvsim-toggle-btn');

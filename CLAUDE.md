@@ -48,10 +48,18 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 ## Moduły aplikacji
 
 ### Moduł 01 — PV (fotowoltaika)
-- Parametry: moc instalacji `kWp` (1–100), miesiąc, tryb symulacji
+- Parametry: moc instalacji `kWp` (1–100), miesiąc, tryb symulacji,
+  zmienność pogody dobowej (suwak %, `P.state.pvVariability`)
 - Tryb `avg` — skaluje do średniej dobowej z PVGIS (chmury wliczone)
 - Tryb `clear` — bezchmurny dzień, skaler `P.CLEAR_SCALE = 1.4577`
 - Model słońca: deklinacja Coopera (1969), model clear-sky Hottela
+- Dwa wykresy: godzinowy wykres mocy reprezentatywnej doby (`renderChart`,
+  `#pvsim-chart`) oraz słupkowy wykres produkcji dobowej PV przez cały miesiąc
+  (`renderPVMonthChart`, `#pvsim-pv-month-chart`) — jeden słupek na dobę,
+  z linią średniej dobowej; ujawnia zmienność pogody w obrębie miesiąca.
+- Suwak zmienności pogody nie wpływa na godzinowy wykres reprezentatywnej doby,
+  ale steruje rozrzutem słupków wykresu miesięcznego oraz symulacjami
+  wielodobowymi modułów 05–08
 
 ### Moduł 02 — CWU (ciepła woda użytkowa)
 - Parametry: liczba mieszkańców (1–200), temperatura docelowa T_hot (35–65°C), cena energii cieplnej [zł/GJ]
@@ -87,6 +95,11 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 - Symulacja ciągła zasobnika przez cały miesiąc (`days × 24 h`): pierwsza doba
   startuje zimna (`T_in`), każda następna dziedziczy temperaturę końcową
   poprzedniej. Po kilku dobach układ wchodzi w stan ustalony.
+- Produkcja PV każdej doby jest skalowana dobowym mnożnikiem zmienności pogody
+  (`P.dailyWeatherFactors()`): doby różnią się od pochmurnych (0) po clear-sky,
+  ale średnia miesięczna PV pozostaje dokładnie zachowana. Siłę rozrzutu reguluje
+  suwak `P.state.pvVariability` (Moduł 01); generator jest deterministyczny
+  (`mulberry32`, ziarno `P.WEATHER_SEED + monthIdx`).
 - Bez własnych kontrolek — dziedziczy parametry Modułu 04 (grzałka, zasobnik,
   strategie dzień/noc). Każda zmiana suwaka odświeża też Moduł 05.
 - `P.simulateTankMonth()` wywołuje `P.simulateTank()` raz na dobę z temperaturą
@@ -172,6 +185,7 @@ P.state = {
   kWp: 10.0,            // moc instalacji PV [kWp]
   monthIdx: 4,          // indeks miesiąca 0..11 (4 = maj)
   pvMode: 'avg',        // 'avg' | 'clear'
+  pvVariability: 0.5,   // siła odchyleń dobowych PV [0..1] (zmienność pogody)
   residents: 50,        // liczba mieszkańców
   T_hot: 50,            // temperatura CWU [°C]
   heaterKW: 3.0,        // moc grzałki [kW]

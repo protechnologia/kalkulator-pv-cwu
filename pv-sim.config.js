@@ -33,6 +33,10 @@ window.PVSIM = window.PVSIM || {};
   // gdzie 5.351 to suma raw clear-sky dla 21 czerwca w Opolu.
   P.CLEAR_SCALE = 1.4577;
 
+  // Bazowe ziarno deterministycznego PRNG zmienności pogody dobowej (Moduł 05/06).
+  // Ziarno każdego miesiąca = WEATHER_SEED + monthIdx — wzorzec jest powtarzalny.
+  P.WEATHER_SEED = 20260101;
+
   // ===== CWU =====
   P.DHW_L_PER_PERSON = 40;   // l/osobę/dobę przy temp. docelowej (typowo PL: 30–50)
   P.C_WATER = 4.186;          // kJ/(kg·K) — ciepło właściwe wody
@@ -123,6 +127,7 @@ window.PVSIM = window.PVSIM || {};
     kWp: 10.0,
     monthIdx: 4,        // Maj domyślnie
     pvMode: 'avg',      // 'avg' = doba przeciętna (PVGIS), 'clear' = clear-sky (bezchmurnie)
+    pvVariability: 0.5, // siła odchyleń dobowych PV [0..1] — zmienność pogody w miesiącu
     residents: 50,
     T_hot: 50,          // °C — temperatura docelowa CWU
     heaterKW: 3.0,      // moc grzałki [kW]

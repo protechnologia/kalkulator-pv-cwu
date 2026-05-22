@@ -332,11 +332,79 @@ window.PVSIM = window.PVSIM || {};
     };
   };
 
+  // ===== ZMIENNOŚĆ POGODY DOBOWEJ (Moduł 05/06) =====
+  // Deterministyczny generator pseudolosowy (mulberry32) — ten sam wzorzec
+  // dni przy każdym renderze, dzięki czemu przesunięcie suwaka tylko skaluje
+  // rozrzut, a doby się nie tasują.
+  function mulberry32(seed) {
+    let a = seed >>> 0;
+    return function() {
+      a = (a + 0x6D2B79F5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  // Cache na g_max per miesiąc (zależy tylko od monthIdx, LAT i stałych).
+  const _gMaxCache = [];
+  function gMaxForMonth(monthIdx) {
+    if (_gMaxCache[monthIdx] === undefined) {
+      const clearDaily = P.simulateDay(1, monthIdx, 'clear').daily;
+      const avgDaily   = P.simulateDay(1, monthIdx, 'avg').daily;
+      _gMaxCache[monthIdx] = avgDaily > 0 ? clearDaily / avgDaily : 1;
+    }
+    return _gMaxCache[monthIdx];
+  }
+
+  // Zwraca tablicę dobowych mnożników produkcji PV dla danego miesiąca.
+  //   mean(g) = 1 dokładnie (zachowana średnia miesięczna),
+  //   g[d] ∈ [0, g_max], gdzie g_max = clear-sky / avg danego miesiąca.
+  // Siłę rozrzutu reguluje P.state.pvVariability ∈ [0,1]:
+  //   0 → wszystkie dni identyczne (g[d]=1), 1 → pełny rozrzut [0, g_max].
+  // Surowa czystość = r^p, gdzie p = g_max−1, więc E[r^p] = mu — rozkład sięga
+  // od dni bez słońca (r≈0) po dni clear-sky (r≈1) przy zachowanej średniej.
+  P.dailyWeatherFactors = function(monthIdx, days) {
+    const gMax = gMaxForMonth(monthIdx);
+    const mu   = gMax > 0 ? 1 / gMax : 1;          // średnia "czystość nieba" [0..1]
+    const p    = Math.max(0, gMax - 1);            // wykładnik: E[r^p] = mu
+    const s    = Math.max(0, Math.min(1, P.state.pvVariability));
+    const rng  = mulberry32(P.WEATHER_SEED + monthIdx);
+
+    // 1) Surowe czystości v ∈ [0,1] — przy s=0 wszystkie równe mu.
+    const v = [];
+    let vSum = 0;
+    for (let d = 0; d < days; d++) {
+      const raw = Math.pow(rng(), p);
+      const val = (1 - s) * mu + s * raw;
+      v.push(val);
+      vSum += val;
+    }
+    const vMean = days > 0 ? vSum / days : mu;
+
+    // 2) Korekta do dokładnej średniej mu (blend monotoniczny, zakres [0,1]).
+    const factors = [];
+    for (let d = 0; d < days; d++) {
+      let k;
+      if (vMean <= mu) {
+        k = vMean < 1
+          ? v[d] + (mu - vMean) / (1 - vMean) * (1 - v[d])
+          : mu;
+      } else {
+        k = v[d] * (mu / vMean);
+      }
+      factors.push(mu > 0 ? k / mu : 1);           // g[d] = k/mu → mean(g)=1
+    }
+    return factors;
+  };
+
   // ===== SYMULACJA MIESIĘCZNA ZASOBNIKA (Moduł 05) =====
   // Symulacja ciągła przez cały miesiąc: pierwsza doba startuje zimna (T_in),
-  // każda następna dziedziczy temperaturę końcową poprzedniej. Wejścia PV i CWU
-  // są takie same dla każdej doby — jedyne, co przenosi się między dobami, to
-  // temperatura zasobnika, więc po kilku dobach układ wchodzi w stan ustalony.
+  // każda następna dziedziczy temperaturę końcową poprzedniej. Profil CWU jest
+  // taki sam dla każdej doby, natomiast produkcja PV jest skalowana dobowym
+  // mnożnikiem zmienności pogody (P.dailyWeatherFactors) — średnia miesięczna
+  // pozostaje zachowana. Temperatura zasobnika przenosi się między dobami.
   P.simulateTankMonth = function(simPV, simDHW, heaterKW, tankL, monthIdx) {
     const mi    = (monthIdx === undefined ? P.state.monthIdx : monthIdx);
     const days  = P.MONTHS[mi].days;
@@ -344,13 +412,18 @@ window.PVSIM = window.PVSIM || {};
     const hours = [];
 
     const daysData = [];   // agregaty na dobę — wykres dobowy energii (Moduł 05)
+    const factors = P.dailyWeatherFactors(mi, days);  // dobowe mnożniki PV
     let T = T_in;  // start zimny
     let monthQ_saved = 0, monthQ_strat = 0;
     let monthElec_pv = 0, monthElec_grid = 0;
     let monthGridCost = 0, monthHeaterHours = 0;
 
     for (let d = 0; d < days; d++) {
-      const day = P.simulateTank(simPV, simDHW, heaterKW, tankL, T);
+      const g = factors[d];
+      const dayPV = { hours: simPV.hours.map(h => ({
+        hour: h.hour, power: h.power * g, energy: h.energy * g
+      })) };
+      const day = P.simulateTank(dayPV, simDHW, heaterKW, tankL, T);
       day.hours.forEach(h => {
         hours.push(Object.assign({}, h, { day: d, gh: d * 24 + h.hour }));
       });

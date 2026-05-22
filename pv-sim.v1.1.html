@@ -39,13 +39,25 @@
   <!-- CONTROLS -->
   <div class="pvsim-controls">
 
-    <div>
-      <div class="pvsim-label">Parametry instalacji &nbsp;[ kWp ]</div>
-      <div class="pvsim-power-row">
-        <div class="pvsim-slider-wrap">
-          <input type="range" min="1" max="50" value="10" step="0.5" class="pvsim-slider" id="pvsim-power">
+    <div class="pvsim-controls-row">
+      <div>
+        <div class="pvsim-label">Parametry instalacji &nbsp;[ kWp ]</div>
+        <div class="pvsim-power-row">
+          <div class="pvsim-slider-wrap">
+            <input type="range" min="1" max="50" value="10" step="0.5" class="pvsim-slider" id="pvsim-power">
+          </div>
+          <div class="pvsim-value-box"><span id="pvsim-power-val">10.0</span><span class="unit">kWp</span></div>
         </div>
-        <div class="pvsim-value-box"><span id="pvsim-power-val">10.0</span><span class="unit">kWp</span></div>
+      </div>
+
+      <div>
+        <div class="pvsim-label">Zmienność pogody dobowej &nbsp;[ % ]</div>
+        <div class="pvsim-power-row">
+          <div class="pvsim-slider-wrap">
+            <input type="range" min="0" max="100" value="50" step="5" class="pvsim-slider" id="pvsim-pv-variability">
+          </div>
+          <div class="pvsim-value-box"><span id="pvsim-pv-variability-val">50</span><span class="unit">%</span></div>
+        </div>
       </div>
     </div>
 
@@ -79,6 +91,20 @@
     </div>
     <div class="pvsim-chart-wrap">
       <svg class="pvsim-chart" id="pvsim-chart" viewBox="0 0 780 300" preserveAspectRatio="none"></svg>
+    </div>
+  </div>
+
+  <!-- WYKRES MIESIĘCZNY -->
+  <div class="pvsim-chart-section">
+    <div class="pvsim-chart-header">
+      <div class="pvsim-chart-title">
+        Produkcja dobowa PV w miesiącu
+        <span class="ctx" id="pvsim-pv-month-ctx">— Maj</span>
+      </div>
+      <div class="pvsim-chart-axis-label">[ kWh vs &nbsp;doba ]</div>
+    </div>
+    <div class="pvsim-chart-wrap">
+      <svg class="pvsim-chart" id="pvsim-pv-month-chart" viewBox="0 0 780 300" preserveAspectRatio="none"></svg>
     </div>
   </div>
 

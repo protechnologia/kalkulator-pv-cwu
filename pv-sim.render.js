@@ -173,6 +173,93 @@ window.PVSIM = window.PVSIM || {};
     document.getElementById('pvsim-chart-ctx').textContent = '— ' + sim.monthData.name + ' · ' + modeLabel;
   };
 
+  // ===== RENDER WYKRESU MIESIĘCZNEGO PV (Moduł 01) =====
+  // Słupki dobowe: jeden słupek na dobę, wysokość = produkcja PV [kWh] danego dnia.
+  // Dni różnią się wg P.dailyWeatherFactors() — średnia miesięczna jest zachowana.
+  P.renderPVMonthChart = function(monthIdx, avgDaily) {
+    const svg = document.getElementById('pvsim-pv-month-chart');
+    if (!svg) return;
+    const W = 780, H = 300;
+    const padL = 50, padR = 18, padT = 14, padB = 36;
+    const cw = W - padL - padR;
+    const ch = H - padT - padB;
+
+    const md   = P.MONTHS[monthIdx];
+    const days = md.days;
+    const factors = P.dailyWeatherFactors(monthIdx, days);
+    const perDay  = factors.map(g => avgDaily * g);
+
+    const rawMax = Math.max(...perDay, 0.001);
+    const niceSteps = [1, 2, 2.5, 5, 10, 20, 50, 100, 200, 500];
+    const step = niceSteps.find(s => rawMax / s <= 6) || 1000;
+    const yMax = Math.ceil(rawMax / step + 0.001) * step;
+
+    const slot = cw / days;
+    const x = d => padL + d * slot;
+    const y = v => padT + ch - (v / yMax) * ch;
+    const bw = slot * 0.7;
+    const bx = slot * 0.15;
+
+    let bars = '';
+    perDay.forEach((v, d) => {
+      const h = (v / yMax) * ch;
+      if (h > 0.05) {
+        bars += `<rect x="${(x(d) + bx).toFixed(2)}" y="${y(v).toFixed(2)}"
+                       width="${bw.toFixed(2)}" height="${h.toFixed(2)}"
+                       fill="#ff7a1a" opacity="0.8"/>`;
+      }
+    });
+
+    // linia średniej dobowej
+    const avgY = y(avgDaily);
+    const avgLine = `<line x1="${padL}" y1="${avgY.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${avgY.toFixed(2)}"
+                           stroke="#2dd4bf" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.8"/>
+      <text x="${(W - padR - 4).toFixed(2)}" y="${(avgY - 5).toFixed(2)}" text-anchor="end"
+            font-family="'IBM Plex Mono', monospace" font-size="10" font-weight="600" fill="#2dd4bf"
+            font-variant-numeric="tabular-nums">śr. ${P.fmt.pl2(avgDaily)} kWh</text>`;
+
+    const ticks = Math.round(yMax / step);
+    let gridLines = '', yLabels = '';
+    for (let i = 0; i <= ticks; i++) {
+      const v = i * step;
+      const yy = y(v);
+      gridLines += `<line x1="${padL}" y1="${yy.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yy.toFixed(2)}"
+                          stroke="#26262b" stroke-width="1" ${i === 0 ? '' : 'stroke-dasharray="2,3"'}/>`;
+      yLabels += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end"
+                        font-family="'IBM Plex Mono', monospace" font-size="10" fill="#6b6b73"
+                        font-variant-numeric="tabular-nums">${P.fmt.pl0(v)}</text>`;
+    }
+
+    const labelEvery = days > 16 ? 2 : 1;
+    let xLabels = '';
+    for (let d = 0; d < days; d++) {
+      if (d % labelEvery === 0) {
+        xLabels += `<text x="${(x(d) + slot / 2).toFixed(2)}" y="${(padT + ch + 18).toFixed(2)}" text-anchor="middle"
+                          font-family="'IBM Plex Mono', monospace" font-size="10" fill="#6b6b73"
+                          font-variant-numeric="tabular-nums">${d + 1}</text>`;
+      }
+    }
+
+    const axes = `
+      <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${(padT + ch).toFixed(2)}" stroke="#36363d" stroke-width="1"/>
+      <line x1="${padL}" y1="${(padT + ch).toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${(padT + ch).toFixed(2)}" stroke="#36363d" stroke-width="1"/>
+    `;
+
+    svg.innerHTML = `
+      ${gridLines}${axes}${bars}${avgLine}${yLabels}${xLabels}
+      <text x="${padL - 30}" y="${padT - 2}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
+            fill="#6b6b73" letter-spacing="1.4">[kWh]</text>
+      <text x="${(padL + cw / 2).toFixed(2)}" y="${(H - 4).toFixed(2)}" text-anchor="middle"
+            font-family="'IBM Plex Mono', monospace" font-size="9" fill="#6b6b73" letter-spacing="1">doba</text>
+    `;
+
+    const ctxEl = document.getElementById('pvsim-pv-month-ctx');
+    if (ctxEl) {
+      const monthly = perDay.reduce((s, v) => s + v, 0);
+      ctxEl.textContent = `— ${md.name} · suma ${P.fmt.pl0(monthly)} kWh`;
+    }
+  };
+
   // ===== RENDER WYKRESU CWU =====
   // Jedna krzywa zużycia wody, dwie osie Y (m³/h i kW) niezależnie wyskalowane.
   // Zasada: lewa oś zawsze 0..1.0 m³/h, prawa oś zawsze 0..60 kW.

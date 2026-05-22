@@ -476,4 +476,99 @@ window.PVSIM = window.PVSIM || {};
     return { costPV, costHeater, costTank, costScada, total, annual, paybackYears };
   };
 
+  // ===== OPTYMALIZACJA — GRID SEARCH (Moduł 08) =====
+  // Przeszukuje zgrubną siatkę P.OPT_GRID po pięciu parametrach: moc grzałki,
+  // próg włączenia, pojemność zasobnika oraz strategia grzałki dla strefy
+  // dziennej i nocnej. Dla każdej kombinacji uruchamia istniejącą symulację
+  // roczną i kalkulator inwestycji, a następnie liczy zysk netto za cały
+  // okres życia inwestycji:
+  //   lifetimeProfit = bilans roczny netto × lata życia − koszt inwestycji
+  // Odrzuca warianty bez zwrotu (bilans ≤ 0) oraz z czasem zwrotu powyżej
+  // limitu maxPayback. Zwraca 3 najlepsze warianty (malejąco wg lifetimeProfit).
+  //
+  // Funkcja tymczasowo nadpisuje P.state, więc na końcu przywraca pierwotne
+  // wartości — moduły 01–07 dalej pokazują ustawienia użytkownika.
+  //
+  // Pruning: heaterThreshold wpływa tylko na strategię 'off-grid'. Gdy ani
+  // strefa dzienna, ani nocna nie używa 'off-grid', próg iterowany jest raz.
+  //
+  // Działa asynchronicznie: kombinacje liczone są w porcjach (CHUNK), między
+  // porcjami sterowanie wraca do przeglądarki (setTimeout 0), dzięki czemu
+  // pasek postępu może rosnąć. Zwraca Promise z top 3 wariantami. Opcjonalny
+  // callback onProgress(frac) dostaje ułamek 0..1 ukończenia.
+  P.optimize = function(maxPayback, lifetime, onProgress) {
+    const g = P.OPT_GRID;
+    const s = P.state;
+    const saved = {
+      heaterKW:         s.heaterKW,
+      heaterThreshold:  s.heaterThreshold,
+      tankL:            s.tankL,
+      heaterStratDay:   s.heaterStratDay,
+      heaterStratNight: s.heaterStratNight
+    };
+
+    // Lista wszystkich kombinacji do przeliczenia (z pruningiem progu).
+    const combos = [];
+    for (const stratDay of g.strat) {
+      for (const stratNight of g.strat) {
+        const usesOffGrid = stratDay === 'off-grid' || stratNight === 'off-grid';
+        const thresholds = usesOffGrid ? g.threshold : [g.threshold[0]];
+        for (const heaterKW of g.heaterKW) {
+          for (const tankL of g.tankL) {
+            for (const threshold of thresholds) {
+              combos.push({ heaterKW, threshold, tankL, stratDay, stratNight });
+            }
+          }
+        }
+      }
+    }
+
+    const results = [];
+    const total = combos.length;
+    const CHUNK = 24;
+
+    return new Promise(resolve => {
+      let i = 0;
+      function step() {
+        const end = Math.min(i + CHUNK, total);
+        for (; i < end; i++) {
+          const c = combos[i];
+          s.heaterKW         = c.heaterKW;
+          s.heaterThreshold  = c.threshold;
+          s.tankL            = c.tankL;
+          s.heaterStratDay   = c.stratDay;
+          s.heaterStratNight = c.stratNight;
+
+          const simYear = P.simulateTankYear();
+          const inv     = P.computeInvestment(simYear);
+          const balance = simYear.yearly.balancePLN;
+          if (balance <= 0 || !isFinite(inv.paybackYears)) continue;
+          if (inv.paybackYears > maxPayback) continue;
+
+          results.push({
+            heaterKW:       c.heaterKW,
+            heaterThreshold: c.threshold,
+            tankL:          c.tankL,
+            stratDay:       c.stratDay,
+            stratNight:     c.stratNight,
+            cost:           inv.total,
+            balancePLN:     balance,
+            paybackYears:   inv.paybackYears,
+            lifetimeProfit: balance * lifetime - inv.total
+          });
+        }
+        if (onProgress) onProgress(total > 0 ? i / total : 1);
+
+        if (i < total) {
+          setTimeout(step, 0);
+        } else {
+          Object.assign(s, saved);   // przywróć ustawienia użytkownika
+          results.sort((a, b) => b.lifetimeProfit - a.lifetimeProfit);
+          resolve(results.slice(0, 3));
+        }
+      }
+      step();
+    });
+  };
+
 })(window.PVSIM);

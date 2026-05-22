@@ -274,6 +274,74 @@ window.PVSIM = window.PVSIM || {};
     wirePriceSlider('pvsim-price-tank',   'pvsim-price-tank-val',   'priceTank100');
     wirePriceSlider('pvsim-price-scada',  'pvsim-price-scada-val',  'priceScada');
 
+    // ===== Moduł 08 — optymalizacja (grid search) =====
+    // Suwaki limitu zwrotu i okresu życia — nie uruchamiają P.update(),
+    // tylko synchronizują P.state. Search startuje wyłącznie przyciskiem.
+    function wireOptSlider(sliderId, valId, stateKey) {
+      const sl  = document.getElementById(sliderId);
+      const val = document.getElementById(valId);
+      function upd() {
+        P.state[stateKey] = parseInt(sl.value, 10);
+        val.textContent = P.state[stateKey];
+        const min = parseFloat(sl.min), max = parseFloat(sl.max);
+        sl.style.setProperty('--pvsim-fill', ((P.state[stateKey] - min) / (max - min) * 100) + '%');
+      }
+      sl.addEventListener('input', upd);
+      upd();
+    }
+    wireOptSlider('pvsim-opt-payback',  'pvsim-opt-payback-val',  'optMaxPayback');
+    wireOptSlider('pvsim-opt-lifetime', 'pvsim-opt-lifetime-val', 'optLifetime');
+
+    // Przenosi parametry wybranego wiersza wyniku do modułów 04/07.
+    // Reużywa istniejące listenery suwaków/przełączników przez zdarzenia DOM,
+    // dzięki czemu P.state, etykiety, --pvsim-fill i P.update() liczą się same.
+    function applyOptimRow(r) {
+      const setSlider = (id, value) => {
+        const sl = document.getElementById(id);
+        if (!sl) return;
+        sl.value = value;
+        sl.dispatchEvent(new Event('input'));
+      };
+      const clickStrat = (toggleId, strat) => {
+        const btn = document.querySelector('#' + toggleId + ' .pvsim-toggle-btn[data-strat="' + strat + '"]');
+        if (btn) btn.click();
+      };
+      setSlider('pvsim-heater', r.heaterKW);
+      setSlider('pvsim-heater-threshold', Math.round(r.heaterThreshold * 100));
+      setSlider('pvsim-tank', r.tankL);
+      clickStrat('pvsim-strat-day-toggle',   r.stratDay);
+      clickStrat('pvsim-strat-night-toggle', r.stratNight);
+    }
+
+    // Przycisk „Optymalizuj" — uruchamia asynchroniczny grid search.
+    // Pasek postępu rośnie w trakcie (callback onProgress), przycisk jest
+    // zablokowany do końca obliczeń.
+    const optRun  = document.getElementById('pvsim-opt-run');
+    const optBar  = document.getElementById('pvsim-opt-progress-fill');
+    let optResults = [];
+    optRun.addEventListener('click', () => {
+      const label = optRun.textContent;
+      optRun.textContent = 'Optymalizuję…';
+      optRun.disabled = true;
+      optBar.style.width = '0%';
+      P.optimize(P.state.optMaxPayback, P.state.optLifetime, frac => {
+        optBar.style.width = Math.round(frac * 100) + '%';
+      }).then(results => {
+        optResults = results;
+        P.renderOptimTable(optResults);
+        optRun.textContent = label;
+        optRun.disabled = false;
+      });
+    });
+
+    // Delegacja kliknięć przycisków „Przenieś" w tabeli wyników.
+    document.getElementById('pvsim-optim-table').addEventListener('click', (e) => {
+      const btn = e.target.closest('.pvsim-optim-apply');
+      if (!btn) return;
+      const row = optResults[parseInt(btn.dataset.row, 10)];
+      if (row) applyOptimRow(row);
+    });
+
     // Przycisk pokaż/ukryj sidebar — start widoczny na szerokich ekranach
     const sidebar = document.getElementById('pvsim-sidebar');
     const sidebarToggle = document.getElementById('pvsim-sidebar-toggle');

@@ -6,18 +6,18 @@ Napisany w czystym HTML/CSS/JS, bez frameworków i bundlerów.
 
 ## Uruchamianie
 
-Otwórz `pv-sim.v1.0.html` w przeglądarce. Nie wymaga żadnej instalacji ani serwera.
+Otwórz `pv-sim.v1.1.html` w przeglądarce. Nie wymaga żadnej instalacji ani serwera.
 
 ## Struktura plików
 
 ```
-pv-sim.v1.0.html      — jedyna strona HTML; ładuje CSS i JS w odpowiedniej kolejności
+pv-sim.v1.1.html      — jedyna strona HTML; ładuje CSS i JS w odpowiedniej kolejności
 pv-sim.tokens.css     — zmienne CSS (kolory, tła, akcenty); bazowy kontener .pvsim
 pv-sim.layout.css     — nagłówek, suwaki, siatka miesięcy, stopka, responsive
 pv-sim.components.css — wykresy SVG, karty statystyk, separatory modułów, warianty kolorów
 pv-sim.config.js      — stałe, MONTHS[], state{}, T_cold(), kWh_per_m3()
-pv-sim.physics.js     — simulateDay(), simulateDHW(), simulateTank(), simulateTankMonth(), simulateTankYear(), computeInvestment()
-pv-sim.render.js      — fmt, smoothPath(), renderChart/Stats dla 7 modułów
+pv-sim.physics.js     — simulateDay(), simulateDHW(), simulateTank(), simulateTankMonth(), simulateTankYear(), computeInvestment(), optimize()
+pv-sim.render.js      — fmt, smoothPath(), renderChart/Stats dla 8 modułów
 pv-sim.app.js         — P.update(), init(), listenery suwaków i przycisków
 ```
 
@@ -128,6 +128,30 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 - Statystyki (2 panele): koszt inwestycji (z rozbiciem na 4 pozycje)
   oraz zwrot inwestycji w latach.
 
+### Moduł 08 — Optymalizacja (grid search)
+- Automatyczny dobór najlepszej konfiguracji grzałki i zasobnika. Użytkownik
+  podaje maksymalny czas zwrotu inwestycji oraz zakładany okres życia, a
+  aplikacja przeszukuje siatkę kombinacji i prezentuje 3 najlepsze warianty.
+- Ma własne kontrolki — dwa suwaki (`pvsim-opt-payback` 1–25 lat,
+  `pvsim-opt-lifetime` 5–40 lat) oraz przycisk `pvsim-opt-run` z paskiem
+  postępu `pvsim-opt-progress`. Suwaki nie wywołują `P.update()`.
+- `P.OPT_GRID` (`config.js`) definiuje przeszukiwaną siatkę: `heaterKW`,
+  `threshold`, `tankL` oraz `strat` (`off`/`off-grid`/`on-grid` dla strefy
+  dziennej i nocnej).
+- `P.optimize(maxPayback, lifetime, onProgress)` (`physics.js`) — asynchroniczna
+  funkcja zwracająca `Promise`. Przeszukuje kombinacje w porcjach (24 na chunk,
+  `setTimeout(0)` między porcjami, raportuje postęp przez `onProgress(frac)`),
+  reużywa `P.simulateTankYear()` i `P.computeInvestment()`. Pruning: gdy żadna
+  strefa nie używa `off-grid`, próg iterowany jest tylko raz. Kryterium:
+  `lifetimeProfit = bilans roczny × okres życia − koszt inwestycji`. Twardy
+  filtr odrzuca warianty z `paybackYears > maxPayback` lub `balancePLN ≤ 0`.
+  Po zakończeniu przywraca pierwotny `P.state`. Zwraca top 3.
+- `P.renderOptimTable(results)` (`render.js`) — renderuje tabelę wyników do
+  `#pvsim-optim-table` (zamiast kart statystyk). Każdy wiersz ma przycisk
+  „Przenieś →" (`data-row`), który przez `applyOptimRow()` w `app.js` wpisuje
+  wartości do suwaków/przełączników Modułu 04.
+- Moduł 08 **nie** jest częścią `P.update()` — search uruchamia tylko przycisk.
+
 ### Sidebar — stałe podsumowanie roczne
 - `<aside class="pvsim-sidebar">` — panel `position: fixed` przy prawej krawędzi
   okna, stale widoczny podczas przewijania. Zawiera kopie 4 najważniejszych
@@ -165,7 +189,10 @@ P.state = {
   pricePVkWp:    4500,    // zł / 1 kWp instalacji PV
   priceHeaterKW: 500,     // zł / 1 kW grzałki
   priceTank100:  1100,    // zł / 100 l zasobnika
-  priceScada:    10000    // zł — automatyka + SCADA (ryczałt)
+  priceScada:    10000,   // zł — automatyka + SCADA (ryczałt)
+  // Moduł 08 — optymalizacja (grid search)
+  optMaxPayback: 5,       // maksymalny akceptowany czas zwrotu [lata]
+  optLifetime:   20       // zakładany okres życia inwestycji [lata]
 }
 ```
 
@@ -182,6 +209,7 @@ Każda zmiana w UI → `P.update()` → pięć symulacji + `computeInvestment()`
 | `--pvsim-sky`          | #38bdf8     | 05 Sym. mies.  |
 | `--pvsim-lime`         | #a3e635     | 06 Sym. roczna |
 | `--pvsim-rose`         | #fb7185     | 07 Inwestycja  |
+| `--pvsim-fuchsia`      | #e879f9     | 08 Optymalizacja |
 
 Warianty `-dim` (`--pvsim-orange-dim` itp.) używane jako tło aktywnych przycisków.
 

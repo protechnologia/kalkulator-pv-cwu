@@ -144,7 +144,19 @@ window.PVSIM = window.PVSIM || {};
     pricePVkWp:    4500,    // zł / 1 kWp instalacji PV
     priceHeaterKW: 500,     // zł / 1 kW grzałki
     priceTank100:  1100,    // zł / 100 l zasobnika
-    priceScada:    10000    // zł — automatyka + SCADA (ryczałt)
+    priceScada:    10000,   // zł — automatyka + SCADA (ryczałt)
+    // Moduł 08 — optymalizacja (grid search)
+    optMaxPayback: 5,       // maksymalny dopuszczalny czas zwrotu [lata]
+    optLifetime:   20       // zakładany okres życia inwestycji [lata]
+  };
+
+  // ===== SIATKA OPTYMALIZACJI (Moduł 08) =====
+  // Zgrubne zbiory wartości przeszukiwane przez P.optimize() — grid search.
+  P.OPT_GRID = {
+    heaterKW:  [2, 3, 4.5, 6, 9, 12, 15],
+    threshold: [0.1, 0.2, 0.4, 0.6, 0.8],
+    tankL:     [200, 300, 500, 800, 1200, 2000, 3000],
+    strat:     ['off', 'off-grid', 'on-grid']
   };
 
 })(window.PVSIM);

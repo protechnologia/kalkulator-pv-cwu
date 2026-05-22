@@ -404,3 +404,133 @@
   padding: 4px 0 8px;
   letter-spacing: 0.02em;
 }
+
+/* -------- FUCHSIA VARIANTS (Moduł 08 — optymalizacja) -------- */
+.pvsim-module-divider.fuchsia .tag { color: var(--pvsim-fuchsia); }
+.pvsim-module-divider.fuchsia .rule {
+  background: linear-gradient(90deg, var(--pvsim-fuchsia) 0%, transparent 100%);
+}
+.pvsim-module-divider.fuchsia .dot {
+  background: var(--pvsim-fuchsia);
+  box-shadow: 0 0 8px var(--pvsim-fuchsia);
+}
+.pvsim-slider.fuchsia::-webkit-slider-runnable-track {
+  background: linear-gradient(90deg,
+    var(--pvsim-fuchsia) 0%,
+    var(--pvsim-fuchsia) var(--pvsim-fill, 18%),
+    var(--pvsim-bg-3) var(--pvsim-fill, 18%),
+    var(--pvsim-bg-3) 100%);
+}
+.pvsim-slider.fuchsia::-moz-range-progress { background: var(--pvsim-fuchsia); }
+.pvsim-slider.fuchsia::-webkit-slider-thumb {
+  background: var(--pvsim-fuchsia);
+  box-shadow: 0 0 0 1px var(--pvsim-fuchsia), 0 0 12px rgba(232, 121, 249, 0.4);
+}
+.pvsim-slider.fuchsia::-moz-range-thumb {
+  background: var(--pvsim-fuchsia);
+  box-shadow: 0 0 0 1px var(--pvsim-fuchsia);
+}
+.pvsim-value-box.fuchsia { color: var(--pvsim-fuchsia); }
+.pvsim-label.fuchsia::before { background: var(--pvsim-fuchsia); }
+.pvsim-stat.fuchsia::before { background: var(--pvsim-fuchsia); }
+.pvsim-stat.fuchsia .pvsim-stat-value { color: var(--pvsim-fuchsia); }
+
+/* -------- MODUŁ 08 — przycisk „Optymalizuj" -------- */
+/* Spójny z estetyką modułów: mono, wersaliki, ramka, akcent fuchsia. */
+.pvsim-opt-run {
+  flex: 1;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  background: var(--pvsim-fuchsia-dim);
+  border: 1px solid var(--pvsim-fuchsia);
+  color: var(--pvsim-fuchsia);
+  padding: 11px 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: inset 0 -2px 0 var(--pvsim-fuchsia);
+}
+.pvsim-opt-run:hover {
+  background: rgba(232, 121, 249, 0.22);
+}
+.pvsim-opt-run:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/* -------- MODUŁ 08 — pasek postępu grid search -------- */
+.pvsim-opt-progress {
+  margin-top: 10px;
+  height: 6px;
+  background: var(--pvsim-bg-3);
+  border: 1px solid var(--pvsim-border);
+  overflow: hidden;
+}
+.pvsim-opt-progress-fill {
+  height: 100%;
+  width: 0;
+  background: var(--pvsim-fuchsia);
+  box-shadow: 0 0 8px var(--pvsim-fuchsia);
+  transition: width 0.12s linear;
+}
+
+/* -------- MODUŁ 08 — tabela wyników -------- */
+.pvsim-optim-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'IBM Plex Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+.pvsim-optim-table th {
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pvsim-text-2);
+  text-align: right;
+  padding: 8px 8px;
+  border-bottom: 1px solid var(--pvsim-border-strong);
+}
+.pvsim-optim-table th:first-child { text-align: left; }
+.pvsim-optim-table td {
+  font-size: 12px;
+  color: var(--pvsim-text-1);
+  text-align: right;
+  padding: 11px 8px;
+  border-bottom: 1px solid var(--pvsim-border);
+}
+.pvsim-optim-table td:first-child {
+  text-align: left;
+  color: var(--pvsim-fuchsia);
+  font-weight: 600;
+}
+.pvsim-optim-table tbody tr:hover { background: var(--pvsim-bg-2); }
+.pvsim-optim-table .pvsim-optim-profit {
+  color: var(--pvsim-fuchsia);
+  font-weight: 600;
+}
+.pvsim-optim-apply {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--pvsim-fuchsia-dim);
+  border: 1px solid var(--pvsim-fuchsia);
+  color: var(--pvsim-fuchsia);
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+.pvsim-optim-apply:hover { background: rgba(232, 121, 249, 0.22); }
+.pvsim-optim-empty {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--pvsim-text-2);
+  margin: 0;
+  padding: 16px 4px;
+}

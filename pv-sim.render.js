@@ -1006,4 +1006,58 @@ window.PVSIM = window.PVSIM || {};
     set(P.fmt.pl2(inv.annual), 'pvsim-inv-annual', 'pvsim-sb-inv-annual');
   };
 
+  // ===== RENDER TABELI OPTYMALIZACJI (Moduł 08) =====
+  // Renderuje wynik P.optimize() jako tabelę top 3 do #pvsim-optim-table.
+  // Każdy wiersz ma przycisk „Przenieś" z atrybutem data-row = indeks wyniku;
+  // listener (app.js) odczytuje go i wywołuje applyOptimRow().
+  P.renderOptimTable = function(results) {
+    const box = document.getElementById('pvsim-optim-table');
+    if (!box) return;
+
+    if (!results || results.length === 0) {
+      box.innerHTML = `<p class="pvsim-optim-empty">Brak wariantu spełniającego limit zwrotu —
+        zwiększ dopuszczalny czas zwrotu lub zmień parametry modułów 01–03.</p>`;
+      return;
+    }
+
+    const stratLabel = { 'off': 'wył.', 'off-grid': 'off-grid', 'on-grid': 'on-grid' };
+
+    let rows = '';
+    results.forEach((r, i) => {
+      rows += `<tr>
+        <td>${i + 1}</td>
+        <td>${P.fmt.pl1(r.heaterKW)}</td>
+        <td>${Math.round(r.heaterThreshold * 100)}</td>
+        <td>${r.tankL}</td>
+        <td>${stratLabel[r.stratDay]}</td>
+        <td>${stratLabel[r.stratNight]}</td>
+        <td>${P.fmt.pl0(r.cost)}</td>
+        <td>${P.fmt.pl2(r.balancePLN)}</td>
+        <td>${P.fmt.pl1(r.paybackYears)}</td>
+        <td class="pvsim-optim-profit">${P.fmt.pl0(r.lifetimeProfit)}</td>
+        <td><button class="pvsim-optim-apply" data-row="${i}">Przenieś →</button></td>
+      </tr>`;
+    });
+
+    box.innerHTML = `
+      <table class="pvsim-optim-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Grzałka [kW]</th>
+            <th>Próg [%]</th>
+            <th>Zasobnik [l]</th>
+            <th>Strat. dzień</th>
+            <th>Strat. noc</th>
+            <th>Koszt inw. [zł]</th>
+            <th>Bilans roczny [zł]</th>
+            <th>Zwrot [lat]</th>
+            <th>Zysk netto [zł]</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  };
+
 })(window.PVSIM);

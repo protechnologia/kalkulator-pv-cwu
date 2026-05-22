@@ -25,7 +25,7 @@
       <div class="pvsim-subtitle" id="pvsim-subtitle">Symulacja godzinowa &mdash; układ PV + CWU</div>
     </div>
     <div class="pvsim-meta">
-      v1.0.0<br>
+      v1.1.0<br>
       LAT 50.67° N &nbsp;·&nbsp; OPOLE
     </div>
   </div>
@@ -615,6 +615,62 @@
         <div class="primary"><span id="pvsim-inv-payback">0</span><span class="unit">lat</span></div>
         <div class="secondary"><span id="pvsim-inv-annual">0,00</span><span class="unit">zł bilans roczny netto</span></div>
       </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODUŁ 08 — OPTYMALIZACJA                    -->
+  <!-- ========================================== -->
+  <div class="pvsim-module-divider fuchsia">
+    <div class="dot"></div>
+    <div class="tag"><span class="num">08 //</span> OPTYMALIZACJA &mdash; Grid search parametrów</div>
+    <div class="rule"></div>
+  </div>
+
+  <!-- KONTROLKI MODUŁU 08 -->
+  <div class="pvsim-controls">
+    <div class="pvsim-controls-row">
+      <div>
+        <div class="pvsim-label fuchsia">Maks. czas zwrotu &nbsp;[ lata ]</div>
+        <div class="pvsim-power-row">
+          <div class="pvsim-slider-wrap">
+            <input type="range" min="1" max="25" value="5" step="1" class="pvsim-slider fuchsia" id="pvsim-opt-payback">
+          </div>
+          <div class="pvsim-value-box fuchsia"><span id="pvsim-opt-payback-val">5</span><span class="unit">lat</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="pvsim-label fuchsia">Okres życia inwestycji &nbsp;[ lata ]</div>
+        <div class="pvsim-power-row">
+          <div class="pvsim-slider-wrap">
+            <input type="range" min="5" max="40" value="20" step="1" class="pvsim-slider fuchsia" id="pvsim-opt-lifetime">
+          </div>
+          <div class="pvsim-value-box fuchsia"><span id="pvsim-opt-lifetime-val">20</span><span class="unit">lat</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="pvsim-label fuchsia">Grid search &nbsp;/ moc grzałki · próg · zasobnik · strategie</div>
+        <div class="pvsim-power-row">
+          <button class="pvsim-opt-run" id="pvsim-opt-run">Optymalizuj &rarr;</button>
+        </div>
+        <div class="pvsim-opt-progress" id="pvsim-opt-progress">
+          <div class="pvsim-opt-progress-fill" id="pvsim-opt-progress-fill"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABELA WYNIKÓW MODUŁU 08 -->
+  <div class="pvsim-chart-section">
+    <div class="pvsim-chart-header">
+      <div class="pvsim-chart-title">
+        Top 3 warianty &mdash; maks. zysk netto za okres życia
+      </div>
+      <div class="pvsim-chart-axis-label">[ grid search ]</div>
+    </div>
+    <div id="pvsim-optim-table">
+      <p class="pvsim-optim-empty">Ustaw limity i kliknij „Optymalizuj” &mdash;
+        przeszukanie siatki kombinacji zajmuje kilka sekund.</p>
     </div>
   </div>
 

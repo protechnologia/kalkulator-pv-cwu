@@ -143,6 +143,12 @@ window.PVSIM = window.PVSIM || {};
     heaterStratNight: 'off-grid',
     tankL: 500,         // pojemność zasobnika [l]
     heaterTargetC: 50,  // °C — temperatura, do której grzeje grzałka (setpoint, niezależny od T_hot)
+    // Pompa ciepła (PC) — równoległe źródło ciepła do CWU obok grzałki (Moduł 04)
+    hpKW:         2.0,  // moc elektryczna PC [kW] (0 = PC wyłączona)
+    hpCOPSummer:  3.5,  // COP letni — używany dla miesięcy Kwi–Wrz (mi ∈ [3..8])
+    hpCOPWinter:  2.5,  // COP zimowy — używany dla miesięcy Paź–Mar
+    hpGears:      2,    // liczba biegów PC; bieg k z N daje moc (k/N)·hpKW
+    hpOnlyBandC:  5,    // °C — szerokość pasma "tylko PC" pod setpointem (strategia on-grid)
     buildingType: 'old', // 'new' | 'old' — typ budynku (straty cyrkulacji)
     // Moduł 03 — taryfa energii elektrycznej z sieci (G12 Tauron 2026)
     gridPriceDay:   0.6950, // zł/kWh — strefa dzienna
@@ -154,6 +160,7 @@ window.PVSIM = window.PVSIM || {};
     priceHeaterKW: 500,     // zł / 1 kW grzałki
     priceTank100:  1100,    // zł / 100 l zasobnika
     priceScada:    10000,   // zł — automatyka + SCADA (ryczałt)
+    priceHPkWth:   3000,    // zł / 1 kW mocy grzewczej PC (kW × COP_średni)
     // Moduł 08 — optymalizacja (grid search)
     optMaxPayback: 5,       // maksymalny dopuszczalny czas zwrotu [lata]
     optLifetime:   20       // zakładany okres życia inwestycji [lata]
@@ -167,6 +174,7 @@ window.PVSIM = window.PVSIM || {};
     threshold:     [0.1, 0.2, 0.4, 0.6, 0.8],
     tankL:         [200, 300, 500, 800, 1200, 2000, 3000],
     heaterTargetC: [45, 50, 55, 60],
+    hpKW:          [0, 2, 3, 5, 8],
     strat:         ['off', 'off-grid', 'on-grid']
   };
 

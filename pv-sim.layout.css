@@ -304,6 +304,19 @@
   grid-template-columns: 1fr 1fr;
   gap: 28px;
 }
+.pvsim-controls-row.three { grid-template-columns: 1fr 1fr 1fr; }
+
+.pvsim-controls-group-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--pvsim-amber);
+  letter-spacing: 2.2px;
+  text-transform: uppercase;
+  opacity: 0.75;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.18);
+}
 
 /* -------- FOOTER -------- */
 .pvsim-footer {

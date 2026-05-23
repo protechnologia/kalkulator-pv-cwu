@@ -286,12 +286,121 @@
   <!-- ========================================== -->
   <div class="pvsim-module-divider amber">
     <div class="dot"></div>
-    <div class="tag"><span class="num">04 //</span> ZASOBNIK CWU + GRZAŁKA</div>
+    <div class="tag"><span class="num">04 //</span> ZASOBNIK CWU + POMPA CIEPŁA + GRZAŁKA</div>
     <div class="rule"></div>
   </div>
 
   <!-- KONTROLKI ZASOBNIKA -->
   <div class="pvsim-controls">
+    <div class="pvsim-controls-group-title">Ogólne</div>
+    <div class="pvsim-controls-row">
+      <div>
+        <div class="pvsim-label amber">Strategia grzałka + PC &nbsp;/ strefa dzienna</div>
+        <div class="pvsim-toggle three" id="pvsim-strat-day-toggle">
+          <button class="pvsim-toggle-btn amber" data-strat="off">
+            <span class="num">01</span>WYŁĄCZONA
+          </button>
+          <button class="pvsim-toggle-btn amber active" data-strat="off-grid">
+            <span class="num">02</span>OFF-GRID
+          </button>
+          <button class="pvsim-toggle-btn amber" data-strat="on-grid">
+            <span class="num">03</span>ON-GRID
+          </button>
+        </div>
+      </div>
+      <div>
+        <div class="pvsim-label amber">Strategia grzałka + PC &nbsp;/ strefa nocna</div>
+        <div class="pvsim-toggle three" id="pvsim-strat-night-toggle">
+          <button class="pvsim-toggle-btn amber" data-strat="off">
+            <span class="num">01</span>WYŁĄCZONA
+          </button>
+          <button class="pvsim-toggle-btn amber active" data-strat="off-grid">
+            <span class="num">02</span>OFF-GRID
+          </button>
+          <button class="pvsim-toggle-btn amber" data-strat="on-grid">
+            <span class="num">03</span>ON-GRID
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="pvsim-controls-group-title">Zasobnik</div>
+    <div class="pvsim-controls-row">
+      <div>
+        <div class="pvsim-label amber">Pojemność zasobnika &nbsp;[ l ]</div>
+        <div class="pvsim-power-row">
+          <div class="pvsim-slider-wrap">
+            <input type="range" min="200" max="3000" value="500" step="50" class="pvsim-slider amber" id="pvsim-tank">
+          </div>
+          <div class="pvsim-value-box amber"><span id="pvsim-tank-val">500</span><span class="unit">l</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="pvsim-label amber">Temperatura docelowa zasobnika &nbsp;[ °C ]</div>
+        <div class="pvsim-power-row">
+          <div class="pvsim-slider-wrap">
+            <input type="range" min="0" max="60" value="50" step="1" class="pvsim-slider amber" id="pvsim-heater-target">
+          </div>
+          <div class="pvsim-value-box amber"><span id="pvsim-heater-target-val">50</span><span class="unit">°C</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pvsim-controls-group-title">Pompa ciepła</div>
+    <div class="pvsim-controls-row">
+      <div>
+        <div class="pvsim-label amber">Moc pompy ciepła &nbsp;[ kW ]</div>
+        <div class="pvsim-power-row">
+          <div class="pvsim-slider-wrap">
+            <input type="range" min="0" max="10" value="2" step="0.5" class="pvsim-slider amber" id="pvsim-hp">
+          </div>
+          <div class="pvsim-value-box amber"><span id="pvsim-hp-val">2,0</span><span class="unit">kW</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="pvsim-label amber">Liczba biegów pompy ciepła</div>
+        <div class="pvsim-power-row">
+          <div class="pvsim-slider-wrap">
+            <input type="range" min="1" max="5" value="2" step="1" class="pvsim-slider amber" id="pvsim-hp-gears">
+          </div>
+          <div class="pvsim-value-box amber"><span id="pvsim-hp-gears-val">2</span><span class="unit">biegi</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="pvsim-controls-row">
+      <div>
+        <div class="pvsim-label amber">Pasmo „tylko PC" pod setpointem &nbsp;[ °C ]</div>
+        <div class="pvsim-power-row">
+          <div class="pvsim-slider-wrap">
+            <input type="range" min="0" max="20" value="5" step="1" class="pvsim-slider amber" id="pvsim-hp-band">
+          </div>
+          <div class="pvsim-value-box amber"><span id="pvsim-hp-band-val">5</span><span class="unit">°C</span></div>
+        </div>
+      </div>
+      <div></div>
+    </div>
+    <div class="pvsim-controls-row">
+      <div>
+        <div class="pvsim-label amber">COP pompy &nbsp;/ lato (Kwi–Wrz)</div>
+        <div class="pvsim-power-row">
+          <div class="pvsim-slider-wrap">
+            <input type="range" min="2" max="5" value="3.5" step="0.1" class="pvsim-slider amber" id="pvsim-hp-cop-summer">
+          </div>
+          <div class="pvsim-value-box amber"><span id="pvsim-hp-cop-summer-val">3,5</span><span class="unit">COP</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="pvsim-label amber">COP pompy &nbsp;/ zima (Paź–Mar)</div>
+        <div class="pvsim-power-row">
+          <div class="pvsim-slider-wrap">
+            <input type="range" min="2" max="5" value="2.5" step="0.1" class="pvsim-slider amber" id="pvsim-hp-cop-winter">
+          </div>
+          <div class="pvsim-value-box amber"><span id="pvsim-hp-cop-winter-val">2,5</span><span class="unit">COP</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pvsim-controls-group-title">Grzałka</div>
     <div class="pvsim-controls-row">
       <div>
         <div class="pvsim-label amber">Moc grzałki &nbsp;[ kW ]</div>
@@ -311,55 +420,8 @@
           <div class="pvsim-value-box amber"><span id="pvsim-heater-threshold-val">10</span><span class="unit">%</span></div>
         </div>
       </div>
-      <div>
-        <div class="pvsim-label amber">Pojemność zasobnika &nbsp;[ l ]</div>
-        <div class="pvsim-power-row">
-          <div class="pvsim-slider-wrap">
-            <input type="range" min="200" max="3000" value="500" step="50" class="pvsim-slider amber" id="pvsim-tank">
-          </div>
-          <div class="pvsim-value-box amber"><span id="pvsim-tank-val">500</span><span class="unit">l</span></div>
-        </div>
-      </div>
-      <div>
-        <div class="pvsim-label amber">Temperatura grzania grzałki &nbsp;[ °C ]</div>
-        <div class="pvsim-power-row">
-          <div class="pvsim-slider-wrap">
-            <input type="range" min="0" max="60" value="50" step="1" class="pvsim-slider amber" id="pvsim-heater-target">
-          </div>
-          <div class="pvsim-value-box amber"><span id="pvsim-heater-target-val">50</span><span class="unit">°C</span></div>
-        </div>
-      </div>
     </div>
-    <div class="pvsim-controls-row">
-      <div>
-        <div class="pvsim-label amber">Strategia grzałki &nbsp;/ strefa dzienna</div>
-        <div class="pvsim-toggle three" id="pvsim-strat-day-toggle">
-          <button class="pvsim-toggle-btn amber" data-strat="off">
-            <span class="num">01</span>WYŁĄCZONA
-          </button>
-          <button class="pvsim-toggle-btn amber active" data-strat="off-grid">
-            <span class="num">02</span>OFF-GRID
-          </button>
-          <button class="pvsim-toggle-btn amber" data-strat="on-grid">
-            <span class="num">03</span>ON-GRID
-          </button>
-        </div>
-      </div>
-      <div>
-        <div class="pvsim-label amber">Strategia grzałki &nbsp;/ strefa nocna</div>
-        <div class="pvsim-toggle three" id="pvsim-strat-night-toggle">
-          <button class="pvsim-toggle-btn amber" data-strat="off">
-            <span class="num">01</span>WYŁĄCZONA
-          </button>
-          <button class="pvsim-toggle-btn amber active" data-strat="off-grid">
-            <span class="num">02</span>OFF-GRID
-          </button>
-          <button class="pvsim-toggle-btn amber" data-strat="on-grid">
-            <span class="num">03</span>ON-GRID
-          </button>
-        </div>
-      </div>
-    </div>
+
   </div>
 
   <!-- WYKRES TEMPERATURY ZASOBNIKA -->
@@ -369,18 +431,18 @@
         Temperatura zasobnika &mdash; cykl dobowy
         <span class="ctx" id="pvsim-tank-ctx" style="color:var(--pvsim-amber);">— start zimny 15°C</span>
       </div>
-      <div class="pvsim-chart-axis-label">[ °C &nbsp;·&nbsp; grzałka ON ]</div>
+      <div class="pvsim-chart-axis-label">[ °C &nbsp;·&nbsp; PC / grzałka ON ]</div>
     </div>
     <div class="pvsim-chart-wrap">
-      <svg class="pvsim-chart" id="pvsim-tank-chart" viewBox="0 0 780 300" preserveAspectRatio="none"></svg>
+      <svg class="pvsim-chart" id="pvsim-tank-chart" viewBox="0 0 780 350" preserveAspectRatio="none"></svg>
     </div>
   </div>
 
-  <!-- WYKRES MOCY ELEKTRYCZNEJ GRZAŁKI -->
+  <!-- WYKRES MOCY ELEKTRYCZNEJ PC + GRZAŁKI -->
   <div class="pvsim-chart-section">
     <div class="pvsim-chart-header">
       <div class="pvsim-chart-title">
-        Moc elektryczna grzałki &mdash; źródło energii
+        Źródło energii elektrycznej
         <span class="ctx" id="pvsim-tank-elec-ctx" style="color:var(--pvsim-amber);"></span>
       </div>
       <div class="pvsim-chart-axis-label">[ kW vs &nbsp;hh:mm ]</div>
@@ -390,8 +452,22 @@
     </div>
   </div>
 
+  <!-- WYKRES PODZIAŁU CIEPŁA PC vs GRZAŁKA -->
+  <div class="pvsim-chart-section">
+    <div class="pvsim-chart-header">
+      <div class="pvsim-chart-title">
+        Źródło energii cieplnej
+        <span class="ctx" id="pvsim-tank-split-ctx" style="color:var(--pvsim-amber);"></span>
+      </div>
+      <div class="pvsim-chart-axis-label">[ kWh / h &nbsp; vs &nbsp;hh:mm ]</div>
+    </div>
+    <div class="pvsim-chart-wrap">
+      <svg class="pvsim-chart" id="pvsim-tank-split-chart" viewBox="0 0 780 300" preserveAspectRatio="none"></svg>
+    </div>
+  </div>
+
   <!-- STATY MODUŁU 04 -->
-  <div class="pvsim-stats four">
+  <div class="pvsim-stats">
     <div class="pvsim-stat amber">
       <div class="pvsim-stat-label">Pokrycie CWU</div>
       <div class="pvsim-stat-value dual">
@@ -405,11 +481,18 @@
       <div class="pvsim-stat-label">Grzałka</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-heater-hrs">0</span><span class="unit">h / dobę</span></div>
-        <div class="secondary"><span id="pvsim-heater-kwh">0,0</span><span class="unit">kWh dostarczone do zasobnika</span></div>
+        <div class="secondary"><span id="pvsim-heater-kwh">0,0</span><span class="unit">kWh / dobę</span></div>
       </div>
     </div>
     <div class="pvsim-stat amber">
-      <div class="pvsim-stat-label">Zużycie prądu</div>
+      <div class="pvsim-stat-label">PC</div>
+      <div class="pvsim-stat-value dual">
+        <div class="primary"><span id="pvsim-hp-hrs">0</span><span class="unit">h / dobę</span></div>
+        <div class="secondary"><span id="pvsim-hp-kwh">0,0</span><span class="unit">kWh / dobę</span></div>
+      </div>
+    </div>
+    <div class="pvsim-stat amber">
+      <div class="pvsim-stat-label">Zużycie prądu — źródło</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-elec-total">0,0</span><span class="unit">kWh / dobę</span></div>
         <div class="secondary"><span id="pvsim-elec-pv">0,0</span><span class="unit">kWh z PV</span></div>
@@ -417,9 +500,19 @@
       </div>
     </div>
     <div class="pvsim-stat amber">
+      <div class="pvsim-stat-label">Zużycie prądu — urządzenie</div>
+      <div class="pvsim-stat-value dual">
+        <div class="primary"><span id="pvsim-elec-dev-total">0,0</span><span class="unit">kWh / dobę</span></div>
+        <div class="secondary"><span id="pvsim-elec-dev-heater">0,0</span><span class="unit">kWh — grzałka</span></div>
+        <div class="secondary"><span id="pvsim-elec-dev-hp">0,0</span><span class="unit">kWh — PC</span></div>
+      </div>
+    </div>
+    <div class="pvsim-stat amber">
       <div class="pvsim-stat-label">Koszt energii z sieci</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-grid-cost-d">0,00</span><span class="unit">zł / dobę</span></div>
+        <div class="secondary"><span id="pvsim-grid-cost-heater-d">0,00</span><span class="unit">zł — grzałka</span></div>
+        <div class="secondary"><span id="pvsim-grid-cost-hp-d">0,00</span><span class="unit">zł — PC</span></div>
       </div>
     </div>
   </div>
@@ -451,7 +544,7 @@
   <div class="pvsim-chart-section">
     <div class="pvsim-chart-header">
       <div class="pvsim-chart-title">
-        Energia elektryczna grzałki &mdash; bilans dobowy
+        Energia elektryczna PC + grzałki &mdash; bilans dobowy
         <span class="ctx" id="pvsim-month-elec-ctx" style="color:var(--pvsim-sky);"></span>
       </div>
       <div class="pvsim-chart-axis-label">[ kWh vs &nbsp;doba ]</div>
@@ -522,7 +615,7 @@
   <div class="pvsim-chart-section">
     <div class="pvsim-chart-header">
       <div class="pvsim-chart-title">
-        Energia elektryczna grzałki &mdash; bilans miesięczny
+        Energia elektryczna PC + grzałki &mdash; bilans miesięczny
         <span class="ctx" id="pvsim-year-chart-ctx" style="color:var(--pvsim-lime);"></span>
       </div>
       <div class="pvsim-chart-axis-label">[ kWh vs &nbsp;miesiąc ]</div>
@@ -611,6 +704,15 @@
         </div>
       </div>
       <div>
+        <div class="pvsim-label rose">Cena pompy ciepła &nbsp;[ zł / kW grzewczej ]</div>
+        <div class="pvsim-power-row">
+          <div class="pvsim-slider-wrap">
+            <input type="range" min="500" max="8000" value="3000" step="100" class="pvsim-slider rose" id="pvsim-price-hp">
+          </div>
+          <div class="pvsim-value-box rose"><span id="pvsim-price-hp-val">3 000</span><span class="unit">zł/kW</span></div>
+        </div>
+      </div>
+      <div>
         <div class="pvsim-label rose">Cena zasobnika &nbsp;[ zł / 100 l ]</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
@@ -639,6 +741,7 @@
         <div class="primary"><span id="pvsim-inv-total">0</span><span class="unit">zł</span></div>
         <div class="secondary"><span id="pvsim-inv-pv">0</span><span class="unit">zł instalacja PV</span></div>
         <div class="secondary"><span id="pvsim-inv-heater">0</span><span class="unit">zł grzałki</span></div>
+        <div class="secondary"><span id="pvsim-inv-hp">0</span><span class="unit">zł pompa ciepła</span></div>
         <div class="secondary"><span id="pvsim-inv-tank">0</span><span class="unit">zł zasobnik</span></div>
         <div class="secondary"><span id="pvsim-inv-scada">0</span><span class="unit">zł automatyka + SCADA</span></div>
       </div>
@@ -748,6 +851,7 @@
         <div class="primary"><span id="pvsim-sb-inv-total">0</span><span class="unit">zł</span></div>
         <div class="secondary"><span id="pvsim-sb-inv-pv">0</span><span class="unit">zł instalacja PV</span></div>
         <div class="secondary"><span id="pvsim-sb-inv-heater">0</span><span class="unit">zł grzałki</span></div>
+        <div class="secondary"><span id="pvsim-sb-inv-hp">0</span><span class="unit">zł pompa ciepła</span></div>
         <div class="secondary"><span id="pvsim-sb-inv-tank">0</span><span class="unit">zł zasobnik</span></div>
         <div class="secondary"><span id="pvsim-sb-inv-scada">0</span><span class="unit">zł automatyka + SCADA</span></div>
       </div>

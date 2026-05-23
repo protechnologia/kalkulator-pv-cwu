@@ -66,6 +66,7 @@
   background: var(--pvsim-bg-0);
 }
 .pvsim-stats.four { grid-template-columns: repeat(4, 1fr); }
+.pvsim-stats.five { grid-template-columns: repeat(5, 1fr); }
 .pvsim-stats.two { grid-template-columns: repeat(2, 1fr); }
 .pvsim-stats-note {
   padding: 12px 0 0;

@@ -51,6 +51,7 @@ window.PVSIM = window.PVSIM || {};
     const simTank = P.simulateTank(sim, simDHW, P.state.heaterKW, P.state.tankL);
     P.renderTankChart(simTank);
     P.renderTankElecChart(simTank);
+    P.renderHeatSplitChart(simTank);
     P.renderTankStats(simTank);
 
     // Moduł 05 zawsze korzysta z doby przeciętnej PV (PVGIS), niezależnie od pvMode
@@ -234,6 +235,27 @@ window.PVSIM = window.PVSIM || {};
     sliderHTg.addEventListener('input', updateHeaterTarget);
     updateHeaterTarget();
 
+    // Suwaki pompy ciepła (Moduł 04)
+    function wireHpSlider(sliderId, valId, stateKey, fmtFn) {
+      const sl  = document.getElementById(sliderId);
+      const val = document.getElementById(valId);
+      function upd() {
+        const v = parseFloat(sl.value);
+        P.state[stateKey] = v;
+        val.textContent = fmtFn ? fmtFn(v) : v;
+        const min = parseFloat(sl.min), max = parseFloat(sl.max);
+        sl.style.setProperty('--pvsim-fill', ((v - min) / (max - min) * 100) + '%');
+        P.update();
+      }
+      sl.addEventListener('input', upd);
+      upd();
+    }
+    wireHpSlider('pvsim-hp',            'pvsim-hp-val',            'hpKW',         v => P.fmt.pl1(v));
+    wireHpSlider('pvsim-hp-gears',      'pvsim-hp-gears-val',      'hpGears',      v => String(v|0));
+    wireHpSlider('pvsim-hp-band',       'pvsim-hp-band-val',       'hpOnlyBandC',  v => String(v|0));
+    wireHpSlider('pvsim-hp-cop-summer', 'pvsim-hp-cop-summer-val', 'hpCOPSummer',  v => P.fmt.pl1(v));
+    wireHpSlider('pvsim-hp-cop-winter', 'pvsim-hp-cop-winter-val', 'hpCOPWinter',  v => P.fmt.pl1(v));
+
     // Toggle strategii grzałki — strefa dzienna i nocna (Moduł 04)
     function wireStratToggle(toggleId, stateKey) {
       const btns = document.querySelectorAll('#' + toggleId + ' .pvsim-toggle-btn');
@@ -307,6 +329,7 @@ window.PVSIM = window.PVSIM || {};
     }
     wirePriceSlider('pvsim-price-pv',     'pvsim-price-pv-val',     'pricePVkWp');
     wirePriceSlider('pvsim-price-heater', 'pvsim-price-heater-val', 'priceHeaterKW');
+    wirePriceSlider('pvsim-price-hp',     'pvsim-price-hp-val',     'priceHPkWth');
     wirePriceSlider('pvsim-price-tank',   'pvsim-price-tank-val',   'priceTank100');
     wirePriceSlider('pvsim-price-scada',  'pvsim-price-scada-val',  'priceScada');
 
@@ -344,6 +367,7 @@ window.PVSIM = window.PVSIM || {};
       };
       setSlider('pvsim-power', r.kWp);
       setSlider('pvsim-heater', r.heaterKW);
+      if (r.hpKW !== undefined) setSlider('pvsim-hp', r.hpKW);
       setSlider('pvsim-heater-threshold', Math.round(r.heaterThreshold * 100));
       setSlider('pvsim-tank', r.tankL);
       setSlider('pvsim-heater-target', r.heaterTargetC);

@@ -186,7 +186,7 @@ window.PVSIM = window.PVSIM || {};
   // Temperatura startowa T_zas(00:00):
   //   T_init === undefined → start zimny = T_in (temp. wody wodociągowej),
   //   T_init podane         → ciągłość dobowa (Moduł 05 — symulacja miesięczna).
-  P.simulateTank = function(simPV, simDHW, heaterKW, tankL, T_init) {
+  P.simulateTank = function(simPV, simDHW, heaterKW, tankL, T_init, monthIdxArg) {
     const cw    = P.C_WATER / 3600;                           // kWh/(kg·K)
     const m_zas = tankL;                                      // kg
     const UA    = P.TANK_UA_REF * Math.pow(tankL / P.TANK_V_REF, 2/3);  // W/K
@@ -197,6 +197,14 @@ window.PVSIM = window.PVSIM || {};
     const T_set = P.state.heaterTargetC;  // setpoint grzałki (Moduł 04)
     const band  = P.TANK_ONGRID_BAND;
     const threshold = P.state.heaterThreshold * heaterKW;
+    // Pompa ciepła — parametry sezonowe (COP zależny od miesiąca)
+    const hpKW    = P.state.hpKW;
+    const hpGears = Math.max(1, P.state.hpGears | 0);
+    const hpBand  = P.state.hpOnlyBandC;
+    const mi      = (monthIdxArg === undefined ? P.state.monthIdx : monthIdxArg);
+    const hpCOP   = (mi >= 3 && mi <= 8) ? P.state.hpCOPSummer : P.state.hpCOPWinter;
+    const hpStep  = hpKW / hpGears;       // moc elektryczna jednego biegu
+    const hpThreshold = P.state.heaterThreshold * hpKW;  // próg dla PC (wspólny ze grzałką)
     let T = (T_init === undefined ? T_in : T_init);
     const hours = [];
 
@@ -207,13 +215,19 @@ window.PVSIM = window.PVSIM || {};
       : h >= dayStart || h < dayEnd;
 
     let dailyHeaterOnHours = 0;
+    let dailyHpOnHours = 0;
     let dailyQ_heater = 0;
+    let dailyQ_hp     = 0;
     let dailyQ_saved  = 0;
     let dailyQ_strat  = 0;
     let dailyQ_wasted = 0;
-    let dailyElec_pv   = 0;
-    let dailyElec_grid = 0;
+    let dailyElec_pv      = 0;   // tylko grzałka (jak dotąd)
+    let dailyElec_grid    = 0;
+    let dailyElec_hp_pv   = 0;
+    let dailyElec_hp_grid = 0;
     let dailyGridCost  = 0;
+    let dailyGridCost_heater = 0;
+    let dailyGridCost_hp     = 0;
 
     for (let h = 0; h < 24; h++) {
       const T_start = T;
@@ -225,9 +239,11 @@ window.PVSIM = window.PVSIM || {};
 
       const m_per = m_pobor / P.TANK_SUBSTEPS;
 
-      let Q_saved_h = 0, Q_strat_h = 0, Q_wasted_h = 0, Q_heater_actual_h = 0;
-      let elec_pv_h = 0, elec_grid_h = 0;
-      let heaterOn = false;
+      let Q_saved_h = 0, Q_strat_h = 0, Q_wasted_h = 0;
+      let Q_heater_actual_h = 0, Q_hp_actual_h = 0;
+      let elec_pv_h = 0,     elec_grid_h = 0;       // grzałka
+      let elec_hp_pv_h = 0,  elec_hp_grid_h = 0;    // pompa ciepła
+      let heaterOn = false, hpOn = false;
 
       for (let s = 0; s < P.TANK_SUBSTEPS; s++) {
         // 1) Pobór — oszczędność = ile mniej musi włożyć węzeł ECO (Δ od T_in)
@@ -238,42 +254,98 @@ window.PVSIM = window.PVSIM || {};
           T = (T * (m_zas - m_per) + T_in * m_per) / m_zas;
         }
 
-        // 2) Wyznaczenie mocy grzałki dla tego podkroku wg strategii
-        let Q_per = 0;    // docelowa energia podkroku [kWh]
-        let pvShare = 0;  // udział PV w tej energii [0..1]
-        let T_cap = P.TANK_T_MAX;  // pułap grzania dla tego podkroku
+        // 2) Wyznaczenie mocy PC i grzałki dla tego podkroku wg strategii
+        // Para PC + grzałka. PC ma priorytet (off-grid: pierwsza w kolejce PV;
+        // on-grid: pasmo "tylko PC" wokół setpointu).
+        let Q_hp_per = 0, hp_pvShare = 0;
+        let Q_heater_per = 0, heater_pvShare = 0;
+        const T_cap_pair = Math.min(T_set, P.TANK_T_MAX);  // wspólny cap = setpoint
+
         if (strat === 'off-grid') {
-          // diverter grzeje tylko do setpointu T_set (nie wyżej niż termostat)
-          T_cap = Math.min(T_set, P.TANK_T_MAX);
-          if (P_PV >= threshold) {
-            Q_per   = Math.min(P_PV, heaterKW) * dt;
-            pvShare = 1;
+          // PC: największy bieg k taki, że (k/N)·hpKW ≤ P_PV oraz ≥ progu PC
+          let P_hp_el = 0;
+          if (hpKW > 0 && hpStep > 0 && P_PV > 0) {
+            const k = Math.min(hpGears, Math.floor(P_PV / hpStep));
+            if (k >= 1 && (k * hpStep) >= hpThreshold) {
+              P_hp_el = k * hpStep;
+            }
+          }
+          if (P_hp_el > 0) {
+            Q_hp_per   = P_hp_el * hpCOP * dt;
+            hp_pvShare = 1;
+          }
+          // Grzałka — z reszty PV (PC ma priorytet)
+          const P_PV_left = Math.max(P_PV - P_hp_el, 0);
+          if (heaterKW > 0 && P_PV_left >= threshold) {
+            const P_h = Math.min(P_PV_left, heaterKW);
+            Q_heater_per   = P_h * dt;
+            heater_pvShare = 1;
           }
         } else if (strat === 'on-grid') {
-          const frac = Math.max(0, Math.min(1, (T_set - T) / band));
-          const Q_kW = heaterKW * frac;
-          if (Q_kW > 0) {
-            Q_per   = Q_kW * dt;
-            pvShare = Math.min(Q_kW, P_PV) / Q_kW;
+          if (T < T_set) {
+            if (hpKW > 0 && T >= T_set - hpBand) {
+              // Pasmo "tylko PC" — bieg proporcjonalny do zapotrzebowania
+              const req = hpBand > 0 ? (T_set - T) / hpBand : 1;
+              const k = Math.max(1, Math.min(hpGears, Math.ceil(req * hpGears)));
+              const P_hp_el = k * hpStep;
+              Q_hp_per   = P_hp_el * hpCOP * dt;
+              hp_pvShare = P_hp_el > 0 ? Math.min(P_hp_el, P_PV) / P_hp_el : 0;
+            } else {
+              // Poniżej pasma "tylko PC" (lub PC wyłączona) → PC top bieg + grzałka proporcjonalnie
+              let P_hp_el = 0;
+              if (hpKW > 0) {
+                P_hp_el = hpKW;  // top bieg
+                Q_hp_per   = P_hp_el * hpCOP * dt;
+                hp_pvShare = P_hp_el > 0 ? Math.min(P_hp_el, P_PV) / P_hp_el : 0;
+              }
+              if (heaterKW > 0) {
+                // Grzałka modulowana od dolnej krawędzi pasma "tylko PC" w dół
+                const T_eff   = T_set - (hpKW > 0 ? hpBand : 0);
+                const frac    = Math.max(0, Math.min(1, (T_eff - T) / band));
+                const P_h_kW  = heaterKW * frac;
+                if (P_h_kW >= threshold) {
+                  Q_heater_per = P_h_kW * dt;
+                  const P_PV_left = Math.max(P_PV - P_hp_el, 0);
+                  heater_pvShare = Math.min(P_h_kW, P_PV_left) / P_h_kW;
+                }
+              }
+            }
           }
         }
 
-        // 3) Grzanie (z termostatem T_MAX)
-        if (Q_per > 0) {
-          heaterOn = true;
-          const dT_full = Q_per / (m_zas * cw);
+        // 3a) Grzanie PC (priorytet — pierwsza wchodzi do zasobnika)
+        if (Q_hp_per > 0) {
+          const dT_full = Q_hp_per / (m_zas * cw);
           let T_after = T + dT_full;
-          let Q_actual;
-          if (T_after > T_cap) {
-            Q_actual = Math.max((T_cap - T) * m_zas * cw, 0);
-            Q_wasted_h += Math.max(Q_per - Q_actual, 0);
-            T_after = T_cap;
-          } else {
-            Q_actual = Q_per;
+          let Q_actual_th = Q_hp_per;
+          if (T_after > T_cap_pair) {
+            Q_actual_th = Math.max((T_cap_pair - T) * m_zas * cw, 0);
+            Q_wasted_h += Math.max(Q_hp_per - Q_actual_th, 0);
+            T_after = T_cap_pair;
           }
+          if (Q_actual_th > 0) hpOn = true;
+          const ratio = Q_hp_per > 0 ? Q_actual_th / Q_hp_per : 0;
+          const Q_hp_el_actual = (Q_hp_per / hpCOP) * ratio;  // kWh elektr. faktyczne
+          Q_hp_actual_h   += Q_actual_th;
+          elec_hp_pv_h    += Q_hp_el_actual * hp_pvShare;
+          elec_hp_grid_h  += Q_hp_el_actual * (1 - hp_pvShare);
+          T = T_after;
+        }
+
+        // 3b) Grzanie grzałką (po PC)
+        if (Q_heater_per > 0) {
+          const dT_full = Q_heater_per / (m_zas * cw);
+          let T_after = T + dT_full;
+          let Q_actual = Q_heater_per;
+          if (T_after > T_cap_pair) {
+            Q_actual = Math.max((T_cap_pair - T) * m_zas * cw, 0);
+            Q_wasted_h += Math.max(Q_heater_per - Q_actual, 0);
+            T_after = T_cap_pair;
+          }
+          if (Q_actual > 0) heaterOn = true;
           Q_heater_actual_h += Q_actual;
-          elec_pv_h   += Q_actual * pvShare;
-          elec_grid_h += Q_actual * (1 - pvShare);
+          elec_pv_h   += Q_actual * heater_pvShare;
+          elec_grid_h += Q_actual * (1 - heater_pvShare);
           T = T_after;
         }
 
@@ -283,28 +355,46 @@ window.PVSIM = window.PVSIM || {};
         T = Math.max(T - Q_loss / (m_zas * cw), T_in);
       }
 
+      const elec_pair_pv_h   = elec_pv_h + elec_hp_pv_h;
+      const elec_pair_grid_h = elec_grid_h + elec_hp_grid_h;
+
       hours.push({
         hour: h,
         T_start, T_end: T,
-        heaterOn,
+        heaterOn, hpOn,
         day,
         strategy: strat,
         P_heater_eff: Q_heater_actual_h,
+        Q_heater:     Q_heater_actual_h,
+        Q_hp:         Q_hp_actual_h,
         Q_saved: Q_saved_h,
         Q_strat: Q_strat_h,
         Q_wasted: Q_wasted_h,
+        // Grzałka osobno (kompatybilność wstecz dla wykresów dobowego stosu)
         elec_pv: elec_pv_h,
-        elec_grid: elec_grid_h
+        elec_grid: elec_grid_h,
+        // PC osobno
+        elec_hp_pv: elec_hp_pv_h,
+        elec_hp_grid: elec_hp_grid_h,
+        // Para łącznie (PC + grzałka) — dla wykresów M05/M06
+        elec_pair_pv:   elec_pair_pv_h,
+        elec_pair_grid: elec_pair_grid_h
       });
 
       if (heaterOn) dailyHeaterOnHours++;
-      dailyQ_heater  += Q_heater_actual_h;
-      dailyQ_saved   += Q_saved_h;
-      dailyQ_strat   += Q_strat_h;
-      dailyQ_wasted  += Q_wasted_h;
-      dailyElec_pv   += elec_pv_h;
-      dailyElec_grid += elec_grid_h;
-      dailyGridCost  += elec_grid_h * gridPrice;
+      if (hpOn)     dailyHpOnHours++;
+      dailyQ_heater     += Q_heater_actual_h;
+      dailyQ_hp         += Q_hp_actual_h;
+      dailyQ_saved      += Q_saved_h;
+      dailyQ_strat      += Q_strat_h;
+      dailyQ_wasted     += Q_wasted_h;
+      dailyElec_pv      += elec_pv_h;
+      dailyElec_grid    += elec_grid_h;
+      dailyElec_hp_pv   += elec_hp_pv_h;
+      dailyElec_hp_grid += elec_hp_grid_h;
+      dailyGridCost_heater += elec_grid_h * gridPrice;
+      dailyGridCost_hp     += elec_hp_grid_h * gridPrice;
+      dailyGridCost        += (elec_grid_h + elec_hp_grid_h) * gridPrice;
     }
 
     const Q_CWU_total = simDHW.daily.energy;
@@ -322,27 +412,46 @@ window.PVSIM = window.PVSIM || {};
       T_end: T,
       daily: {
         Q_heater:    dailyQ_heater,
+        Q_hp:        dailyQ_hp,
         Q_saved:     dailyQ_saved,
         Q_strat:     dailyQ_strat,
         Q_wasted:    dailyQ_wasted,
         heaterHours: dailyHeaterOnHours,
+        hpHours:     dailyHpOnHours,
         coveragePct,
         Q_residual,
         savingPLN:   savingPLN_d,
         elec_pv:     dailyElec_pv,
         elec_grid:   dailyElec_grid,
         elec_total:  dailyElec_pv + dailyElec_grid,
-        gridCost:    dailyGridCost
+        elec_hp_pv:    dailyElec_hp_pv,
+        elec_hp_grid:  dailyElec_hp_grid,
+        elec_hp_total: dailyElec_hp_pv + dailyElec_hp_grid,
+        elec_pair_pv:    dailyElec_pv + dailyElec_hp_pv,
+        elec_pair_grid:  dailyElec_grid + dailyElec_hp_grid,
+        elec_pair_total: dailyElec_pv + dailyElec_grid + dailyElec_hp_pv + dailyElec_hp_grid,
+        gridCost:    dailyGridCost,
+        gridCost_heater: dailyGridCost_heater,
+        gridCost_hp:     dailyGridCost_hp
       },
       monthly: {
         Q_saved:   dailyQ_saved * days,
+        Q_hp:      dailyQ_hp * days,
+        Q_heater:  dailyQ_heater * days,
         savingPLN: savingPLN_d * days,
         elec_pv:    dailyElec_pv   * days,
         elec_grid:  dailyElec_grid * days,
         elec_total: (dailyElec_pv + dailyElec_grid) * days,
-        gridCost:   dailyGridCost  * days
+        elec_hp_pv:    dailyElec_hp_pv * days,
+        elec_hp_grid:  dailyElec_hp_grid * days,
+        elec_pair_pv:    (dailyElec_pv + dailyElec_hp_pv) * days,
+        elec_pair_grid:  (dailyElec_grid + dailyElec_hp_grid) * days,
+        elec_pair_total: (dailyElec_pv + dailyElec_grid + dailyElec_hp_pv + dailyElec_hp_grid) * days,
+        gridCost:   dailyGridCost  * days,
+        gridCost_heater: dailyGridCost_heater * days,
+        gridCost_hp:     dailyGridCost_hp * days
       },
-      params: { heaterKW, tankL, UA }
+      params: { heaterKW, tankL, UA, hpKW, hpCOP, hpGears }
     };
   };
 
@@ -429,31 +538,42 @@ window.PVSIM = window.PVSIM || {};
     const factors = P.dailyWeatherFactors(mi, days);  // dobowe mnożniki PV
     let T = T_in;  // start zimny
     let monthQ_saved = 0, monthQ_strat = 0;
+    let monthQ_hp = 0, monthQ_heater = 0;
     let monthElec_pv = 0, monthElec_grid = 0;
-    let monthGridCost = 0, monthHeaterHours = 0;
+    let monthElec_hp_pv = 0, monthElec_hp_grid = 0;
+    let monthGridCost = 0, monthHeaterHours = 0, monthHpHours = 0;
 
     for (let d = 0; d < days; d++) {
       const g = factors[d];
       const dayPV = { hours: simPV.hours.map(h => ({
         hour: h.hour, power: h.power * g, energy: h.energy * g
       })) };
-      const day = P.simulateTank(dayPV, simDHW, heaterKW, tankL, T);
+      const day = P.simulateTank(dayPV, simDHW, heaterKW, tankL, T, mi);
       day.hours.forEach(h => {
         hours.push(Object.assign({}, h, { day: d, gh: d * 24 + h.hour }));
       });
       T = day.T_end;
       daysData.push({
         day:       d,
-        elec_pv:   day.daily.elec_pv,
-        elec_grid: day.daily.elec_grid,
+        elec_pv:        day.daily.elec_pv,
+        elec_grid:      day.daily.elec_grid,
+        elec_hp_pv:     day.daily.elec_hp_pv,
+        elec_hp_grid:   day.daily.elec_hp_grid,
+        elec_pair_pv:   day.daily.elec_pair_pv,
+        elec_pair_grid: day.daily.elec_pair_grid,
         gridCost:  day.daily.gridCost
       });
       monthQ_saved     += day.daily.Q_saved;
       monthQ_strat     += day.daily.Q_strat;
+      monthQ_hp        += day.daily.Q_hp;
+      monthQ_heater    += day.daily.Q_heater;
       monthElec_pv     += day.daily.elec_pv;
       monthElec_grid   += day.daily.elec_grid;
+      monthElec_hp_pv  += day.daily.elec_hp_pv;
+      monthElec_hp_grid+= day.daily.elec_hp_grid;
       monthGridCost    += day.daily.gridCost;
       monthHeaterHours += day.daily.heaterHours;
+      monthHpHours     += day.daily.hpHours;
     }
 
     const Q_CWU_month = simDHW.daily.energy * days;
@@ -467,12 +587,20 @@ window.PVSIM = window.PVSIM || {};
       monthly: {
         Q_saved:     monthQ_saved,
         Q_strat:     monthQ_strat,
+        Q_hp:        monthQ_hp,
+        Q_heater:    monthQ_heater,
         coveragePct,
         heaterHours: monthHeaterHours,
+        hpHours:     monthHpHours,
         savingPLN:   monthQ_saved * P.PRICE_PER_KWH,
         elec_pv:     monthElec_pv,
         elec_grid:   monthElec_grid,
         elec_total:  monthElec_pv + monthElec_grid,
+        elec_hp_pv:    monthElec_hp_pv,
+        elec_hp_grid:  monthElec_hp_grid,
+        elec_pair_pv:   monthElec_pv + monthElec_hp_pv,
+        elec_pair_grid: monthElec_grid + monthElec_hp_grid,
+        elec_pair_total: monthElec_pv + monthElec_grid + monthElec_hp_pv + monthElec_hp_grid,
         gridCost:    monthGridCost,
         // bilans: oszczędność na cieple sieciowym − koszt energii z sieci
         balancePLN:  monthQ_saved * P.PRICE_PER_KWH - monthGridCost
@@ -490,8 +618,10 @@ window.PVSIM = window.PVSIM || {};
   P.simulateTankYear = function() {
     const monthsData = [];
     let elec_pv = 0, elec_grid = 0, gridCost = 0;
+    let elec_hp_pv = 0, elec_hp_grid = 0;
+    let Q_hp = 0, Q_heater = 0;
     let savingPLN = 0, Q_saved = 0, Q_strat = 0, Q_CWU = 0;
-    let heaterHours = 0, balancePLN = 0;
+    let heaterHours = 0, hpHours = 0, balancePLN = 0;
 
     for (let mi = 0; mi < 12; mi++) {
       const days   = P.MONTHS[mi].days;
@@ -508,22 +638,35 @@ window.PVSIM = window.PVSIM || {};
         elec_pv:     mo.elec_pv,
         elec_grid:   mo.elec_grid,
         elec_total:  mo.elec_total,
+        elec_hp_pv:    mo.elec_hp_pv,
+        elec_hp_grid:  mo.elec_hp_grid,
+        elec_pair_pv:   mo.elec_pair_pv,
+        elec_pair_grid: mo.elec_pair_grid,
+        elec_pair_total: mo.elec_pair_total,
+        Q_hp:        mo.Q_hp,
+        Q_heater:    mo.Q_heater,
         gridCost:    mo.gridCost,
         savingPLN:   mo.savingPLN,
         Q_saved:     mo.Q_saved,
         Q_strat:     mo.Q_strat,
         heaterHours: mo.heaterHours,
+        hpHours:     mo.hpHours,
         balancePLN:  mo.balancePLN,
         Q_CWU:       cwu_m
       });
 
       elec_pv     += mo.elec_pv;
       elec_grid   += mo.elec_grid;
+      elec_hp_pv  += mo.elec_hp_pv;
+      elec_hp_grid+= mo.elec_hp_grid;
+      Q_hp        += mo.Q_hp;
+      Q_heater    += mo.Q_heater;
       gridCost    += mo.gridCost;
       savingPLN   += mo.savingPLN;
       Q_saved     += mo.Q_saved;
       Q_strat     += mo.Q_strat;
       heaterHours += mo.heaterHours;
+      hpHours     += mo.hpHours;
       balancePLN  += mo.balancePLN;
       Q_CWU       += cwu_m;
     }
@@ -534,11 +677,19 @@ window.PVSIM = window.PVSIM || {};
         elec_pv,
         elec_grid,
         elec_total:  elec_pv + elec_grid,
+        elec_hp_pv,
+        elec_hp_grid,
+        elec_pair_pv:    elec_pv + elec_hp_pv,
+        elec_pair_grid:  elec_grid + elec_hp_grid,
+        elec_pair_total: elec_pv + elec_grid + elec_hp_pv + elec_hp_grid,
+        Q_hp,
+        Q_heater,
         gridCost,
         savingPLN,
         Q_saved,
         Q_strat,
         heaterHours,
+        hpHours,
         balancePLN,
         coveragePct: Q_CWU > 0 ? (Q_saved / Q_CWU * 100) : 0
       }
@@ -558,10 +709,12 @@ window.PVSIM = window.PVSIM || {};
     const costHeater = s.heaterKW * s.priceHeaterKW;
     const costTank   = (s.tankL / 100) * s.priceTank100;
     const costScada  = s.priceScada;
-    const total      = costPV + costHeater + costTank + costScada;
+    const copAvg     = (s.hpCOPSummer + s.hpCOPWinter) / 2;
+    const costHP     = s.hpKW * copAvg * s.priceHPkWth;
+    const total      = costPV + costHeater + costHP + costTank + costScada;
     const annual     = simYear.yearly.balancePLN;
     const paybackYears = annual > 0 ? total / annual : Infinity;
-    return { costPV, costHeater, costTank, costScada, total, annual, paybackYears };
+    return { costPV, costHeater, costHP, costTank, costScada, total, annual, paybackYears };
   };
 
   // ===== OPTYMALIZACJA — GRID SEARCH (Moduł 08) =====
@@ -591,6 +744,7 @@ window.PVSIM = window.PVSIM || {};
     const saved = {
       kWp:              s.kWp,
       heaterKW:         s.heaterKW,
+      hpKW:             s.hpKW,
       heaterThreshold:  s.heaterThreshold,
       tankL:            s.tankL,
       heaterTargetC:    s.heaterTargetC,
@@ -599,6 +753,7 @@ window.PVSIM = window.PVSIM || {};
     };
 
     // Lista wszystkich kombinacji do przeliczenia (z pruningiem progu).
+    const hpGrid = g.hpKW || [s.hpKW];
     const combos = [];
     for (const stratDay of g.strat) {
       for (const stratNight of g.strat) {
@@ -606,10 +761,12 @@ window.PVSIM = window.PVSIM || {};
         const thresholds = usesOffGrid ? g.threshold : [g.threshold[0]];
         for (const kWp of g.kWp) {
           for (const heaterKW of g.heaterKW) {
-            for (const tankL of g.tankL) {
-              for (const heaterTargetC of g.heaterTargetC) {
-                for (const threshold of thresholds) {
-                  combos.push({ kWp, heaterKW, threshold, tankL, heaterTargetC, stratDay, stratNight });
+            for (const hpKW of hpGrid) {
+              for (const tankL of g.tankL) {
+                for (const heaterTargetC of g.heaterTargetC) {
+                  for (const threshold of thresholds) {
+                    combos.push({ kWp, heaterKW, hpKW, threshold, tankL, heaterTargetC, stratDay, stratNight });
+                  }
                 }
               }
             }
@@ -630,6 +787,7 @@ window.PVSIM = window.PVSIM || {};
           const c = combos[i];
           s.kWp              = c.kWp;
           s.heaterKW         = c.heaterKW;
+          s.hpKW             = c.hpKW;
           s.heaterThreshold  = c.threshold;
           s.tankL            = c.tankL;
           s.heaterTargetC    = c.heaterTargetC;
@@ -645,6 +803,7 @@ window.PVSIM = window.PVSIM || {};
           results.push({
             kWp:            c.kWp,
             heaterKW:       c.heaterKW,
+            hpKW:           c.hpKW,
             heaterThreshold: c.threshold,
             tankL:          c.tankL,
             heaterTargetC:  c.heaterTargetC,

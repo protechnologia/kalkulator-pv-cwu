@@ -73,11 +73,21 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 - Wykres krokowy 24h — słupki fioletowe (dzień) i szare (noc), oś Y z ładnymi krokami
 - Ceny stref i godziny granic taryfy wykorzystuje Moduł 04 (strategie grzałki, koszt energii z sieci)
 
-### Moduł 04 — Zasobnik z grzałką
+### Moduł 04 — Zasobnik z grzałką + pompą ciepła
 - Parametry: moc grzałki (1–15 kW), próg włączenia (10–100%), pojemność zasobnika (100–1000 L),
   temperatura grzania grzałki (0–60°C, suwak — setpoint `P.state.heaterTargetC`,
   niezależny od T_hot z Modułu 02),
-  strategia grzałki — wybierana osobno dla strefy dziennej i nocnej taryfy (Moduł 03)
+  strategia grzałka + PC — wybierana osobno dla strefy dziennej i nocnej taryfy (Moduł 03)
+- **Pompa ciepła** (drugie źródło ciepła w zasobniku, pracuje równolegle z grzałką):
+  moc elektryczna `hpKW` (0–10 kW), liczba biegów `hpGears` (1–5, równe stopnie mocy
+  `gear_k = k/N · hpKW`), pasmo „tylko PC" pod setpointem `hpOnlyBandC` (0–20 °C),
+  sezonowy COP — `hpCOPSummer` (Kwi–Wrz) i `hpCOPWinter` (Paź–Mar), oba 2.0–5.0.
+  `hpKW = 0` ⇒ PC wyłączona.
+- W strategii `off-grid` PC ma priorytet: wybiera największy bieg, dla którego
+  `(k/N)·hpKW ≤ nadwyżka PV`; grzałka dobiera resztę PV jak dotąd.
+- W strategii `on-grid`: gdy `T ∈ [T_set − hpOnlyBandC, T_set)` — pracuje tylko PC,
+  bieg proporcjonalny do zapotrzebowania `k = ceil(req·N)`. Poniżej pasma PC bierze
+  top bieg + dołącza grzałka modulowana wg `TANK_ONGRID_BAND`.
 - Model: 1-węzłowy (fully-mixed), 6 podkroków na godzinę
 - Trzy strategie grzałki:
   - `off` — grzałka wyłączona w danej strefie
@@ -89,9 +99,12 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 - Termostat: max 60°C (granica higieniczna anty-Legionella)
 - Straty: `UA(V) = UA_REF · (V/V_REF)^(2/3)`, klasa B/C wg PN-EN 12897
 - Wykresy: temperatura zasobnika (tło grzania w osobnym odcieniu dla strefy
-  dziennej i nocnej) oraz słupkowy wykres mocy elektrycznej grzałki (PV vs sieć)
-- Statystyki: pokrycie CWU, godziny pracy, zużycie prądu (PV vs sieć),
-  koszt energii z sieci wg cen stref z Modułu 03
+  dziennej i nocnej), słupkowy wykres mocy elektrycznej PC + grzałki
+  (4-stos: PC·PV, grz·PV, PC·sieć, grz·sieć) oraz słupkowy wykres podziału
+  mocy cieplnej (PC vs grzałka, kwh ciepła dostarczonego do zasobnika)
+- Statystyki: pokrycie CWU, godziny pracy grzałki i PC, ciepło z PC,
+  zużycie prądu pary PC+grzałka (PV vs sieć), koszt energii z sieci
+  wg cen stref z Modułu 03
 
 ### Moduł 05 — Symulacja miesięczna
 - Symulacja ciągła zasobnika przez cały miesiąc (`days × 24 h`): pierwsza doba
@@ -129,15 +142,17 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 
 ### Moduł 07 — Inwestycja
 - Kalkulator kosztu całej inwestycji i czasu jej zwrotu. Inwestycja
-  obejmuje cztery pozycje: instalację PV, grzałki, zasobnik oraz
+  obejmuje pięć pozycji: instalację PV, grzałki, pompę ciepła, zasobnik oraz
   automatykę + SCADA.
-- Ma własne kontrolki — cztery suwaki cen jednostkowych (`pvsim-price-*`):
-  cena PV [zł/kWp], cena grzałek [zł/kW], cena zasobnika [zł/100 l],
-  automatyka + SCADA [zł, ryczałt]. Domyślne wartości: 4500 / 500 /
-  1100 / 10000 (research rynkowy PL 2025).
+- Ma własne kontrolki — pięć suwaków cen jednostkowych (`pvsim-price-*`):
+  cena PV [zł/kWp], cena grzałek [zł/kW], cena PC [zł / 1 kW grzewczej],
+  cena zasobnika [zł/100 l], automatyka + SCADA [zł, ryczałt]. Domyślne wartości:
+  4500 / 500 / 3000 / 1100 / 10000 (research rynkowy PL 2025).
 - `P.computeInvestment(simYear)` liczy:
-  `koszt = kWp·cenaPV + heaterKW·cenaGrzałki + (tankL/100)·cenaZasobnika
-  + cenaScada` oraz `lata na zwrot = koszt ÷ bilans roczny netto`
+  `koszt = kWp·cenaPV + heaterKW·cenaGrzałki + hpKW·COP_śr·cenaPC
+  + (tankL/100)·cenaZasobnika + cenaScada`
+  (gdzie `COP_śr = (hpCOPSummer + hpCOPWinter)/2`)
+  oraz `lata na zwrot = koszt ÷ bilans roczny netto`
   (`simYear.yearly.balancePLN`). Gdy bilans ≤ 0 → `paybackYears =
   Infinity`, panel pokazuje „—".
 - Statystyki (2 panele): koszt inwestycji (z rozbiciem na 4 pozycje)
@@ -151,9 +166,10 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
   `pvsim-opt-lifetime` 5–40 lat) oraz przycisk `pvsim-opt-run` z paskiem
   postępu `pvsim-opt-progress`. Suwaki nie wywołują `P.update()`.
 - `P.OPT_GRID` (`config.js`) definiuje przeszukiwaną siatkę: `kWp` (moc PV),
-  `heaterKW`, `threshold`, `tankL`, `heaterTargetC` (temperatura grzania
-  grzałki) oraz `strat` (`off`/`off-grid`/`on-grid` dla strefy dziennej
-  i nocnej).
+  `heaterKW`, `hpKW` (moc PC, `[0, 2, 3, 5, 8]`), `threshold`, `tankL`,
+  `heaterTargetC` (temperatura grzania grzałki) oraz `strat`
+  (`off`/`off-grid`/`on-grid` dla strefy dziennej i nocnej). COP-y i liczba
+  biegów PC nie są wymiarem siatki — czytane są z aktualnego `P.state`.
 - `P.optimize(maxPayback, lifetime, onProgress)` (`physics.js`) — asynchroniczna
   funkcja zwracająca `Promise`. Przeszukuje kombinacje w porcjach (24 na chunk,
   `setTimeout(0)` między porcjami, raportuje postęp przez `onProgress(frac)`),
@@ -197,6 +213,12 @@ P.state = {
   heaterStratNight: 'off-grid', // strategia w strefie nocnej
   tankL: 500,           // pojemność zasobnika [L]
   heaterTargetC: 50,    // temperatura grzania grzałki [°C] — setpoint, niezależny od T_hot
+  // Moduł 04 — pompa ciepła (drugie źródło ciepła)
+  hpKW:         2.0,    // moc elektryczna PC [kW] (0 = PC wyłączona)
+  hpCOPSummer:  3.5,    // COP letni (Kwi–Wrz)
+  hpCOPWinter:  2.5,    // COP zimowy (Paź–Mar)
+  hpGears:      2,      // liczba biegów PC (1–5; równe stopnie mocy k/N · hpKW)
+  hpOnlyBandC:  5,      // °C — pasmo „tylko PC" pod setpointem (on-grid)
   buildingType: 'old',  // 'old' | 'new' — straty cyrkulacji (60% / 35%)
   // Moduł 03 — taryfa energii elektrycznej (on-grid w przygotowaniu)
   gridPriceDay:   0.6950, // zł/kWh — strefa dzienna
@@ -208,6 +230,7 @@ P.state = {
   priceHeaterKW: 500,     // zł / 1 kW grzałki
   priceTank100:  1100,    // zł / 100 l zasobnika
   priceScada:    10000,   // zł — automatyka + SCADA (ryczałt)
+  priceHPkWth:   3000,    // zł / 1 kW grzewczej PC
   // Moduł 08 — optymalizacja (grid search)
   optMaxPayback: 5,       // maksymalny akceptowany czas zwrotu [lata]
   optLifetime:   20       // zakładany okres życia inwestycji [lata]

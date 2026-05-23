@@ -411,8 +411,8 @@ window.PVSIM = window.PVSIM || {};
   // Temperatura T(t) + zacieniowanie godzin pracy grzałki w tle.
   P.renderTankChart = function(simTank) {
     const svg = document.getElementById('pvsim-tank-chart');
-    const W = 780, H = 300;
-    const padL = 50, padR = 18, padT = 14, padB = 36;
+    const W = 780, H = 350;
+    const padL = 50, padR = 18, padT = 14, padB = 86;
     const cw = W - padL - padR;
     const ch = H - padT - padB;
 
@@ -474,28 +474,48 @@ window.PVSIM = window.PVSIM || {};
                         font-variant-numeric="tabular-nums">${hh}:00</text>`;
     }
 
-    // Tło godzin pracy grzałki — jaśniejszy odcień dla strefy dziennej taryfy,
-    // ciemniejszy dla nocnej, by rozróżnić strefy bez dodatkowej legendy.
-    let heaterBg = '';
+    // Pasma pracy: dwie wąskie poziome wstęgi pod osią X, rozsunięte odstępem.
+    // PC u góry (cyan), GRZAŁKA poniżej (bursztyn). Etykiety przy lewej osi.
+    const bandH = 12;
+    const bandGap = 8;
+    const hpBandTop     = padT + ch + 32;
+    const hpBandBot     = hpBandTop + bandH;
+    const heaterBandTop = hpBandBot + bandGap;
+    const heaterBandBot = heaterBandTop + bandH;
+
+    let heaterBg = '', hpBg = '';
     simTank.hours.forEach(d => {
+      const x1 = x(d.hour), x2 = x(d.hour + 1);
+      const op = d.day ? '0.28' : '0.14';
+      if (d.hpOn) {
+        hpBg += `<rect x="${x1.toFixed(2)}" y="${hpBandTop}" width="${(x2 - x1).toFixed(2)}" height="${bandH.toFixed(2)}"
+                       fill="#22d3ee" opacity="${op}"/>`;
+      }
       if (d.heaterOn) {
-        const x1 = x(d.hour), x2 = x(d.hour + 1);
-        const op = d.day ? '0.12' : '0.05';
-        heaterBg += `<rect x="${x1.toFixed(2)}" y="${padT}" width="${(x2 - x1).toFixed(2)}" height="${ch}"
+        heaterBg += `<rect x="${x1.toFixed(2)}" y="${heaterBandTop.toFixed(2)}" width="${(x2 - x1).toFixed(2)}" height="${bandH.toFixed(2)}"
                            fill="#f59e0b" opacity="${op}"/>`;
       }
     });
 
-    const onHours = simTank.hours.filter(d => d.heaterOn);
-    let heaterLabel = '';
-    if (onHours.length > 0) {
-      const firstOn = onHours[0].hour;
-      const lastOn = onHours[onHours.length - 1].hour + 1;
-      const midX = x((firstOn + lastOn) / 2);
-      heaterLabel = `<text x="${midX.toFixed(2)}" y="${(padT + 14).toFixed(2)}" text-anchor="middle"
-                           font-family="'IBM Plex Mono', monospace" font-size="9.5" font-weight="600"
-                           fill="#f59e0b" opacity="0.85" letter-spacing="1.5">▼ GRZAŁKA ON ▼</text>`;
-    }
+    const hpBorder = `
+      <line x1="${padL}" y1="${hpBandTop}" x2="${(W - padR).toFixed(2)}" y2="${hpBandTop}"
+            stroke="#22d3ee" stroke-width="1" opacity="0.5"/>
+      <line x1="${padL}" y1="${hpBandBot.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${hpBandBot.toFixed(2)}"
+            stroke="#22d3ee" stroke-width="1" opacity="0.5"/>
+    `;
+    const heaterBorder = `
+      <line x1="${padL}" y1="${heaterBandTop.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${heaterBandTop.toFixed(2)}"
+            stroke="#f59e0b" stroke-width="1" opacity="0.5"/>
+      <line x1="${padL}" y1="${heaterBandBot.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${heaterBandBot.toFixed(2)}"
+            stroke="#f59e0b" stroke-width="1" opacity="0.5"/>
+    `;
+
+    const hpLabel = `<text x="${padL - 6}" y="${(hpBandTop + bandH / 2 + 3.5).toFixed(2)}" text-anchor="end"
+                           font-family="'IBM Plex Mono', monospace" font-size="9" font-weight="600"
+                           fill="#22d3ee" opacity="0.85" letter-spacing="1">PC</text>`;
+    const heaterLabel = `<text x="${padL - 6}" y="${(heaterBandTop + bandH / 2 + 3.5).toFixed(2)}" text-anchor="end"
+                               font-family="'IBM Plex Mono', monospace" font-size="9" font-weight="600"
+                               fill="#f59e0b" opacity="0.85" letter-spacing="1">GRZ.</text>`;
 
     const axes = `
       <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${(padT + ch).toFixed(2)}" stroke="#36363d" stroke-width="1"/>
@@ -504,19 +524,24 @@ window.PVSIM = window.PVSIM || {};
 
     svg.innerHTML = `
       <defs>
-        <linearGradient id="pvsim-tank-grad" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id="pvsim-tank-grad" gradientUnits="userSpaceOnUse"
+          x1="0" y1="${padT}" x2="0" y2="${(padT + ch / 2).toFixed(2)}">
           <stop offset="0%"  stop-color="#f59e0b" stop-opacity="0.45"/>
-          <stop offset="60%" stop-color="#f59e0b" stop-opacity="0.12"/>
+          <stop offset="70%" stop-color="#f59e0b" stop-opacity="0.10"/>
           <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
         </linearGradient>
       </defs>
+      ${hpBg}
       ${heaterBg}
+      ${hpBorder}
+      ${heaterBorder}
       ${gridLines}
       ${xGrid}
       ${axes}
       ${refLines}
       <path d="${areaPath}" fill="url(#pvsim-tank-grad)"/>
       <path d="${linePath}" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linejoin="round"/>
+      ${hpLabel}
       ${heaterLabel}
       ${yLabels}
       ${xLabels}
@@ -536,9 +561,10 @@ window.PVSIM = window.PVSIM || {};
     const cw = W - padL - padR;
     const ch = H - padT - padB;
 
+    const pairKW = P.state.heaterKW + P.state.hpKW;
     const rawMax = Math.max(
-      ...simTank.hours.map(d => d.elec_pv + d.elec_grid),
-      P.state.heaterKW, 0.001
+      ...simTank.hours.map(d => (d.elec_pair_pv || 0) + (d.elec_pair_grid || 0)),
+      pairKW, 0.001
     );
     const niceSteps = [0.5, 1, 2, 2.5, 5, 10, 20];
     const step = niceSteps.find(s => rawMax / s <= 6) || 20;
@@ -548,20 +574,28 @@ window.PVSIM = window.PVSIM || {};
     const y = v => padT + ch - (v / yMax) * ch;
     const bw = cw / 24;
 
+    // Stos dwupoziomowy — dół: energia z PV (bursztyn), góra: z sieci (fiolet).
+    // Suma PC + grzałka łączona po stronie źródła (rozbicie urządzeń jest na osobnym wykresie cieplnym).
     let bars = '';
     for (let h = 0; h < 24; h++) {
       const d = simTank.hours[h];
-      const pvH   = (d.elec_pv   / yMax) * ch;
-      const gridH = (d.elec_grid / yMax) * ch;
-      if (pvH > 0.1) {
-        bars += `<rect x="${x(h).toFixed(2)}" y="${y(d.elec_pv).toFixed(2)}"
-                       width="${(bw - 1).toFixed(2)}" height="${pvH.toFixed(2)}"
-                       fill="#f59e0b" opacity="0.8"/>`;
+      const ePv   = (d.elec_pv    || 0) + (d.elec_hp_pv   || 0);
+      const eGrid = (d.elec_grid  || 0) + (d.elec_hp_grid || 0);
+      if (ePv > 0) {
+        const segH = (ePv / yMax) * ch;
+        if (segH > 0.1) {
+          bars += `<rect x="${x(h).toFixed(2)}" y="${y(ePv).toFixed(2)}"
+                         width="${(bw - 1).toFixed(2)}" height="${segH.toFixed(2)}"
+                         fill="#f59e0b" opacity="0.85"/>`;
+        }
       }
-      if (gridH > 0.1) {
-        bars += `<rect x="${x(h).toFixed(2)}" y="${y(d.elec_pv + d.elec_grid).toFixed(2)}"
-                       width="${(bw - 1).toFixed(2)}" height="${gridH.toFixed(2)}"
-                       fill="#a78bfa" opacity="0.75"/>`;
+      if (eGrid > 0) {
+        const segH = (eGrid / yMax) * ch;
+        if (segH > 0.1) {
+          bars += `<rect x="${x(h).toFixed(2)}" y="${y(ePv + eGrid).toFixed(2)}"
+                         width="${(bw - 1).toFixed(2)}" height="${segH.toFixed(2)}"
+                         fill="#a78bfa" opacity="0.85"/>`;
+        }
       }
     }
 
@@ -592,23 +626,34 @@ window.PVSIM = window.PVSIM || {};
       <line x1="${padL}" y1="${(padT + ch).toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${(padT + ch).toFixed(2)}" stroke="#36363d" stroke-width="1"/>
     `;
 
-    // Linia pozioma — moc nominalna grzałki
-    const yNom = y(P.state.heaterKW);
-    const nominal = `
-      <line x1="${padL}" y1="${yNom.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yNom.toFixed(2)}"
-            stroke="#ef4444" stroke-width="1.25" stroke-dasharray="5,3" opacity="0.85"/>
-      <text x="${(W - padR - 4).toFixed(2)}" y="${(yNom - 4).toFixed(2)}" text-anchor="end"
-            font-family="'IBM Plex Mono', monospace" font-size="10" fill="#ef4444"
-            font-variant-numeric="tabular-nums">moc nom. ${P.fmt.pl1(P.state.heaterKW)} kW</text>
-    `;
+    // Linie poziome — moc nominalna grzałki (bursztyn) i PC (cyan), osobno
+    const heaterKW = P.state.heaterKW;
+    const hpKW = P.state.hpKW;
+    const yHeater = y(heaterKW);
+    const yHp = y(hpKW);
+    const nomHeater = heaterKW > 0.01 ? `
+      <line x1="${padL}" y1="${yHeater.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yHeater.toFixed(2)}"
+            stroke="#f59e0b" stroke-width="1.25" stroke-dasharray="5,3" opacity="0.85"/>
+      <text x="${(W - padR - 4).toFixed(2)}" y="${(yHeater - 4).toFixed(2)}" text-anchor="end"
+            font-family="'IBM Plex Mono', monospace" font-size="10" fill="#f59e0b"
+            font-variant-numeric="tabular-nums">grzałka ${P.fmt.pl1(heaterKW)} kW</text>
+    ` : '';
+    const nomHp = hpKW > 0.01 ? `
+      <line x1="${padL}" y1="${yHp.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yHp.toFixed(2)}"
+            stroke="#22d3ee" stroke-width="1.25" stroke-dasharray="5,3" opacity="0.85"/>
+      <text x="${(padL + 4).toFixed(2)}" y="${(yHp - 4).toFixed(2)}" text-anchor="start"
+            font-family="'IBM Plex Mono', monospace" font-size="10" fill="#22d3ee"
+            font-variant-numeric="tabular-nums">PC ${P.fmt.pl1(hpKW)} kW</text>
+    ` : '';
+    const nominal = nomHeater + nomHp;
 
-    // Legenda — dwa znaczniki w prawym górnym rogu
+    // Legenda — dwa znaczniki: źródło energii (PV / sieć)
     const lx = W - padR - 150;
     const legend = `
-      <rect x="${lx}" y="${padT + 2}" width="10" height="10" fill="#f59e0b" opacity="0.8"/>
+      <rect x="${lx}" y="${padT + 2}" width="10" height="10" fill="#f59e0b" opacity="0.85"/>
       <text x="${lx + 15}" y="${padT + 11}" font-family="'IBM Plex Mono', monospace" font-size="10"
             fill="#a1a1aa">z PV</text>
-      <rect x="${lx + 60}" y="${padT + 2}" width="10" height="10" fill="#a78bfa" opacity="0.75"/>
+      <rect x="${lx + 60}" y="${padT + 2}" width="10" height="10" fill="#a78bfa" opacity="0.85"/>
       <text x="${lx + 75}" y="${padT + 11}" font-family="'IBM Plex Mono', monospace" font-size="10"
             fill="#a1a1aa">z sieci</text>
     `;
@@ -621,8 +666,136 @@ window.PVSIM = window.PVSIM || {};
 
     const ctxEl = document.getElementById('pvsim-tank-elec-ctx');
     if (ctxEl) {
-      ctxEl.textContent = `— z PV ${P.fmt.pl1(simTank.daily.elec_pv)} kWh`
-        + ` · z sieci ${P.fmt.pl1(simTank.daily.elec_grid)} kWh`;
+      const pv   = simTank.daily.elec_pair_pv   != null ? simTank.daily.elec_pair_pv   : simTank.daily.elec_pv;
+      const grid = simTank.daily.elec_pair_grid != null ? simTank.daily.elec_pair_grid : simTank.daily.elec_grid;
+      ctxEl.textContent = `— z PV ${P.fmt.pl1(pv)} kWh · z sieci ${P.fmt.pl1(grid)} kWh`;
+    }
+  };
+
+  // ===== RENDER WYKRESU PODZIAŁU CIEPŁA — PC vs GRZAŁKA (Moduł 04) =====
+  // Słupki godzinowe: dół = ciepło dostarczone z PC (cyan), góra = z grzałki (bursztyn).
+  // Pod wykresem stat: udział PC vs grzałki w pokryciu CWU i efektywny COP układu.
+  P.renderHeatSplitChart = function(simTank) {
+    const svg = document.getElementById('pvsim-tank-split-chart');
+    if (!svg) return;
+    const W = 780, H = 300;
+    const padL = 50, padR = 18, padT = 14, padB = 36;
+    const cw = W - padL - padR;
+    const ch = H - padT - padB;
+
+    const hrs = simTank.hours;
+    const heaterKW = P.state.heaterKW;
+    const hpKW = P.state.hpKW;
+    const mi = P.state.monthIdx;
+    const hpCOP = (mi >= 3 && mi <= 8) ? P.state.hpCOPSummer : P.state.hpCOPWinter;
+    const hpQNom = hpKW * hpCOP;
+    const rawMax = Math.max(
+      ...hrs.map(d => (d.Q_hp || 0) + (d.Q_heater || 0)),
+      heaterKW, hpQNom,
+      0.001
+    );
+    const niceSteps = [0.5, 1, 2, 2.5, 5, 10, 20];
+    const step = niceSteps.find(s => rawMax / s <= 6) || 20;
+    const yMax = Math.ceil(rawMax / step + 0.001) * step;
+
+    const x = h => padL + (h / 24) * cw;
+    const y = v => padT + ch - (v / yMax) * ch;
+    const bw = cw / 24;
+
+    let bars = '';
+    for (let h = 0; h < 24; h++) {
+      const d = hrs[h];
+      const qHp = d.Q_hp || 0;
+      const qHt = d.Q_heater || 0;
+      let acc = 0;
+      if (qHp > 0) {
+        const segH = (qHp / yMax) * ch;
+        if (segH > 0.1) {
+          bars += `<rect x="${x(h).toFixed(2)}" y="${y(qHp).toFixed(2)}"
+                         width="${(bw - 1).toFixed(2)}" height="${segH.toFixed(2)}"
+                         fill="#22d3ee" opacity="0.85"/>`;
+        }
+        acc = qHp;
+      }
+      if (qHt > 0) {
+        const segH = (qHt / yMax) * ch;
+        if (segH > 0.1) {
+          bars += `<rect x="${x(h).toFixed(2)}" y="${y(acc + qHt).toFixed(2)}"
+                         width="${(bw - 1).toFixed(2)}" height="${segH.toFixed(2)}"
+                         fill="#f59e0b" opacity="0.85"/>`;
+        }
+      }
+    }
+
+    const ticks = Math.round(yMax / step);
+    let gridLines = '', yLabels = '';
+    for (let i = 0; i <= ticks; i++) {
+      const v = i * step;
+      const yy = y(v);
+      gridLines += `<line x1="${padL}" y1="${yy.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yy.toFixed(2)}"
+                          stroke="#26262b" stroke-width="1" ${i === 0 ? '' : 'stroke-dasharray="2,3"'}/>`;
+      yLabels += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end"
+                        font-family="'IBM Plex Mono', monospace" font-size="10" fill="#6b6b73"
+                        font-variant-numeric="tabular-nums">${P.fmt.pl1(v)}</text>`;
+    }
+
+    let xLabels = '', xGrid = '';
+    for (let h = 0; h <= 24; h += 3) {
+      const xx = x(h);
+      xGrid += `<line x1="${xx.toFixed(2)}" y1="${padT}" x2="${xx.toFixed(2)}" y2="${(padT + ch).toFixed(2)}"
+                      stroke="#26262b" stroke-width="1" stroke-dasharray="1,4"/>`;
+      xLabels += `<text x="${xx.toFixed(2)}" y="${(padT + ch + 18).toFixed(2)}" text-anchor="middle"
+                        font-family="'IBM Plex Mono', monospace" font-size="10" fill="#6b6b73"
+                        font-variant-numeric="tabular-nums">${String(h % 24).padStart(2, '0')}:00</text>`;
+    }
+
+    const axes = `
+      <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${(padT + ch).toFixed(2)}" stroke="#36363d" stroke-width="1"/>
+      <line x1="${padL}" y1="${(padT + ch).toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${(padT + ch).toFixed(2)}" stroke="#36363d" stroke-width="1"/>
+    `;
+
+    const lx = W - padR - 180;
+    const legend = `
+      <rect x="${lx}"       y="${padT + 2}" width="10" height="10" fill="#22d3ee" opacity="0.85"/>
+      <text x="${lx + 15}"  y="${padT + 11}" font-family="'IBM Plex Mono', monospace" font-size="10" fill="#a1a1aa">PC</text>
+      <rect x="${lx + 100}" y="${padT + 2}" width="10" height="10" fill="#f59e0b" opacity="0.85"/>
+      <text x="${lx + 115}" y="${padT + 11}" font-family="'IBM Plex Mono', monospace" font-size="10" fill="#a1a1aa">grzałka</text>
+    `;
+
+    const yHeater = y(heaterKW);
+    const yHp     = y(hpQNom);
+    const nomHeater = heaterKW > 0.01 ? `
+      <line x1="${padL}" y1="${yHeater.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yHeater.toFixed(2)}"
+            stroke="#f59e0b" stroke-width="1" stroke-dasharray="4,3" opacity="0.7"/>
+      <text x="${(W - padR - 4).toFixed(2)}" y="${(yHeater - 3).toFixed(2)}" text-anchor="end"
+            font-family="'IBM Plex Mono', monospace" font-size="9.5" fill="#f59e0b" opacity="0.85">grzałka ${P.fmt.pl1(heaterKW)} kWh/h</text>
+    ` : '';
+    const nomHp = hpQNom > 0.01 ? `
+      <line x1="${padL}" y1="${yHp.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yHp.toFixed(2)}"
+            stroke="#22d3ee" stroke-width="1" stroke-dasharray="4,3" opacity="0.7"/>
+      <text x="${(W - padR - 4).toFixed(2)}" y="${(yHp - 3).toFixed(2)}" text-anchor="end"
+            font-family="'IBM Plex Mono', monospace" font-size="9.5" fill="#22d3ee" opacity="0.85">PC ${P.fmt.pl1(hpQNom)} kWh/h (COP ${P.fmt.pl1(hpCOP)})</text>
+    ` : '';
+
+    svg.innerHTML = `
+      ${gridLines}${xGrid}${axes}${bars}${nomHeater}${nomHp}${legend}${yLabels}${xLabels}
+      <text x="${padL - 30}" y="${padT - 2}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
+            fill="#6b6b73" letter-spacing="1.4">[kWh]</text>
+    `;
+
+    const ctxEl = document.getElementById('pvsim-tank-split-ctx');
+    if (ctxEl) {
+      const qHp = simTank.daily.Q_hp || 0;
+      const qHt = simTank.daily.Q_heater || 0;
+      const qTot = qHp + qHt;
+      const pctHp = qTot > 0.001 ? (qHp / qTot * 100) : 0;
+      const pctHt = qTot > 0.001 ? (qHt / qTot * 100) : 0;
+      const elecPair = simTank.daily.elec_pair_total
+        || ((simTank.daily.elec_pair_pv || 0) + (simTank.daily.elec_pair_grid || 0))
+        || simTank.daily.elec_total || 0;
+      const copEff = elecPair > 0.001 ? (qTot / elecPair) : 0;
+      ctxEl.textContent = `— PC ${pctHp.toFixed(0)}% · grzałka ${pctHt.toFixed(0)}%`
+        + ` · efektywny COP układu ${P.fmt.pl2(copEff)}`;
     }
   };
 
@@ -634,11 +807,30 @@ window.PVSIM = window.PVSIM || {};
     document.getElementById('pvsim-cover-strat').textContent = P.fmt.pl1(simTank.daily.Q_strat);
     document.getElementById('pvsim-heater-hrs').textContent = simTank.daily.heaterHours;
     document.getElementById('pvsim-heater-kwh').textContent = P.fmt.pl1(simTank.daily.Q_heater);
+    const hpHrsEl = document.getElementById('pvsim-hp-hrs');
+    const hpKwhEl = document.getElementById('pvsim-hp-kwh');
+    if (hpHrsEl) hpHrsEl.textContent = simTank.daily.hpHours || 0;
+    if (hpKwhEl) hpKwhEl.textContent = P.fmt.pl1(simTank.daily.Q_hp || 0);
 
-    document.getElementById('pvsim-elec-total').textContent = P.fmt.pl1(simTank.daily.elec_total);
-    document.getElementById('pvsim-elec-pv').textContent    = P.fmt.pl1(simTank.daily.elec_pv);
-    document.getElementById('pvsim-elec-grid').textContent  = P.fmt.pl1(simTank.daily.elec_grid);
+    const dPv   = simTank.daily.elec_pair_pv    != null ? simTank.daily.elec_pair_pv    : simTank.daily.elec_pv;
+    const dGrid = simTank.daily.elec_pair_grid  != null ? simTank.daily.elec_pair_grid  : simTank.daily.elec_grid;
+    const dTot  = simTank.daily.elec_pair_total != null ? simTank.daily.elec_pair_total : simTank.daily.elec_total;
+    document.getElementById('pvsim-elec-total').textContent = P.fmt.pl1(dTot);
+    document.getElementById('pvsim-elec-pv').textContent    = P.fmt.pl1(dPv);
+    document.getElementById('pvsim-elec-grid').textContent  = P.fmt.pl1(dGrid);
+    const dHeater = (simTank.daily.elec_pv || 0) + (simTank.daily.elec_grid || 0);
+    const dHp     = (simTank.daily.elec_hp_pv || 0) + (simTank.daily.elec_hp_grid || 0);
+    const elDevTot = document.getElementById('pvsim-elec-dev-total');
+    const elDevHt  = document.getElementById('pvsim-elec-dev-heater');
+    const elDevHp  = document.getElementById('pvsim-elec-dev-hp');
+    if (elDevTot) elDevTot.textContent = P.fmt.pl1(dHeater + dHp);
+    if (elDevHt)  elDevHt.textContent  = P.fmt.pl1(dHeater);
+    if (elDevHp)  elDevHp.textContent  = P.fmt.pl1(dHp);
     document.getElementById('pvsim-grid-cost-d').textContent = P.fmt.pl2(simTank.daily.gridCost);
+    const gcHt = document.getElementById('pvsim-grid-cost-heater-d');
+    const gcHp = document.getElementById('pvsim-grid-cost-hp-d');
+    if (gcHt) gcHt.textContent = P.fmt.pl2(simTank.daily.gridCost_heater || 0);
+    if (gcHp) gcHp.textContent = P.fmt.pl2(simTank.daily.gridCost_hp || 0);
 
     const stratLabel = { 'off': 'wył.', 'off-grid': 'off-grid', 'on-grid': 'on-grid' };
     const ctx = `— grzałka ${P.fmt.pl1(P.state.heaterKW)} kW · zasobnik ${P.state.tankL} l`
@@ -836,8 +1028,10 @@ window.PVSIM = window.PVSIM || {};
     const days = simMonth.days;
     const dd   = simMonth.daysData;
 
+    const pvOf   = d => d.elec_pair_pv   != null ? d.elec_pair_pv   : d.elec_pv;
+    const gridOf = d => d.elec_pair_grid != null ? d.elec_pair_grid : d.elec_grid;
     const rawMax = Math.max(
-      ...dd.map(d => d.elec_pv + d.elec_grid), 0.001
+      ...dd.map(d => pvOf(d) + gridOf(d)), 0.001
     );
     const niceSteps = [1, 2, 2.5, 5, 10, 20, 50, 100];
     const step = niceSteps.find(s => rawMax / s <= 6) || 200;
@@ -851,16 +1045,18 @@ window.PVSIM = window.PVSIM || {};
 
     let bars = '';
     dd.forEach(d => {
-      const pvH   = (d.elec_pv   / yMax) * ch;
-      const gridH = (d.elec_grid / yMax) * ch;
+      const ePv   = pvOf(d);
+      const eGrid = gridOf(d);
+      const pvH   = (ePv   / yMax) * ch;
+      const gridH = (eGrid / yMax) * ch;
       const x0 = x(d.day) + bx;
       if (pvH > 0.05) {
-        bars += `<rect x="${x0.toFixed(2)}" y="${y(d.elec_pv).toFixed(2)}"
+        bars += `<rect x="${x0.toFixed(2)}" y="${y(ePv).toFixed(2)}"
                        width="${bw.toFixed(2)}" height="${pvH.toFixed(2)}"
                        fill="#f59e0b" opacity="0.8"/>`;
       }
       if (gridH > 0.05) {
-        bars += `<rect x="${x0.toFixed(2)}" y="${y(d.elec_pv + d.elec_grid).toFixed(2)}"
+        bars += `<rect x="${x0.toFixed(2)}" y="${y(ePv + eGrid).toFixed(2)}"
                        width="${bw.toFixed(2)}" height="${gridH.toFixed(2)}"
                        fill="#a78bfa" opacity="0.75"/>`;
       }
@@ -913,8 +1109,10 @@ window.PVSIM = window.PVSIM || {};
 
     const ctxEl = document.getElementById('pvsim-month-elec-ctx');
     if (ctxEl) {
-      ctxEl.textContent = `— z PV ${P.fmt.pl0(simMonth.monthly.elec_pv)} kWh`
-        + ` · z sieci ${P.fmt.pl0(simMonth.monthly.elec_grid)} kWh`;
+      const mo = simMonth.monthly;
+      const pv   = mo.elec_pair_pv   != null ? mo.elec_pair_pv   : mo.elec_pv;
+      const grid = mo.elec_pair_grid != null ? mo.elec_pair_grid : mo.elec_grid;
+      ctxEl.textContent = `— z PV ${P.fmt.pl0(pv)} kWh · z sieci ${P.fmt.pl0(grid)} kWh`;
     }
   };
 
@@ -927,9 +1125,12 @@ window.PVSIM = window.PVSIM || {};
       if (el) el.textContent = txt;
     };
 
-    const elecTotal = P.fmt.pl0(mo.elec_total);
-    const elecPv    = P.fmt.pl0(mo.elec_pv);
-    const elecGrid  = P.fmt.pl0(mo.elec_grid);
+    const ePv   = mo.elec_pair_pv    != null ? mo.elec_pair_pv    : mo.elec_pv;
+    const eGrid = mo.elec_pair_grid  != null ? mo.elec_pair_grid  : mo.elec_grid;
+    const eTot  = mo.elec_pair_total != null ? mo.elec_pair_total : mo.elec_total;
+    const elecTotal = P.fmt.pl0(eTot);
+    const elecPv    = P.fmt.pl0(ePv);
+    const elecGrid  = P.fmt.pl0(eGrid);
     const gridCost  = P.fmt.pl2(mo.gridCost);
     const saving    = P.fmt.pl2(mo.savingPLN);
     const savingKwh = P.fmt.pl0(mo.Q_saved);
@@ -965,7 +1166,9 @@ window.PVSIM = window.PVSIM || {};
 
     const md = simYear.monthsData;
 
-    const rawMax = Math.max(...md.map(d => d.elec_pv + d.elec_grid), 0.001);
+    const pvOf   = d => d.elec_pair_pv   != null ? d.elec_pair_pv   : d.elec_pv;
+    const gridOf = d => d.elec_pair_grid != null ? d.elec_pair_grid : d.elec_grid;
+    const rawMax = Math.max(...md.map(d => pvOf(d) + gridOf(d)), 0.001);
     const niceSteps = [10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000];
     const step = niceSteps.find(s => rawMax / s <= 6) || 5000;
     const yMax = Math.ceil(rawMax / step + 0.001) * step;
@@ -978,16 +1181,18 @@ window.PVSIM = window.PVSIM || {};
 
     let bars = '';
     md.forEach((d, i) => {
-      const pvH   = (d.elec_pv   / yMax) * ch;
-      const gridH = (d.elec_grid / yMax) * ch;
+      const ePv   = pvOf(d);
+      const eGrid = gridOf(d);
+      const pvH   = (ePv   / yMax) * ch;
+      const gridH = (eGrid / yMax) * ch;
       const x0 = x(i) + bx;
       if (pvH > 0.05) {
-        bars += `<rect x="${x0.toFixed(2)}" y="${y(d.elec_pv).toFixed(2)}"
+        bars += `<rect x="${x0.toFixed(2)}" y="${y(ePv).toFixed(2)}"
                        width="${bw.toFixed(2)}" height="${pvH.toFixed(2)}"
                        fill="#f59e0b" opacity="0.8"/>`;
       }
       if (gridH > 0.05) {
-        bars += `<rect x="${x0.toFixed(2)}" y="${y(d.elec_pv + d.elec_grid).toFixed(2)}"
+        bars += `<rect x="${x0.toFixed(2)}" y="${y(ePv + eGrid).toFixed(2)}"
                        width="${bw.toFixed(2)}" height="${gridH.toFixed(2)}"
                        fill="#a78bfa" opacity="0.75"/>`;
       }
@@ -1037,8 +1242,10 @@ window.PVSIM = window.PVSIM || {};
 
     const ctxEl = document.getElementById('pvsim-year-chart-ctx');
     if (ctxEl) {
-      ctxEl.textContent = `— z PV ${P.fmt.pl0(simYear.yearly.elec_pv)} kWh`
-        + ` · z sieci ${P.fmt.pl0(simYear.yearly.elec_grid)} kWh`;
+      const yr = simYear.yearly;
+      const pv   = yr.elec_pair_pv   != null ? yr.elec_pair_pv   : yr.elec_pv;
+      const grid = yr.elec_pair_grid != null ? yr.elec_pair_grid : yr.elec_grid;
+      ctxEl.textContent = `— z PV ${P.fmt.pl0(pv)} kWh · z sieci ${P.fmt.pl0(grid)} kWh`;
     }
   };
 
@@ -1051,9 +1258,12 @@ window.PVSIM = window.PVSIM || {};
       if (el) el.textContent = txt;
     });
 
-    const elecTotal = P.fmt.pl0(yr.elec_total);
-    const elecPv    = P.fmt.pl0(yr.elec_pv);
-    const elecGrid  = P.fmt.pl0(yr.elec_grid);
+    const ePv   = yr.elec_pair_pv    != null ? yr.elec_pair_pv    : yr.elec_pv;
+    const eGrid = yr.elec_pair_grid  != null ? yr.elec_pair_grid  : yr.elec_grid;
+    const eTot  = yr.elec_pair_total != null ? yr.elec_pair_total : yr.elec_total;
+    const elecTotal = P.fmt.pl0(eTot);
+    const elecPv    = P.fmt.pl0(ePv);
+    const elecGrid  = P.fmt.pl0(eGrid);
     const gridCost  = P.fmt.pl2(yr.gridCost);
     const saving    = P.fmt.pl2(yr.savingPLN);
     const savingKwh = P.fmt.pl0(yr.Q_saved);
@@ -1087,6 +1297,7 @@ window.PVSIM = window.PVSIM || {};
     set(P.fmt.pl0(inv.total),      'pvsim-inv-total',  'pvsim-sb-inv-total');
     set(P.fmt.pl0(inv.costPV),     'pvsim-inv-pv',     'pvsim-sb-inv-pv');
     set(P.fmt.pl0(inv.costHeater), 'pvsim-inv-heater', 'pvsim-sb-inv-heater');
+    set(P.fmt.pl0(inv.costHP || 0), 'pvsim-inv-hp',    'pvsim-sb-inv-hp');
     set(P.fmt.pl0(inv.costTank),   'pvsim-inv-tank',   'pvsim-sb-inv-tank');
     set(P.fmt.pl0(inv.costScada),  'pvsim-inv-scada',  'pvsim-sb-inv-scada');
 
@@ -1117,6 +1328,7 @@ window.PVSIM = window.PVSIM || {};
         <td>${i + 1}</td>
         <td>${P.fmt.pl1(r.kWp)}</td>
         <td>${P.fmt.pl1(r.heaterKW)}</td>
+        <td>${P.fmt.pl1(r.hpKW != null ? r.hpKW : 0)}</td>
         <td>${Math.round(r.heaterThreshold * 100)}</td>
         <td>${r.tankL}</td>
         <td>${r.heaterTargetC}</td>
@@ -1137,6 +1349,7 @@ window.PVSIM = window.PVSIM || {};
             <th>#</th>
             <th>PV [kWp]</th>
             <th>Grzałka [kW]</th>
+            <th>PC [kW]</th>
             <th>Próg [%]</th>
             <th>Zasobnik [l]</th>
             <th>Temp. grz. [°C]</th>

@@ -88,7 +88,8 @@ pv-sim.tokens.css     — zmienne CSS (kolory, tła, akcenty)
 pv-sim.layout.css     — nagłówek, suwaki, siatka miesięcy, stopka, responsive
 pv-sim.components.css — wykresy SVG, karty statystyk, warianty kolorów, sidebar
 pv-sim.config.js      — stałe, MONTHS[], state{}, OPT_GRID, funkcje pomocnicze
-pv-sim.physics.js     — simulateDay/DHW/Tank/TankMonth/TankYear, computeInvestment, optimize
+pv-sim.physics.js     — simulateDay/DHW/Tank/TankMonth/TankYear, computeInvestment
+pv-sim.optimize.js    — optimize() (grid search, Moduł 08)
 pv-sim.render.js      — renderowanie wykresów SVG i kart statystyk
 pv-sim.app.js         — P.update(), init(), obsługa UI
 ```

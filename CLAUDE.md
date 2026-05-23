@@ -16,7 +16,8 @@ pv-sim.tokens.css     — zmienne CSS (kolory, tła, akcenty); bazowy kontener .
 pv-sim.layout.css     — nagłówek, suwaki, siatka miesięcy, stopka, responsive
 pv-sim.components.css — wykresy SVG, karty statystyk, separatory modułów, warianty kolorów
 pv-sim.config.js      — stałe, MONTHS[], state{}, T_cold(), kWh_per_m3()
-pv-sim.physics.js     — simulateDay(), simulateDHW(), simulateTank(), simulateTankMonth(), simulateTankYear(), computeInvestment(), optimize()
+pv-sim.physics.js     — simulateDay(), simulateDHW(), simulateTank(), simulateTankMonth(), simulateTankYear(), computeInvestment()
+pv-sim.optimize.js    — P.optimize() (grid search, Moduł 08)
 pv-sim.render.js      — fmt, smoothPath(), renderChart/Stats dla 8 modułów
 pv-sim.app.js         — P.update(), init(), listenery suwaków i przycisków
 ```
@@ -24,7 +25,7 @@ pv-sim.app.js         — P.update(), init(), listenery suwaków i przycisków
 ### Kolejność ładowania (obowiązkowa)
 
 CSS: `tokens` → `layout` → `components`
-JS: `config` → `physics` → `render` → `app`
+JS: `config` → `physics` → `optimize` → `render` → `app`
 
 ## Architektura JS
 

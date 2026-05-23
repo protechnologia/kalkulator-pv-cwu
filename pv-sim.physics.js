@@ -731,16 +731,37 @@ window.PVSIM = window.PVSIM || {};
   // Funkcja tymczasowo nadpisuje P.state, więc na końcu przywraca pierwotne
   // wartości — moduły 01–07 dalej pokazują ustawienia użytkownika.
   //
-  // Pruning: heaterThreshold wpływa tylko na strategię 'off-grid'. Gdy ani
-  // strefa dzienna, ani nocna nie używa 'off-grid', próg iterowany jest raz.
+  // Pruning: heaterThreshold wpływa zarówno na off-grid (PC + grzałka), jak i
+  // on-grid (histereza grzałki przy małej modulacji). Pomijamy tylko parę
+  // 'off'/'off' — wtedy nic nie grzeje i próg jest bez znaczenia.
   //
   // Działa asynchronicznie: kombinacje liczone są w porcjach (CHUNK), między
   // porcjami sterowanie wraca do przeglądarki (setTimeout 0), dzięki czemu
   // pasek postępu może rosnąć. Zwraca Promise z top 3 wariantami. Opcjonalny
   // callback onProgress(frac) dostaje ułamek 0..1 ukończenia.
-  P.optimize = function(maxPayback, lifetime, onProgress) {
+  P.optimize = function(maxPayback, lifetime, onProgress, enabled, cancelToken) {
     const g = P.OPT_GRID;
     const s = P.state;
+    // enabled — mapa param→bool; brak = wszystkie włączone (domyślny grid search).
+    // Wyłączony parametr przybijamy do bieżącej wartości z P.state (siatka = [1]).
+    const en = enabled || {};
+    const e = {
+      kWp:           en.kWp           !== false,
+      heaterKW:      en.heaterKW      !== false,
+      hpKW:          en.hpKW          !== false,
+      threshold:     en.threshold     !== false,
+      tankL:         en.tankL         !== false,
+      heaterTargetC: en.heaterTargetC !== false,
+      strat:         en.strat         !== false
+    };
+    const gridKWp        = e.kWp           ? g.kWp           : [s.kWp];
+    const gridHeaterKW   = e.heaterKW      ? g.heaterKW      : [s.heaterKW];
+    const gridHpKW       = e.hpKW          ? g.hpKW          : [s.hpKW];
+    const gridThreshold  = e.threshold     ? g.threshold     : [s.heaterThreshold];
+    const gridTankL      = e.tankL         ? g.tankL         : [s.tankL];
+    const gridTargetC    = e.heaterTargetC ? g.heaterTargetC : [s.heaterTargetC];
+    const gridStratDay   = e.strat         ? g.strat         : [s.heaterStratDay];
+    const gridStratNight = e.strat         ? g.strat         : [s.heaterStratNight];
     const saved = {
       kWp:              s.kWp,
       heaterKW:         s.heaterKW,
@@ -753,17 +774,19 @@ window.PVSIM = window.PVSIM || {};
     };
 
     // Lista wszystkich kombinacji do przeliczenia (z pruningiem progu).
-    const hpGrid = g.hpKW || [s.hpKW];
     const combos = [];
-    for (const stratDay of g.strat) {
-      for (const stratNight of g.strat) {
-        const usesOffGrid = stratDay === 'off-grid' || stratNight === 'off-grid';
-        const thresholds = usesOffGrid ? g.threshold : [g.threshold[0]];
-        for (const kWp of g.kWp) {
-          for (const heaterKW of g.heaterKW) {
-            for (const hpKW of hpGrid) {
-              for (const tankL of g.tankL) {
-                for (const heaterTargetC of g.heaterTargetC) {
+    for (const stratDay of gridStratDay) {
+      for (const stratNight of gridStratNight) {
+        // Próg ma znaczenie zarówno dla off-grid (PC + grzałka), jak i on-grid
+        // (histereza grzałki przy małej modulacji proporcjonalnej). Pomijamy
+        // tylko gdy obie strefy = 'off' — wtedy żadne grzanie nie działa.
+        const usesHeating = stratDay !== 'off' || stratNight !== 'off';
+        const thresholds = usesHeating ? gridThreshold : [gridThreshold[0]];
+        for (const kWp of gridKWp) {
+          for (const heaterKW of gridHeaterKW) {
+            for (const hpKW of gridHpKW) {
+              for (const tankL of gridTankL) {
+                for (const heaterTargetC of gridTargetC) {
                   for (const threshold of thresholds) {
                     combos.push({ kWp, heaterKW, hpKW, threshold, tankL, heaterTargetC, stratDay, stratNight });
                   }
@@ -815,14 +838,20 @@ window.PVSIM = window.PVSIM || {};
             lifetimeProfit: balance * lifetime - inv.total
           });
         }
-        if (onProgress) onProgress(total > 0 ? i / total : 1);
+        if (onProgress) onProgress(total > 0 ? i / total : 1, i, total);
 
+        if (cancelToken && cancelToken.cancelled) {
+          Object.assign(s, saved);
+          results.sort((a, b) => b.lifetimeProfit - a.lifetimeProfit);
+          resolve({ results: results.slice(0, 3), cancelled: true, done: i, total });
+          return;
+        }
         if (i < total) {
           setTimeout(step, 0);
         } else {
           Object.assign(s, saved);   // przywróć ustawienia użytkownika
           results.sort((a, b) => b.lifetimeProfit - a.lifetimeProfit);
-          resolve(results.slice(0, 3));
+          resolve({ results: results.slice(0, 3), cancelled: false, done: i, total });
         }
       }
       step();

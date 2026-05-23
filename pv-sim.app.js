@@ -38,6 +38,10 @@ window.PVSIM = window.PVSIM || {};
 (function(P) {
   'use strict';
 
+  // Hook ustawiany przez init() — odświeża widget „Parametry siatki" (Moduł 08)
+  // po zmianie wartości w P.state, żeby pola „stałe: …" pokazywały aktualne dane.
+  let renderOptParamsHook = null;
+
   // ===== AKTUALIZACJA =====
   P.update = function() {
     const sim = P.simulateDay(P.state.kWp, P.state.monthIdx, P.state.pvMode);
@@ -70,6 +74,7 @@ window.PVSIM = window.PVSIM || {};
     P.renderInvestStats(inv);
 
     P.renderGridChart();
+    if (renderOptParamsHook) renderOptParamsHook();
   };
 
   // ===== INICJALIZACJA UI =====
@@ -378,20 +383,117 @@ window.PVSIM = window.PVSIM || {};
     // Przycisk „Optymalizuj" — uruchamia asynchroniczny grid search.
     // Pasek postępu rośnie w trakcie (callback onProgress), przycisk jest
     // zablokowany do końca obliczeń.
-    const optRun  = document.getElementById('pvsim-opt-run');
-    const optBar  = document.getElementById('pvsim-opt-progress-fill');
+    // Lista parametrów siatki — generowana z P.OPT_GRID, z checkboxami
+    const optParams = document.getElementById('pvsim-opt-params');
+    const paramLabels = [
+      ['kWp',           'Moc PV',       'kWp'],
+      ['heaterKW',      'Moc grzałki',  'kW'],
+      ['hpKW',          'Moc PC',       'kW'],
+      ['threshold',     'Próg włącz.',  ''],
+      ['tankL',         'Zasobnik',     'L'],
+      ['heaterTargetC', 'T docelowa',   '°C'],
+      ['strat',         'Strategie',    '']
+    ];
+    const optEnabled = { kWp:true, heaterKW:true, hpKW:true, threshold:true, tankL:true, heaterTargetC:true, strat:true };
+
+    function renderOptParams() {
+      const G = P.OPT_GRID;
+      const thrLen   = optEnabled.threshold ? G.threshold.length : 1;
+      // Para 'off'/'off' przybija próg do 1 (nic nie grzeje). Liczymy ile par
+      // w aktualnej siatce strategii NIE jest off/off — te dostają pełny zestaw progów.
+      let stratPairs, offOffPairs;
+      if (optEnabled.strat) {
+        const n = G.strat.length;
+        stratPairs = n * n;
+        offOffPairs = 1; // dokładnie jedna para off/off
+      } else {
+        stratPairs = 1;
+        offOffPairs = (P.state.heaterStratDay === 'off' && P.state.heaterStratNight === 'off') ? 1 : 0;
+      }
+      const stratThr = (stratPairs - offOffPairs) * thrLen + offOffPairs;
+      const lens = {
+        kWp:           optEnabled.kWp           ? G.kWp.length           : 1,
+        heaterKW:      optEnabled.heaterKW      ? G.heaterKW.length      : 1,
+        hpKW:          optEnabled.hpKW          ? G.hpKW.length          : 1,
+        tankL:         optEnabled.tankL         ? G.tankL.length         : 1,
+        heaterTargetC: optEnabled.heaterTargetC ? G.heaterTargetC.length : 1
+      };
+      const total = lens.kWp * lens.heaterKW * lens.hpKW * lens.tankL * lens.heaterTargetC * stratThr;
+      const rows = paramLabels.map(([k, name, unit]) => {
+        const vals = G[k];
+        if (!vals) return '';
+        const on = optEnabled[k];
+        const valsTxt = on ? (vals.join(' · ') + (unit ? ' ' + unit : '')) : `stałe: ${currentParamVal(k)}${unit ? ' ' + unit : ''}`;
+        let countTxt;
+        if (!on)                    countTxt = '× 1';
+        else if (k === 'strat')     countTxt = `${vals.length}² par`;
+        else if (k === 'threshold') countTxt = `× ${vals.length} *`;
+        else                        countTxt = `× ${vals.length}`;
+        return `<li>`
+             + `<label class="name"><input type="checkbox" data-opt="${k}" ${on?'checked':''}> ${name}</label>`
+             + `<span class="vals">${valsTxt}</span>`
+             + `<span class="count">${countTxt}</span>`
+             + `</li>`;
+      }).join('');
+      optParams.innerHTML = rows
+        + `<div class="total"><span>Razem kombinacji</span><b>${P.fmt.pl0(total)}</b></div>`
+        + (optEnabled.threshold ? `<div class="total" style="text-transform:none; letter-spacing:0; font-size:9.5px; color: var(--pvsim-text-3); padding-top:2px; border-top:0;">* próg pomijany tylko gdy obie strefy = off</div>` : '');
+    }
+    function currentParamVal(k) {
+      const s = P.state;
+      switch (k) {
+        case 'kWp': return s.kWp;
+        case 'heaterKW': return s.heaterKW;
+        case 'hpKW': return s.hpKW;
+        case 'threshold': return s.heaterThreshold;
+        case 'tankL': return s.tankL;
+        case 'heaterTargetC': return s.heaterTargetC;
+        case 'strat': return `${s.heaterStratDay}/${s.heaterStratNight}`;
+      }
+    }
+    optParams.addEventListener('change', (e) => {
+      const cb = e.target.closest('input[data-opt]');
+      if (!cb) return;
+      optEnabled[cb.dataset.opt] = cb.checked;
+      renderOptParams();
+    });
+    renderOptParamsHook = renderOptParams;
+    renderOptParams();
+
+    const optRun   = document.getElementById('pvsim-opt-run');
+    const optBar   = document.getElementById('pvsim-opt-progress-fill');
+    const optLabel = document.getElementById('pvsim-opt-progress-label');
     let optResults = [];
+    let optCancel  = null;       // { cancelled: bool } gdy trwa optymalizacja
+    const RUN_LABEL  = 'Optymalizuj →';
+    const STOP_LABEL = 'Zatrzymaj ◼';
     optRun.addEventListener('click', () => {
-      const label = optRun.textContent;
-      optRun.textContent = 'Optymalizuję…';
-      optRun.disabled = true;
+      // Tryb zatrzymywania
+      if (optCancel) {
+        optCancel.cancelled = true;
+        optRun.textContent = 'Zatrzymuję…';
+        optRun.disabled = true;
+        return;
+      }
+      // Tryb startu
+      optCancel = { cancelled: false };
+      optRun.textContent = STOP_LABEL;
+      optRun.classList.add('stopping');
       optBar.style.width = '0%';
-      P.optimize(P.state.optMaxPayback, P.state.optLifetime, frac => {
+      optLabel.innerHTML = '<span class="count">0</span> / 0';
+      renderOptParams(); // odśwież „stałe: …" jeśli zmieniło się P.state
+      P.optimize(P.state.optMaxPayback, P.state.optLifetime, (frac, done, total) => {
         optBar.style.width = Math.round(frac * 100) + '%';
-      }).then(results => {
-        optResults = results;
+        optLabel.innerHTML = '<span class="count">' + P.fmt.pl0(done) + '</span> / ' + P.fmt.pl0(total);
+      }, optEnabled, optCancel).then(res => {
+        optResults = res.results;
         P.renderOptimTable(optResults);
-        optRun.textContent = label;
+        if (res.cancelled) {
+          optLabel.innerHTML = '<span class="count">' + P.fmt.pl0(res.done) + '</span> / ' + P.fmt.pl0(res.total) + ' — zatrzymano';
+        }
+        optCancel = null;
+        optRun.textContent = RUN_LABEL;
+        optRun.classList.remove('stopping');
         optRun.disabled = false;
       });
     });
@@ -416,6 +518,41 @@ window.PVSIM = window.PVSIM || {};
     sidebarToggle.addEventListener('click', () => {
       setSidebar(sidebar.classList.contains('hidden'));
     });
+
+    // Lewy sidebar — spis treści modułów
+    const toc = document.getElementById('pvsim-toc');
+    const tocToggle = document.getElementById('pvsim-toc-toggle');
+    function setToc(visible) {
+      toc.classList.toggle('hidden', !visible);
+      tocToggle.setAttribute('aria-expanded', String(visible));
+      tocToggle.textContent = 'Moduły ' + (visible ? '▾' : '▸');
+    }
+    setToc(window.innerWidth >= 1100);
+    tocToggle.addEventListener('click', () => {
+      setToc(toc.classList.contains('hidden'));
+    });
+
+    const tocItems = Array.from(toc.querySelectorAll('.pvsim-toc-item'));
+    const tocById = new Map(tocItems.map(a => [a.dataset.target, a]));
+    const moduleSections = tocItems
+      .map(a => document.getElementById(a.dataset.target))
+      .filter(Boolean);
+    if ('IntersectionObserver' in window && moduleSections.length) {
+      const visible = new Set();
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) visible.add(e.target.id);
+          else visible.delete(e.target.id);
+        });
+        const firstVisible = moduleSections.find(s => visible.has(s.id));
+        if (firstVisible) {
+          tocItems.forEach(a => a.classList.remove('active'));
+          const a = tocById.get(firstVisible.id);
+          if (a) a.classList.add('active');
+        }
+      }, { rootMargin: '-20% 0px -60% 0px', threshold: 0 });
+      moduleSections.forEach(s => io.observe(s));
+    }
 
     updateSlider();  // pierwsza inicjalizacja + render
   }

@@ -399,6 +399,93 @@
   box-shadow: 0 0 8px var(--pvsim-sky);
 }
 
+/* -------- LEWY SIDEBAR — SPIS TREŚCI MODUŁÓW -------- */
+.pvsim-toc-toggle {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  z-index: 51;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  background: var(--pvsim-bg-2);
+  border: 1px solid var(--pvsim-border);
+  color: var(--pvsim-text-1);
+  padding: 7px 10px;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+.pvsim-toc-toggle:hover { border-color: var(--pvsim-text-1); }
+.pvsim-toc {
+  position: fixed;
+  top: 58px;
+  left: 24px;
+  width: 210px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  z-index: 50;
+  background: var(--pvsim-bg-1);
+  border: 1px solid var(--pvsim-border);
+  padding: 8px;
+}
+.pvsim-toc.hidden { display: none; }
+.pvsim-toc-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pvsim-text-2);
+  padding: 6px 8px 10px;
+}
+.pvsim-toc-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  color: var(--pvsim-text-2);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.pvsim-toc-item:hover { background: var(--pvsim-bg-2); color: var(--pvsim-text-0); }
+.pvsim-toc-item.active { background: var(--pvsim-bg-2); color: var(--pvsim-text-0); }
+.pvsim-toc-item .num {
+  color: var(--pvsim-text-3);
+  font-size: 9px;
+  font-weight: 600;
+  min-width: 16px;
+}
+.pvsim-toc-item .dot {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  background: var(--pvsim-text-3);
+}
+.pvsim-toc-item .lbl { flex: 1; }
+.pvsim-toc-item.orange  .dot { background: var(--pvsim-orange);  box-shadow: 0 0 6px var(--pvsim-orange); }
+.pvsim-toc-item.teal    .dot { background: var(--pvsim-teal);    box-shadow: 0 0 6px var(--pvsim-teal); }
+.pvsim-toc-item.violet  .dot { background: var(--pvsim-violet);  box-shadow: 0 0 6px var(--pvsim-violet); }
+.pvsim-toc-item.amber   .dot { background: var(--pvsim-amber);   box-shadow: 0 0 6px var(--pvsim-amber); }
+.pvsim-toc-item.sky     .dot { background: var(--pvsim-sky);     box-shadow: 0 0 6px var(--pvsim-sky); }
+.pvsim-toc-item.lime    .dot { background: var(--pvsim-lime);    box-shadow: 0 0 6px var(--pvsim-lime); }
+.pvsim-toc-item.rose    .dot { background: var(--pvsim-rose);    box-shadow: 0 0 6px var(--pvsim-rose); }
+.pvsim-toc-item.fuchsia .dot { background: var(--pvsim-fuchsia); box-shadow: 0 0 6px var(--pvsim-fuchsia); }
+.pvsim-toc-item.orange.active  { border-left-color: var(--pvsim-orange); }
+.pvsim-toc-item.teal.active    { border-left-color: var(--pvsim-teal); }
+.pvsim-toc-item.violet.active  { border-left-color: var(--pvsim-violet); }
+.pvsim-toc-item.amber.active   { border-left-color: var(--pvsim-amber); }
+.pvsim-toc-item.sky.active     { border-left-color: var(--pvsim-sky); }
+.pvsim-toc-item.lime.active    { border-left-color: var(--pvsim-lime); }
+.pvsim-toc-item.rose.active    { border-left-color: var(--pvsim-rose); }
+.pvsim-toc-item.fuchsia.active { border-left-color: var(--pvsim-fuchsia); }
+
 .pvsim-grid-tariff-note {
   font-size: 11px;
   color: var(--pvsim-text-2);
@@ -460,6 +547,13 @@
   opacity: 0.6;
   cursor: progress;
 }
+.pvsim-opt-run.stopping {
+  background: rgba(251, 113, 133, 0.18);
+  border-color: var(--pvsim-rose);
+  color: var(--pvsim-rose);
+  box-shadow: inset 0 -2px 0 var(--pvsim-rose);
+}
+.pvsim-opt-run.stopping:hover { background: rgba(251, 113, 133, 0.28); }
 
 /* -------- MODUŁ 08 — pasek postępu grid search -------- */
 .pvsim-opt-progress {
@@ -476,6 +570,68 @@
   box-shadow: 0 0 8px var(--pvsim-fuchsia);
   transition: width 0.12s linear;
 }
+.pvsim-opt-progress-label {
+  margin-top: 6px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  color: var(--pvsim-text-2);
+  min-height: 14px;
+}
+.pvsim-opt-progress-label .count { color: var(--pvsim-fuchsia); font-weight: 600; }
+
+/* -------- MODUŁ 08 — lista parametrów siatki -------- */
+.pvsim-opt-params {
+  list-style: none;
+  margin: 0;
+  padding: 8px 12px;
+  background: var(--pvsim-bg-2);
+  border: 1px solid var(--pvsim-border);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--pvsim-text-1);
+}
+.pvsim-opt-params li {
+  display: grid;
+  grid-template-columns: 100px 1fr auto;
+  align-items: baseline;
+  gap: 10px;
+  padding: 4px 0;
+  border-bottom: 1px dashed var(--pvsim-border);
+}
+.pvsim-opt-params li:last-child { border-bottom: 0; }
+.pvsim-opt-params .name {
+  color: var(--pvsim-text-2);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.pvsim-opt-params .name input[type="checkbox"] {
+  accent-color: var(--pvsim-fuchsia);
+  width: 12px;
+  height: 12px;
+  margin: 0;
+}
+.pvsim-opt-params .vals { color: var(--pvsim-text-0); font-size: 10.5px; }
+.pvsim-opt-params .count { color: var(--pvsim-fuchsia); font-weight: 600; font-size: 10px; }
+.pvsim-opt-params .total {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--pvsim-border);
+  display: flex;
+  justify-content: space-between;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pvsim-text-2);
+}
+.pvsim-opt-params .total b { color: var(--pvsim-fuchsia); font-weight: 600; }
 
 /* -------- MODUŁ 08 — tabela wyników -------- */
 .pvsim-optim-table {

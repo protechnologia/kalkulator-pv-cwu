@@ -22,7 +22,6 @@
         <div class="pvsim-logo-dot"></div>
         <div class="pvsim-title"><span class="accent">PV</span>.SIM</div>
       </div>
-      <div class="pvsim-subtitle" id="pvsim-subtitle">Symulacja godzinowa &mdash; układ PV + CWU</div>
     </div>
     <div class="pvsim-meta">
       v1.2.0<br>
@@ -31,7 +30,7 @@
   </div>
 
   <!-- MODUŁ 01 — PV                                -->
-  <div class="pvsim-module-divider orange">
+  <div class="pvsim-module-divider orange" id="mod-01">
     <div class="tag"><span class="num">01 //</span> PV &mdash; Produkcja energii fotowoltaicznej</div>
     <div class="rule"></div>
   </div>
@@ -127,7 +126,7 @@
   <!-- ========================================== -->
   <!-- MODUŁ 02 — CWU                              -->
   <!-- ========================================== -->
-  <div class="pvsim-module-divider">
+  <div class="pvsim-module-divider" id="mod-02">
     <div class="dot"></div>
     <div class="tag"><span class="num">02 //</span> CWU &mdash; Profil zużycia i zapotrzebowania</div>
     <div class="rule"></div>
@@ -224,7 +223,7 @@
   <!-- ========================================== -->
   <!-- MODUŁ 03 — ENERGIA Z SIECI               -->
   <!-- ========================================== -->
-  <div class="pvsim-module-divider violet">
+  <div class="pvsim-module-divider violet" id="mod-03">
     <div class="tag"><span class="num">03 //</span> SIEĆ &mdash; Taryfa energii elektrycznej</div>
     <div class="rule"></div>
   </div>
@@ -284,7 +283,7 @@
   <!-- ========================================== -->
   <!-- MODUŁ 04 — ZASOBNIK + GRZAŁKI               -->
   <!-- ========================================== -->
-  <div class="pvsim-module-divider amber">
+  <div class="pvsim-module-divider amber" id="mod-04">
     <div class="dot"></div>
     <div class="tag"><span class="num">04 //</span> ZASOBNIK CWU + POMPA CIEPŁA + GRZAŁKA</div>
     <div class="rule"></div>
@@ -520,7 +519,7 @@
   <!-- ========================================== -->
   <!-- MODUŁ 05 — SYMULACJA MIESIĘCZNA             -->
   <!-- ========================================== -->
-  <div class="pvsim-module-divider sky">
+  <div class="pvsim-module-divider sky" id="mod-05">
     <div class="dot"></div>
     <div class="tag"><span class="num">05 //</span> ZASOBNIK &mdash; Symulacja miesięczna ciągła</div>
     <div class="rule"></div>
@@ -605,7 +604,7 @@
   <!-- ========================================== -->
   <!-- MODUŁ 06 — SYMULACJA ROCZNA                 -->
   <!-- ========================================== -->
-  <div class="pvsim-module-divider lime">
+  <div class="pvsim-module-divider lime" id="mod-06">
     <div class="dot"></div>
     <div class="tag"><span class="num">06 //</span> ZASOBNIK &mdash; Symulacja roczna</div>
     <div class="rule"></div>
@@ -676,7 +675,7 @@
   <!-- ========================================== -->
   <!-- MODUŁ 07 — INWESTYCJA                       -->
   <!-- ========================================== -->
-  <div class="pvsim-module-divider rose">
+  <div class="pvsim-module-divider rose" id="mod-07">
     <div class="dot"></div>
     <div class="tag"><span class="num">07 //</span> INWESTYCJA &mdash; Koszt i zwrot</div>
     <div class="rule"></div>
@@ -758,7 +757,7 @@
   <!-- ========================================== -->
   <!-- MODUŁ 08 — OPTYMALIZACJA                    -->
   <!-- ========================================== -->
-  <div class="pvsim-module-divider fuchsia">
+  <div class="pvsim-module-divider fuchsia" id="mod-08">
     <div class="dot"></div>
     <div class="tag"><span class="num">08 //</span> OPTYMALIZACJA &mdash; Grid search parametrów</div>
     <div class="rule"></div>
@@ -786,13 +785,18 @@
         </div>
       </div>
       <div>
-        <div class="pvsim-label fuchsia">Grid search &nbsp;/ moc PV · grzałka · próg · zasobnik · temp. grzania · strategie</div>
+        <div class="pvsim-label fuchsia">Grid search</div>
         <div class="pvsim-power-row">
           <button class="pvsim-opt-run" id="pvsim-opt-run">Optymalizuj &rarr;</button>
         </div>
         <div class="pvsim-opt-progress" id="pvsim-opt-progress">
           <div class="pvsim-opt-progress-fill" id="pvsim-opt-progress-fill"></div>
         </div>
+        <div class="pvsim-opt-progress-label" id="pvsim-opt-progress-label"></div>
+      </div>
+      <div>
+        <div class="pvsim-label fuchsia">Parametry siatki</div>
+        <ul class="pvsim-opt-params" id="pvsim-opt-params"></ul>
       </div>
     </div>
   </div>
@@ -810,6 +814,20 @@
         przeszukanie siatki kombinacji zajmuje kilka sekund.</p>
     </div>
   </div>
+
+  <!-- LEWY SIDEBAR — SPIS TREŚCI MODUŁÓW -->
+  <button class="pvsim-toc-toggle" id="pvsim-toc-toggle" aria-expanded="true">Moduły ▾</button>
+  <nav class="pvsim-toc" id="pvsim-toc">
+    <div class="pvsim-toc-title">Moduły</div>
+    <a href="#mod-01" class="pvsim-toc-item orange" data-target="mod-01"><span class="dot"></span><span class="num">01</span><span class="lbl">PV</span></a>
+    <a href="#mod-02" class="pvsim-toc-item teal"   data-target="mod-02"><span class="dot"></span><span class="num">02</span><span class="lbl">CWU</span></a>
+    <a href="#mod-03" class="pvsim-toc-item violet" data-target="mod-03"><span class="dot"></span><span class="num">03</span><span class="lbl">Sieć</span></a>
+    <a href="#mod-04" class="pvsim-toc-item amber"  data-target="mod-04"><span class="dot"></span><span class="num">04</span><span class="lbl">Zasobnik + PC + Grzałka</span></a>
+    <a href="#mod-05" class="pvsim-toc-item sky"    data-target="mod-05"><span class="dot"></span><span class="num">05</span><span class="lbl">Symulacja miesięczna</span></a>
+    <a href="#mod-06" class="pvsim-toc-item lime"   data-target="mod-06"><span class="dot"></span><span class="num">06</span><span class="lbl">Symulacja roczna</span></a>
+    <a href="#mod-07" class="pvsim-toc-item rose"   data-target="mod-07"><span class="dot"></span><span class="num">07</span><span class="lbl">Inwestycja</span></a>
+    <a href="#mod-08" class="pvsim-toc-item fuchsia" data-target="mod-08"><span class="dot"></span><span class="num">08</span><span class="lbl">Optymalizacja</span></a>
+  </nav>
 
   <!-- SIDEBAR — STAŁE PODSUMOWANIE ROCZNE -->
   <button class="pvsim-sidebar-toggle" id="pvsim-sidebar-toggle" aria-expanded="true">Podsumowanie ▾</button>

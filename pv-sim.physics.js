@@ -18,14 +18,19 @@
 
    P.simulateTank(simPV, simDHW, heaterKW, tankL, T_init)
      Model zasobnika 1-węzłowego (fully-mixed) z 6 podkrokami na godzinę.
-     Symuluje: pobór CWU (rozcieńczenie), grzanie grzałką wg strategii
+     Symuluje: pobór CWU (rozcieńczenie), grzanie parą PC + grzałka wg strategii
      wybranej osobno dla strefy dziennej i nocnej taryfy, straty postojowe.
-     Grzałka grzeje do setpointu P.state.heaterTargetC (suwak Modułu 04,
+     Para grzeje do setpointu P.state.heaterTargetC (suwak Modułu 04,
      niezależny od T_hot z Modułu 02).
-     Strategie: 'off' (wyłączona), 'off-grid' (power diverter — moc do nadwyżki
-     PV, grzeje tylko do setpointu), 'on-grid' (moc proporcjonalna do różnicy
-     setpoint − T, pobór z PV + sieci).
-     Śledzi pokrycie CWU, oszczędności oraz zużycie energii (PV vs sieć).
+     Pompa ciepła (P.state.hpKW, hpGears, hpCOPSummer/Winter, hpOnlyBandC) ma
+     priorytet w off-grid (wybiera największy bieg ≤ nadwyżki PV, grzałka dobiera
+     resztę) oraz w on-grid pracuje sama w pasmie pod setpointem (bieg
+     proporcjonalny do zapotrzebowania), poniżej pasma dochodzi grzałka.
+     hpKW = 0 ⇒ PC wyłączona; heaterKW = 0 ⇒ grzałka wyłączona.
+     Strategie: 'off', 'off-grid' (power diverter — moc do nadwyżki PV, grzeje
+     tylko do setpointu), 'on-grid' (moc proporcjonalna, pobór z PV + sieci).
+     Śledzi pokrycie CWU, oszczędności oraz zużycie energii rozbite na PV/sieć
+     i grzałkę/PC.
 
    P.simulateTankMonth(simPV, simDHW, heaterKW, tankL, monthIdx)
      Ciągła symulacja zasobnika przez cały miesiąc — wywołuje
@@ -39,16 +44,19 @@
      (do wykresu słupkowego) oraz sumy roczne.
 
    P.computeInvestment(simYear)
-     Kalkulator inwestycji — sumuje koszt instalacji PV, grzałki,
-     zasobnika i automatyki + SCADA (ceny jednostkowe z P.state) oraz
-     liczy zwrot inwestycji względem bilansu rocznego netto.
+     Kalkulator inwestycji — sumuje koszt instalacji PV, grzałki, pompy
+     ciepła, zasobnika i automatyki + SCADA (ceny jednostkowe z P.state)
+     oraz liczy zwrot inwestycji względem bilansu rocznego netto.
 
-   P.optimize(maxPayback, lifetime, onProgress)
+   P.optimize(maxPayback, lifetime, onProgress, enabled, cancelToken)
      Grid search (Moduł 08) — przeszukuje siatkę P.OPT_GRID po mocy PV,
-     mocy grzałki, progu, pojemności zasobnika, temperaturze grzania
-     i strategiach dzień/noc. Asynchroniczny (porcje + setTimeout 0,
-     callback postępu). Zwraca Promise z 3 najlepszymi wariantami wg
-     zysku netto za cały okres życia inwestycji.
+     mocy grzałki, mocy PC, progu, pojemności zasobnika, temperaturze grzania
+     i strategiach dzień/noc. `enabled` — mapa flag per parametr (false =
+     pin do P.state). `cancelToken = { cancelled }` — przerwanie między
+     porcjami. Asynchroniczny (porcje + setTimeout 0, callback postępu z
+     licznikiem done/total). Zwraca Promise z obiektem
+     { results, cancelled, done, total } — top 3 warianty wg zysku netto
+     za cały okres życia inwestycji.
 
    P.dailyWeatherFactors(monthIdx, days)
      Deterministyczne mnożniki zmienności pogody dobowej — losują

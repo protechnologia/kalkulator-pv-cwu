@@ -26,32 +26,41 @@
                          strefa dzienna (fiolet) vs nocna (szary), kolor fioletowy;
                          oś Y z ładnymi krokami (nie wywołuje P.update — brak symulacji)
 
-   Moduł 04 — Zasobnik:
-     renderTankChart()     — wykres temperatury zasobnika (°C) z tłem grzania
-                             (osobny odcień dla strefy dziennej i nocnej),
-                             linia termostatu i linia T_CWU, kolor bursztynowy
-     renderTankElecChart() — wykres słupkowy mocy elektrycznej grzałki:
-                             część z PV (bursztyn) + część z sieci (fiolet)
-     renderTankStats()     — karty: pokrycie CWU, grzałka, zużycie prądu
-                             (PV vs sieć), koszt energii z sieci
+   Moduł 04 — Zasobnik (PC + grzałka):
+     renderTankChart()      — wykres temperatury zasobnika (°C) z tłem grzania
+                              (osobny odcień dla strefy dziennej i nocnej),
+                              linia termostatu i linia T_CWU, kolor bursztynowy
+     renderTankElecChart()  — wykres słupkowy mocy elektrycznej pary
+                              PC + grzałki: 4-stos (PC·PV, grz·PV, PC·sieć,
+                              grz·sieć)
+     renderHeatSplitChart() — wykres słupkowy podziału mocy cieplnej
+                              (PC vs grzałka, kWh ciepła dostarczonego do
+                              zasobnika)
+     renderTankStats()      — karty: pokrycie CWU, grzałka (h + kWh ciepła),
+                              PC (h + kWh ciepła), zużycie prądu — źródło
+                              (PV vs sieć) i — urządzenie (grzałka vs PC),
+                              koszt energii z sieci
 
    Moduł 05 — Symulacja miesięczna:
      renderMonthTankChart() — wykres temperatury zasobnika przez cały
                               miesiąc (ciągła linia), kolor błękitny
-     renderMonthElecChart() — wykres słupkowy dobowego bilansu energii
-                              grzałki (jeden słupek na dobę, PV vs sieć)
-     renderMonthStats()     — karty miesięczne: pokrycie CWU, grzałka,
-                              zużycie prądu, koszt, ciepło zaoszczędzone,
-                              bilans; wartości dublowane też w sidebarze
+     renderMonthElecChart() — wykres słupkowy dobowego bilansu energii pary
+                              PC + grzałka (jeden słupek na dobę, PV vs sieć)
+     renderMonthStats()     — karty miesięczne: pokrycie CWU, grzałka, PC,
+                              zużycie prądu — źródło i — urządzenie, koszt,
+                              ciepło zaoszczędzone, bilans; część wartości
+                              dublowana w sidebarze
 
    Moduł 06 — Symulacja roczna:
-     renderYearChart()      — wykres słupkowy energii elektrycznej grzałki
-                              (jeden słupek na miesiąc, PV vs sieć)
-     renderYearStats()      — karty roczne: pokrycie CWU, grzałka, zużycie
-                              prądu, koszt, ciepło zaoszczędzone, bilans
+     renderYearChart()      — wykres słupkowy energii elektrycznej pary
+                              PC + grzałka (jeden słupek na miesiąc,
+                              PV vs sieć)
+     renderYearStats()      — karty roczne: pokrycie CWU, grzałka, PC,
+                              zużycie prądu — źródło i — urządzenie, koszt,
+                              ciepło zaoszczędzone, bilans
 
    Moduł 07 — Inwestycja:
-     renderInvestStats()    — karty: koszt inwestycji (PV, grzałki,
+     renderInvestStats()    — karty: koszt inwestycji (PV, grzałki, PC,
                               zasobnik, SCADA) i liczba lat na zwrot
 
    Moduł 08 — Optymalizacja:
@@ -1141,9 +1150,17 @@ window.PVSIM = window.PVSIM || {};
     set(P.fmt.pl0(mo.Q_saved),     'pvsim-month-cover-kwh');
     set(P.fmt.pl0(mo.Q_strat),     'pvsim-month-cover-strat');
     set(mo.heaterHours,            'pvsim-month-heater-hrs');
+    set(P.fmt.pl0(mo.Q_heater || 0), 'pvsim-month-heater-kwh');
+    set(mo.hpHours || 0,           'pvsim-month-hp-hrs');
+    set(P.fmt.pl0(mo.Q_hp || 0),   'pvsim-month-hp-kwh');
     set(elecTotal, 'pvsim-month-elec-total');
     set(elecPv,    'pvsim-month-elec-pv');
     set(elecGrid,  'pvsim-month-elec-grid');
+    const moElHt = (mo.elec_pv || 0) + (mo.elec_grid || 0);
+    const moElHp = (mo.elec_hp_pv || 0) + (mo.elec_hp_grid || 0);
+    set(P.fmt.pl0(moElHt + moElHp), 'pvsim-month-elec-dev-total');
+    set(P.fmt.pl0(moElHt),          'pvsim-month-elec-dev-heater');
+    set(P.fmt.pl0(moElHp),          'pvsim-month-elec-dev-hp');
     set(gridCost,  'pvsim-month-grid-cost');
     set(saving,    'pvsim-month-saving');
     set(savingKwh, 'pvsim-month-saving-kwh');
@@ -1274,9 +1291,17 @@ window.PVSIM = window.PVSIM || {};
     set(P.fmt.pl0(yr.Q_saved),     'pvsim-year-cover-kwh');
     set(P.fmt.pl0(yr.Q_strat),     'pvsim-year-cover-strat');
     set(P.fmt.pl0(yr.heaterHours), 'pvsim-year-heater-hrs');
+    set(P.fmt.pl0(yr.Q_heater || 0), 'pvsim-year-heater-kwh');
+    set(P.fmt.pl0(yr.hpHours || 0),  'pvsim-year-hp-hrs');
+    set(P.fmt.pl0(yr.Q_hp || 0),     'pvsim-year-hp-kwh');
     set(elecTotal, 'pvsim-year-elec-total', 'pvsim-sb-elec-total');
     set(elecPv,    'pvsim-year-elec-pv',    'pvsim-sb-elec-pv');
     set(elecGrid,  'pvsim-year-elec-grid',  'pvsim-sb-elec-grid');
+    const yrElHt = (yr.elec_pv || 0) + (yr.elec_grid || 0);
+    const yrElHp = (yr.elec_hp_pv || 0) + (yr.elec_hp_grid || 0);
+    set(P.fmt.pl0(yrElHt + yrElHp), 'pvsim-year-elec-dev-total');
+    set(P.fmt.pl0(yrElHt),          'pvsim-year-elec-dev-heater');
+    set(P.fmt.pl0(yrElHp),          'pvsim-year-elec-dev-hp');
     set(gridCost,  'pvsim-year-grid-cost',  'pvsim-sb-grid-cost');
     set(saving,    'pvsim-year-saving',     'pvsim-sb-saving');
     set(savingKwh, 'pvsim-year-saving-kwh', 'pvsim-sb-saving-kwh');

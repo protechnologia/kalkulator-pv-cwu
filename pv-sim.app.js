@@ -18,13 +18,17 @@
      - przełącznik typu budynku (stary/nowy — współczynnik strat cyrkulacji)
      - pola cen energii elektrycznej dzień/noc w zł/kWh (moduł 03)
      - suwaki początku i końca strefy dziennej (moduł 03)
-     - suwak mocy grzałki (moduł 04)
+     - suwak mocy grzałki (moduł 04, 0 = wyłączona)
      - suwak progu włączenia grzałki (moduł 04)
      - suwak pojemności zasobnika (moduł 04)
      - suwak temperatury grzania grzałki (moduł 04)
-     - przełączniki strategii grzałki dzień/noc (moduł 04)
-     - suwaki cen inwestycji: PV, grzałki, zasobnik, SCADA (moduł 07)
-     - suwaki limitu zwrotu i okresu życia + przycisk optymalizacji (moduł 08)
+     - suwaki pompy ciepła: moc, liczba biegów, pasmo „tylko PC",
+       COP letni i zimowy (moduł 04, hpKW = 0 = PC wyłączona)
+     - przełączniki strategii pary PC+grzałka dzień/noc (moduł 04)
+     - suwaki cen inwestycji: PV, grzałki, PC, zasobnik, SCADA (moduł 07)
+     - suwaki limitu zwrotu i okresu życia, checkboxy włączania
+       poszczególnych wymiarów siatki, przyciski start/stop optymalizacji
+       (moduł 08)
      - przycisk pokaż/ukryj sidebar z podsumowaniem rocznym
        (start: widoczny dla okna ≥1100 px, ukryty poniżej)
    Każda kontrolka przy zmianie synchronizuje P.state, odświeża etykietę,

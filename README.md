@@ -1,6 +1,6 @@
 # kalkulator-pv-cwu
 
-Interaktywny symulator fotowoltaiki dla budynków wielorodzinnych z modułem ciepłej wody użytkowej (CWU) i zasobnikiem z grzałką elektryczną.
+Interaktywny symulator fotowoltaiki dla budynków wielorodzinnych z modułem ciepłej wody użytkowej (CWU) i zasobnikiem podgrzewanym pompą ciepła oraz grzałką elektryczną.
 
 Działa bezpośrednio z systemu plików (`file://`) — bez serwera, bez instalacji, bez frameworków.
 
@@ -11,7 +11,7 @@ Pobierz repozytorium i otwórz `pv-sim.v1.2.html` w przeglądarce.
 ## Funkcje
 
 ### Moduł 01 — PV (fotowoltaika)
-- Moc instalacji: 1–100 kWp
+- Moc instalacji: 0–50 kWp (0 = PV wyłączone)
 - Dwa tryby symulacji: **avg** (dane PVGIS z uwzględnieniem zachmurzenia) i **clear** (bezchmurny dzień)
 - Suwak zmienności pogody dobowej — losowy, powtarzalny rozrzut produkcji
   poszczególnych dób przy zachowanej średniej miesięcznej (wpływa na moduły 05–08)
@@ -33,14 +33,21 @@ Pobierz repozytorium i otwórz `pv-sim.v1.2.html` w przeglądarce.
 - Wartości domyślne: G12 Tauron 2026 — dzień 0,6950 zł/kWh, noc 0,3500 zł/kWh
 - Ceny i godziny stref wykorzystuje Moduł 04 (strategie grzałki, koszt z sieci)
 
-### Moduł 04 — Zasobnik z grzałką elektryczną
-- Moc grzałki: 1–15 kW
+### Moduł 04 — Zasobnik z pompą ciepła i grzałką elektryczną
+- Moc grzałki: 0–15 kW (0 = grzałka wyłączona)
 - Pojemność zasobnika: 200–3000 L
 - Temperatura grzania grzałki: 0–60°C (setpoint niezależny od temperatury CWU)
+- Pompa ciepła powietrze→woda (drugie źródło ciepła, równolegle z grzałką):
+  moc elektryczna 0–10 kW (0 = PC wyłączona), 1–5 biegów (równe stopnie mocy),
+  pasmo „tylko PC" pod setpointem 0–20°C, sezonowy COP — letni (Kwi–Wrz)
+  i zimowy (Paź–Mar) w zakresie 2,0–5,0
+- W off-grid PC ma priorytet — wybiera największy bieg, dla którego moc
+  elektryczna mieści się w nadwyżce PV; grzałka dobiera resztę
+- W on-grid PC pracuje sama w pasmie pod setpointem (bieg proporcjonalny
+  do zapotrzebowania), poniżej pasma dochodzi grzałka
 - Model termodynamiczny 1-węzłowy (fully-mixed), 6 podkroków na godzinę
-- Trzy strategie grzałki wybierane osobno dla strefy dziennej i nocnej:
-  **off** (wyłączona), **off-grid** (power diverter — moc do nadwyżki PV,
-  grzeje do setpointu), **on-grid** (moc proporcjonalna, pobór z PV + sieci)
+- Trzy strategie pary PC + grzałka wybierane osobno dla strefy dziennej i nocnej:
+  **off**, **off-grid**, **on-grid**
 - Termostat: max 60°C (granica anty-Legionella wg PN-EN 12897)
 - Straty ciepła klasy B/C wg PN-EN 12897
 
@@ -48,25 +55,29 @@ Pobierz repozytorium i otwórz `pv-sim.v1.2.html` w przeglądarce.
 - Ciągła symulacja zasobnika przez cały miesiąc — każda doba dziedziczy
   temperaturę końcową poprzedniej, po kilku dobach układ wchodzi w stan ustalony
 - Dziedziczy parametry modułów 01–04 (bez własnych kontrolek)
-- Statystyki miesięczne: pokrycie CWU, zużycie prądu (PV vs sieć),
+- Statystyki miesięczne: pokrycie CWU, grzałka i PC (h pracy, kWh ciepła),
+  zużycie prądu — źródło (PV vs sieć) i — urządzenie (grzałka vs PC),
   koszt energii z sieci, ciepło zaoszczędzone, bilans miesięczny
 
 ### Moduł 06 — Symulacja roczna
 - Symulacja wszystkich 12 miesięcy z osobnymi wejściami PV i CWU
 - Dziedziczy parametry modułów 01–04 (bez własnych kontrolek)
-- Wykres słupkowy energii elektrycznej grzałki (jeden słupek na miesiąc)
-- Statystyki roczne; skrót podsumowania dostępny w stale widocznym sidebarze
+- Wykres słupkowy energii elektrycznej pary PC + grzałki (jeden słupek na miesiąc)
+- Statystyki roczne (te same kafelki co M05 w skali roku); skrót podsumowania
+  dostępny w stale widocznym sidebarze
 
 ### Moduł 07 — Inwestycja
-- Kalkulator kosztu całej inwestycji (PV, grzałki, zasobnik, automatyka + SCADA)
-  i czasu jej zwrotu względem bilansu rocznego netto
-- Cztery suwaki cen jednostkowych (research rynkowy PL 2025)
+- Kalkulator kosztu całej inwestycji (PV, grzałki, pompa ciepła, zasobnik,
+  automatyka + SCADA) i czasu jej zwrotu względem bilansu rocznego netto
+- Pięć suwaków cen jednostkowych (research rynkowy PL 2025)
 
 ### Moduł 08 — Optymalizacja (grid search)
-- Automatyczny dobór najlepszej konfiguracji PV, grzałki i zasobnika
+- Automatyczny dobór najlepszej konfiguracji PV, grzałki, PC i zasobnika
 - Użytkownik podaje maksymalny czas zwrotu i zakładany okres życia inwestycji
-- Przeszukuje siatkę kombinacji (moc PV, grzałka, próg, zasobnik, temperatura
-  grzania, strategie dzień/noc) i prezentuje 3 najlepsze warianty
+- Przeszukuje siatkę kombinacji (moc PV, grzałka, moc PC, próg, zasobnik,
+  temperatura grzania, strategie dzień/noc) i prezentuje 3 najlepsze warianty;
+  każdy parametr można checkboxem wyłączyć z optymalizacji (przypięty
+  do bieżącej wartości suwaka), trwającą optymalizację można zatrzymać
 - Wynik można jednym kliknięciem przenieść do kontrolek Modułu 04
 
 ## Struktura plików

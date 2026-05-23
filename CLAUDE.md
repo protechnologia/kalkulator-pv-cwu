@@ -48,7 +48,7 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 ## Moduły aplikacji
 
 ### Moduł 01 — PV (fotowoltaika)
-- Parametry: moc instalacji `kWp` (1–100), miesiąc, tryb symulacji,
+- Parametry: moc instalacji `kWp` (0–50, krok 0,5; 0 = PV wyłączone), miesiąc, tryb symulacji,
   zmienność pogody dobowej (suwak %, `P.state.pvVariability`)
 - Tryb `avg` — skaluje do średniej dobowej z PVGIS (chmury wliczone)
 - Tryb `clear` — bezchmurny dzień, skaler `P.CLEAR_SCALE = 1.4577`
@@ -74,7 +74,7 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 - Ceny stref i godziny granic taryfy wykorzystuje Moduł 04 (strategie grzałki, koszt energii z sieci)
 
 ### Moduł 04 — Zasobnik z grzałką + pompą ciepła
-- Parametry: moc grzałki (1–15 kW), próg włączenia (10–100%), pojemność zasobnika (100–1000 L),
+- Parametry: moc grzałki (0–15 kW, 0 = grzałka wyłączona), próg włączenia (10–100%), pojemność zasobnika (100–1000 L),
   temperatura grzania grzałki (0–60°C, suwak — setpoint `P.state.heaterTargetC`,
   niezależny od T_hot z Modułu 02),
   strategia grzałka + PC — wybierana osobno dla strefy dziennej i nocnej taryfy (Moduł 03)
@@ -122,8 +122,9 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 - Wykresy: temperatura zasobnika (ciągła linia, cały miesiąc) oraz słupkowy
   wykres dobowego bilansu energii elektrycznej grzałki (jeden słupek na dobę,
   PV vs sieć).
-- Statystyki miesięczne: pokrycie CWU, godziny pracy grzałki, zużycie prądu
-  (PV vs sieć), koszt energii z sieci, ciepło zaoszczędzone oraz bilans
+- Statystyki miesięczne: pokrycie CWU, grzałka (h pracy + kWh ciepła), PC
+  (h pracy + kWh ciepła), zużycie prądu — źródło (PV vs sieć) i — urządzenie
+  (grzałka vs PC), koszt energii z sieci, ciepło zaoszczędzone oraz bilans
   miesięczny (oszczędność na cieple − koszt energii z sieci).
 
 ### Moduł 06 — Symulacja roczna
@@ -135,10 +136,11 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
   suwaka odświeża też Moduł 06.
 - `P.simulateTankMonth()` przyjmuje opcjonalny 5. parametr `monthIdx`
   (domyślnie `P.state.monthIdx`), dzięki czemu można policzyć dowolny miesiąc.
-- Wykres: jeden słupkowy wykres energii elektrycznej grzałki (jeden słupek na
-  miesiąc, PV vs sieć) — `P.renderYearChart()`.
-- Statystyki roczne: pokrycie CWU, godziny pracy grzałki, zużycie prądu
-  (PV vs sieć), koszt energii z sieci, ciepło zaoszczędzone, bilans roczny.
+- Wykres: jeden słupkowy wykres energii elektrycznej pary PC + grzałki
+  (jeden słupek na miesiąc, PV vs sieć) — `P.renderYearChart()`.
+- Statystyki roczne (te same kafelki co M05 w skali roku): pokrycie CWU,
+  grzałka (h + kWh ciepła), PC (h + kWh ciepła), zużycie prądu — źródło
+  i — urządzenie, koszt energii z sieci, ciepło zaoszczędzone, bilans roczny.
 
 ### Moduł 07 — Inwestycja
 - Kalkulator kosztu całej inwestycji i czasu jej zwrotu. Inwestycja
@@ -159,25 +161,36 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
   oraz zwrot inwestycji w latach.
 
 ### Moduł 08 — Optymalizacja (grid search)
-- Automatyczny dobór najlepszej konfiguracji PV, grzałki i zasobnika. Użytkownik
+- Automatyczny dobór najlepszej konfiguracji PV, grzałki, PC i zasobnika. Użytkownik
   podaje maksymalny czas zwrotu inwestycji oraz zakładany okres życia, a
   aplikacja przeszukuje siatkę kombinacji i prezentuje 3 najlepsze warianty.
 - Ma własne kontrolki — dwa suwaki (`pvsim-opt-payback` 1–25 lat,
-  `pvsim-opt-lifetime` 5–40 lat) oraz przycisk `pvsim-opt-run` z paskiem
-  postępu `pvsim-opt-progress`. Suwaki nie wywołują `P.update()`.
-- `P.OPT_GRID` (`config.js`) definiuje przeszukiwaną siatkę: `kWp` (moc PV),
-  `heaterKW`, `hpKW` (moc PC, `[0, 2, 3, 5, 8]`), `threshold`, `tankL`,
-  `heaterTargetC` (temperatura grzania grzałki) oraz `strat`
-  (`off`/`off-grid`/`on-grid` dla strefy dziennej i nocnej). COP-y i liczba
-  biegów PC nie są wymiarem siatki — czytane są z aktualnego `P.state`.
-- `P.optimize(maxPayback, lifetime, onProgress)` (`physics.js`) — asynchroniczna
-  funkcja zwracająca `Promise`. Przeszukuje kombinacje w porcjach (24 na chunk,
-  `setTimeout(0)` między porcjami, raportuje postęp przez `onProgress(frac)`),
-  reużywa `P.simulateTankYear()` i `P.computeInvestment()`. Pruning: gdy żadna
-  strefa nie używa `off-grid`, próg iterowany jest tylko raz. Kryterium:
-  `lifetimeProfit = bilans roczny × okres życia − koszt inwestycji`. Twardy
-  filtr odrzuca warianty z `paybackYears > maxPayback` lub `balancePLN ≤ 0`.
-  Po zakończeniu przywraca pierwotny `P.state`. Zwraca top 3.
+  `pvsim-opt-lifetime` 5–40 lat), przycisk `pvsim-opt-run` (w trakcie pracy
+  zmienia się w „Zatrzymaj ◼" i pozwala przerwać optymalizację) z paskiem
+  postępu `pvsim-opt-progress` pokazującym licznik „N / total", widget
+  „Parametry siatki" (lista parametrów z checkboxami i bieżącą liczbą
+  kombinacji). Suwaki nie wywołują `P.update()`.
+- `P.OPT_GRID` (`config.js`) definiuje przeszukiwaną siatkę: `kWp` (moc PV,
+  `[0, 5, 10, 15, 20, 30, 40, 50]`), `heaterKW`
+  (`[0, 2, 3, 4.5, 6, 9, 12, 15]`), `hpKW` (moc PC, `[0, 2, 3, 5, 8]`),
+  `threshold`, `tankL`, `heaterTargetC` (temperatura grzania grzałki) oraz
+  `strat` (`off`/`off-grid`/`on-grid` dla strefy dziennej i nocnej). COP-y
+  i liczba biegów PC nie są wymiarem siatki — czytane są z aktualnego
+  `P.state`. Każdy wymiar można checkboxem wyłączyć — wtedy parametr jest
+  przypięty do bieżącej wartości `P.state` (zamiast iterowania siatki).
+- `P.optimize(maxPayback, lifetime, onProgress, enabled, cancelToken)`
+  (`physics.js`) — asynchroniczna funkcja zwracająca `Promise`. Przeszukuje
+  kombinacje w porcjach (24 na chunk, `setTimeout(0)` między porcjami,
+  raportuje postęp przez `onProgress(frac, done, total)`), reużywa
+  `P.simulateTankYear()` i `P.computeInvestment()`. `enabled` to mapa
+  flag per parametr — wymiar z `false` używa tylko aktualnej wartości
+  `P.state`. `cancelToken = { cancelled: bool }` pozwala przerwać między
+  porcjami. Pruning: gdy obie strategie = `off`, próg iterowany jest tylko
+  raz (próg nieużywany przy całkowicie wyłączonym grzaniu pary PC+grzałka).
+  Kryterium: `lifetimeProfit = bilans roczny × okres życia − koszt inwestycji`.
+  Twardy filtr odrzuca warianty z `paybackYears > maxPayback` lub
+  `balancePLN ≤ 0`. Po zakończeniu przywraca pierwotny `P.state`. Zwraca
+  obiekt `{ results, cancelled, done, total }` z top 3 wynikami.
 - `P.renderOptimTable(results)` (`render.js`) — renderuje tabelę wyników do
   `#pvsim-optim-table` (zamiast kart statystyk). Każdy wiersz ma przycisk
   „Przenieś →" (`data-row`), który przez `applyOptimRow()` w `app.js` wpisuje

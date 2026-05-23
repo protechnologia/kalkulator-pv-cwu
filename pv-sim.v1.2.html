@@ -43,7 +43,7 @@
         <div class="pvsim-label">Parametry instalacji &nbsp;[ kWp ]</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
-            <input type="range" min="1" max="50" value="10" step="0.5" class="pvsim-slider" id="pvsim-power">
+            <input type="range" min="0" max="50" value="10" step="0.5" class="pvsim-slider" id="pvsim-power">
           </div>
           <div class="pvsim-value-box"><span id="pvsim-power-val">10.0</span><span class="unit">kWp</span></div>
         </div>
@@ -405,7 +405,7 @@
         <div class="pvsim-label amber">Moc grzałki &nbsp;[ kW ]</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
-            <input type="range" min="1" max="15" value="3" step="0.5" class="pvsim-slider amber" id="pvsim-heater">
+            <input type="range" min="0" max="15" value="3" step="0.5" class="pvsim-slider amber" id="pvsim-heater">
           </div>
           <div class="pvsim-value-box amber"><span id="pvsim-heater-val">3,0</span><span class="unit">kW</span></div>
         </div>
@@ -567,14 +567,30 @@
       <div class="pvsim-stat-label">Grzałka (miesiąc)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-month-heater-hrs">0</span><span class="unit">h / mc</span></div>
+        <div class="secondary"><span id="pvsim-month-heater-kwh">0</span><span class="unit">kWh ciepła / mc</span></div>
       </div>
     </div>
     <div class="pvsim-stat sky">
-      <div class="pvsim-stat-label">Zużycie prądu (miesiąc)</div>
+      <div class="pvsim-stat-label">PC (miesiąc)</div>
+      <div class="pvsim-stat-value dual">
+        <div class="primary"><span id="pvsim-month-hp-hrs">0</span><span class="unit">h / mc</span></div>
+        <div class="secondary"><span id="pvsim-month-hp-kwh">0</span><span class="unit">kWh ciepła / mc</span></div>
+      </div>
+    </div>
+    <div class="pvsim-stat sky">
+      <div class="pvsim-stat-label">Zużycie prądu &mdash; źródło (miesiąc)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-month-elec-total">0</span><span class="unit">kWh / mc</span></div>
         <div class="secondary"><span id="pvsim-month-elec-pv">0</span><span class="unit">kWh z PV</span></div>
         <div class="secondary"><span id="pvsim-month-elec-grid">0</span><span class="unit">kWh z sieci</span></div>
+      </div>
+    </div>
+    <div class="pvsim-stat sky">
+      <div class="pvsim-stat-label">Zużycie prądu &mdash; urządzenie (miesiąc)</div>
+      <div class="pvsim-stat-value dual">
+        <div class="primary"><span id="pvsim-month-elec-dev-total">0</span><span class="unit">kWh / mc</span></div>
+        <div class="secondary"><span id="pvsim-month-elec-dev-heater">0</span><span class="unit">kWh &mdash; grzałka</span></div>
+        <div class="secondary"><span id="pvsim-month-elec-dev-hp">0</span><span class="unit">kWh &mdash; PC</span></div>
       </div>
     </div>
     <div class="pvsim-stat sky">
@@ -638,14 +654,30 @@
       <div class="pvsim-stat-label">Grzałka (rok)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-year-heater-hrs">0</span><span class="unit">h / rok</span></div>
+        <div class="secondary"><span id="pvsim-year-heater-kwh">0</span><span class="unit">kWh ciepła / rok</span></div>
       </div>
     </div>
     <div class="pvsim-stat lime">
-      <div class="pvsim-stat-label">Zużycie prądu (rok)</div>
+      <div class="pvsim-stat-label">PC (rok)</div>
+      <div class="pvsim-stat-value dual">
+        <div class="primary"><span id="pvsim-year-hp-hrs">0</span><span class="unit">h / rok</span></div>
+        <div class="secondary"><span id="pvsim-year-hp-kwh">0</span><span class="unit">kWh ciepła / rok</span></div>
+      </div>
+    </div>
+    <div class="pvsim-stat lime">
+      <div class="pvsim-stat-label">Zużycie prądu &mdash; źródło (rok)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-year-elec-total">0</span><span class="unit">kWh / rok</span></div>
         <div class="secondary"><span id="pvsim-year-elec-pv">0</span><span class="unit">kWh z PV</span></div>
         <div class="secondary"><span id="pvsim-year-elec-grid">0</span><span class="unit">kWh z sieci</span></div>
+      </div>
+    </div>
+    <div class="pvsim-stat lime">
+      <div class="pvsim-stat-label">Zużycie prądu &mdash; urządzenie (rok)</div>
+      <div class="pvsim-stat-value dual">
+        <div class="primary"><span id="pvsim-year-elec-dev-total">0</span><span class="unit">kWh / rok</span></div>
+        <div class="secondary"><span id="pvsim-year-elec-dev-heater">0</span><span class="unit">kWh &mdash; grzałka</span></div>
+        <div class="secondary"><span id="pvsim-year-elec-dev-hp">0</span><span class="unit">kWh &mdash; PC</span></div>
       </div>
     </div>
     <div class="pvsim-stat lime">

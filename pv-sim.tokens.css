@@ -22,6 +22,9 @@
   --pvsim-text-0: #f4f4f5;
   --pvsim-text-1: #a1a1aa;
   --pvsim-text-2: #6b6b73;
+  --pvsim-text-3: #4a4a52;
+  --pvsim-page-bg: #0a0a0b;
+  --pvsim-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 122, 26, 0.04);
   --pvsim-orange: #ff7a1a;
   --pvsim-orange-soft: #ff9a4d;
   --pvsim-orange-dim: rgba(255, 122, 26, 0.15);
@@ -51,8 +54,26 @@
   font-size: 14px;
   line-height: 1.5;
   position: relative;
-  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 122, 26, 0.04);
+  box-shadow: var(--pvsim-shadow);
 }
+
+/* Light theme — przełączany klasą .theme-light na .pvsim oraz na <body>
+   (page-bg dla tła strony, reszta pod kontenerem). */
+.pvsim.theme-light {
+  --pvsim-bg-0: #ffffff;
+  --pvsim-bg-1: #f7f7f8;
+  --pvsim-bg-2: #ededf0;
+  --pvsim-bg-3: #e0e0e5;
+  --pvsim-border: #d4d4d8;
+  --pvsim-border-strong: #b4b4be;
+  --pvsim-text-0: #18181b;
+  --pvsim-text-1: #52525b;
+  --pvsim-text-2: #71717a;
+  --pvsim-text-3: #a1a1aa;
+  --pvsim-page-bg: #e8e8ec;
+  --pvsim-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+body.theme-light { background: var(--pvsim-page-bg) !important; }
 
 /* decorative corner ticks — industrial signal */
 .pvsim::before, .pvsim::after {

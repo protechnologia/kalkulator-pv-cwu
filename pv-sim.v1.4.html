@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="pv-sim.layout.css">
 <link rel="stylesheet" href="pv-sim.components.css">
 </head>
-<body style="background:#0a0a0b;margin:0;padding:24px;">
+<body style="background:#0a0a0b;margin:0;padding:24px;" id="pvsim-body">
 
 <div class="pvsim" id="pvsim">
 
@@ -851,6 +851,10 @@
   <!-- LEWY SIDEBAR — SPIS TREŚCI MODUŁÓW -->
   <button class="pvsim-toc-toggle" id="pvsim-toc-toggle" aria-expanded="true">Moduły ▾</button>
   <nav class="pvsim-toc" id="pvsim-toc">
+    <div class="pvsim-theme-switch" role="group" aria-label="Motyw">
+      <button type="button" class="pvsim-theme-btn" data-theme="dark"  id="pvsim-theme-dark">Ciemny</button>
+      <button type="button" class="pvsim-theme-btn" data-theme="light" id="pvsim-theme-light">Jasny</button>
+    </div>
     <div class="pvsim-toc-title">Moduły</div>
     <a href="#mod-01" class="pvsim-toc-item orange" data-target="mod-01"><span class="dot"></span><span class="num">01</span><span class="lbl">PV</span></a>
     <a href="#mod-02" class="pvsim-toc-item teal"   data-target="mod-02"><span class="dot"></span><span class="num">02</span><span class="lbl">CWU</span></a>

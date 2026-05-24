@@ -572,6 +572,23 @@ window.PVSIM = window.PVSIM || {};
       moduleSections.forEach(s => io.observe(s));
     }
 
+    // Przełącznik motywu (Ciemny / Jasny) — klasa .theme-light na .pvsim
+    // i <body> jednocześnie (body steruje tłem strony, .pvsim tokenami
+    // wnętrza). Wybór trwały w localStorage. Klucz: 'pvsim-theme'.
+    const pvsimRoot = document.querySelector('.pvsim');
+    const themeBtns = Array.from(document.querySelectorAll('.pvsim-theme-btn'));
+    function applyTheme(theme) {
+      const light = theme === 'light';
+      pvsimRoot.classList.toggle('theme-light', light);
+      document.body.classList.toggle('theme-light', light);
+      themeBtns.forEach(b => b.classList.toggle('active', b.dataset.theme === theme));
+      try { localStorage.setItem('pvsim-theme', theme); } catch (e) {}
+    }
+    let savedTheme = 'dark';
+    try { savedTheme = localStorage.getItem('pvsim-theme') || 'dark'; } catch (e) {}
+    applyTheme(savedTheme);
+    themeBtns.forEach(b => b.addEventListener('click', () => applyTheme(b.dataset.theme)));
+
     updateSlider();  // pierwsza inicjalizacja + render
   }
 

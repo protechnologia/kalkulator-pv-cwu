@@ -432,6 +432,34 @@
   padding: 8px;
 }
 .pvsim-toc.hidden { display: none; }
+.pvsim-theme-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px 4px 8px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--pvsim-border);
+}
+.pvsim-theme-btn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 6px 8px;
+  background: transparent;
+  color: var(--pvsim-text-2);
+  border: 1px solid var(--pvsim-border);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.pvsim-theme-btn:hover { color: var(--pvsim-text-0); border-color: var(--pvsim-text-2); }
+.pvsim-theme-btn.active {
+  background: var(--pvsim-bg-2);
+  color: var(--pvsim-text-0);
+  border-color: var(--pvsim-orange);
+  box-shadow: inset 0 -2px 0 var(--pvsim-orange);
+}
 .pvsim-toc-title {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 9.5px;

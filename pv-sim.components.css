@@ -725,3 +725,13 @@
   margin: 0;
   padding: 16px 4px;
 }
+
+/* Light theme — wzmocniony kontrast dla etykiet często czytanych przez usera:
+   tytuły paneli statystyk, tytuły widgetów (nad suwakami / polami) oraz
+   pozycje spisu treści w lewym sidebarze. W ciemnym motywie zostają stonowane
+   (text-2), w jasnym promowane do text-0 (prawie czarny). */
+.pvsim.theme-light .pvsim-stat-label,
+.pvsim.theme-light .pvsim-label,
+.pvsim.theme-light .pvsim-toc-title,
+.pvsim.theme-light .pvsim-toc-item { color: var(--pvsim-text-0); }
+

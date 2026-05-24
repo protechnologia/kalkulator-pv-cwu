@@ -100,7 +100,7 @@ window.PVSIM = window.PVSIM || {};
   P.renderChart = function(sim) {
     const svg = document.getElementById('pvsim-chart');
     const W = 780, H = 300;
-    const padL = 50, padR = 18, padT = 14, padB = 36;
+    const padL = 50, padR = 18, padT = 22, padB = 36;
     const cw = W - padL - padR;
     const ch = H - padT - padB;
 
@@ -174,7 +174,7 @@ window.PVSIM = window.PVSIM || {};
       ${peakMarker}
       ${yLabels}
       ${xLabels}
-      <text x="${padL - 30}" y="${padT - 2}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
+      <text x="${padL - 30}" y="${padT - 10}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
             fill="var(--pvsim-text-2)" letter-spacing="1.4">[kW]</text>
     `;
   };
@@ -195,7 +195,7 @@ window.PVSIM = window.PVSIM || {};
     const svg = document.getElementById('pvsim-pv-month-chart');
     if (!svg) return;
     const W = 780, H = 300;
-    const padL = 50, padR = 18, padT = 14, padB = 36;
+    const padL = 50, padR = 18, padT = 22, padB = 36;
     const cw = W - padL - padR;
     const ch = H - padT - padB;
 
@@ -262,7 +262,7 @@ window.PVSIM = window.PVSIM || {};
 
     svg.innerHTML = `
       ${gridLines}${axes}${bars}${avgLine}${yLabels}${xLabels}
-      <text x="${padL - 30}" y="${padT - 2}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
+      <text x="${padL - 30}" y="${padT - 10}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
             fill="var(--pvsim-text-2)" letter-spacing="1.4">[kWh]</text>
       <text x="${(padL + cw / 2).toFixed(2)}" y="${(H - 4).toFixed(2)}" text-anchor="middle"
             font-family="'IBM Plex Mono', monospace" font-size="9" fill="var(--pvsim-text-2)" letter-spacing="1">doba</text>
@@ -283,7 +283,7 @@ window.PVSIM = window.PVSIM || {};
   P.renderDHWChart = function(simDHW) {
     const svg = document.getElementById('pvsim-dhw-chart');
     const W = 780, H = 300;
-    const padL = 50, padR = 50, padT = 14, padB = 36;
+    const padL = 50, padR = 50, padT = 22, padB = 36;
     const cw = W - padL - padR;
     const ch = H - padT - padB;
 
@@ -388,9 +388,9 @@ window.PVSIM = window.PVSIM || {};
       ${yLabelsL}
       ${yLabelsR}
       ${xLabels}
-      <text x="${padL - 30}" y="${padT - 2}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
+      <text x="${padL - 30}" y="${padT - 10}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
             fill="var(--pvsim-text-2)" letter-spacing="1.4">[m³/h]</text>
-      <text x="${(W - padR + 4).toFixed(2)}" y="${padT - 2}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
+      <text x="${(W - padR + 4).toFixed(2)}" y="${padT - 10}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
             fill="var(--pvsim-text-2)" letter-spacing="1.4">[kW]</text>
     `;
   };
@@ -421,7 +421,7 @@ window.PVSIM = window.PVSIM || {};
   P.renderTankChart = function(simTank) {
     const svg = document.getElementById('pvsim-tank-chart');
     const W = 780, H = 350;
-    const padL = 50, padR = 18, padT = 14, padB = 86;
+    const padL = 50, padR = 18, padT = 22, padB = 86;
     const cw = W - padL - padR;
     const ch = H - padT - padB;
 
@@ -554,7 +554,7 @@ window.PVSIM = window.PVSIM || {};
       ${heaterLabel}
       ${yLabels}
       ${xLabels}
-      <text x="${padL - 30}" y="${padT - 2}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
+      <text x="${padL - 30}" y="${padT - 10}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
             fill="var(--pvsim-text-2)" letter-spacing="1.4">[°C]</text>
     `;
   };
@@ -566,7 +566,7 @@ window.PVSIM = window.PVSIM || {};
     const svg = document.getElementById('pvsim-tank-elec-chart');
     if (!svg) return;
     const W = 780, H = 300;
-    const padL = 50, padR = 18, padT = 14, padB = 36;
+    const padL = 50, padR = 18, padT = 22, padB = 36;
     const cw = W - padL - padR;
     const ch = H - padT - padB;
 
@@ -669,7 +669,7 @@ window.PVSIM = window.PVSIM || {};
 
     svg.innerHTML = `
       ${gridLines}${xGrid}${axes}${bars}${nominal}${legend}${yLabels}${xLabels}
-      <text x="${padL - 30}" y="${padT - 2}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
+      <text x="${padL - 30}" y="${padT - 10}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
             fill="var(--pvsim-text-2)" letter-spacing="1.4">[kW]</text>
     `;
 
@@ -688,7 +688,7 @@ window.PVSIM = window.PVSIM || {};
     const svg = document.getElementById('pvsim-tank-split-chart');
     if (!svg) return;
     const W = 780, H = 300;
-    const padL = 50, padR = 18, padT = 14, padB = 36;
+    const padL = 50, padR = 18, padT = 22, padB = 36;
     const cw = W - padL - padR;
     const ch = H - padT - padB;
 
@@ -788,7 +788,7 @@ window.PVSIM = window.PVSIM || {};
 
     svg.innerHTML = `
       ${gridLines}${xGrid}${axes}${bars}${nomHeater}${nomHp}${legend}${yLabels}${xLabels}
-      <text x="${padL - 30}" y="${padT - 2}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
+      <text x="${padL - 30}" y="${padT - 10}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
             fill="var(--pvsim-text-2)" letter-spacing="1.4">[kWh]</text>
     `;
 
@@ -854,7 +854,7 @@ window.PVSIM = window.PVSIM || {};
     const svg = document.getElementById('pvsim-grid-chart');
     if (!svg) return;
     const W = 780, H = 300;
-    const padL = 60, padR = 18, padT = 14, padB = 36;
+    const padL = 60, padR = 18, padT = 22, padB = 36;
     const cw = W - padL - padR;
     const ch = H - padT - padB;
 
@@ -919,7 +919,7 @@ window.PVSIM = window.PVSIM || {};
 
     svg.innerHTML = `
       ${gridLines}${xGrid}${axes}${bars}${refDay}${refNight}${yLabels}${xLabels}
-      <text x="${padL - 42}" y="${padT - 2}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
+      <text x="${padL - 42}" y="${padT - 10}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
             fill="var(--pvsim-text-2)" letter-spacing="1.4">[zł/kWh]</text>
     `;
   };
@@ -931,7 +931,7 @@ window.PVSIM = window.PVSIM || {};
     const svg = document.getElementById('pvsim-month-tank-chart');
     if (!svg) return;
     const W = 780, H = 300;
-    const padL = 50, padR = 18, padT = 14, padB = 36;
+    const padL = 50, padR = 18, padT = 22, padB = 36;
     const cw = W - padL - padR;
     const ch = H - padT - padB;
 
@@ -1011,7 +1011,7 @@ window.PVSIM = window.PVSIM || {};
       <path d="${areaPath}" fill="url(#pvsim-month-tank-grad)"/>
       <path d="${linePath}" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-linejoin="round"/>
       ${yLabels}${xLabels}
-      <text x="${padL - 30}" y="${padT - 2}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
+      <text x="${padL - 30}" y="${padT - 10}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
             fill="var(--pvsim-text-2)" letter-spacing="1.4">[°C]</text>
       <text x="${(padL + cw / 2).toFixed(2)}" y="${(H - 4).toFixed(2)}" text-anchor="middle"
             font-family="'IBM Plex Mono', monospace" font-size="9" fill="var(--pvsim-text-2)" letter-spacing="1">doba</text>
@@ -1030,7 +1030,7 @@ window.PVSIM = window.PVSIM || {};
     const svg = document.getElementById('pvsim-month-elec-chart');
     if (!svg) return;
     const W = 780, H = 300;
-    const padL = 50, padR = 18, padT = 14, padB = 36;
+    const padL = 50, padR = 18, padT = 22, padB = 36;
     const cw = W - padL - padR;
     const ch = H - padT - padB;
 
@@ -1110,7 +1110,7 @@ window.PVSIM = window.PVSIM || {};
 
     svg.innerHTML = `
       ${gridLines}${axes}${bars}${legend}${yLabels}${xLabels}
-      <text x="${padL - 30}" y="${padT - 2}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
+      <text x="${padL - 30}" y="${padT - 10}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
             fill="var(--pvsim-text-2)" letter-spacing="1.4">[kWh]</text>
       <text x="${(padL + cw / 2).toFixed(2)}" y="${(H - 4).toFixed(2)}" text-anchor="middle"
             font-family="'IBM Plex Mono', monospace" font-size="9" fill="var(--pvsim-text-2)" letter-spacing="1">doba</text>
@@ -1177,7 +1177,7 @@ window.PVSIM = window.PVSIM || {};
     const svg = document.getElementById('pvsim-year-chart');
     if (!svg) return;
     const W = 780, H = 300;
-    const padL = 50, padR = 18, padT = 14, padB = 36;
+    const padL = 50, padR = 18, padT = 22, padB = 36;
     const cw = W - padL - padR;
     const ch = H - padT - padB;
 
@@ -1251,7 +1251,7 @@ window.PVSIM = window.PVSIM || {};
 
     svg.innerHTML = `
       ${gridLines}${axes}${bars}${legend}${yLabels}${xLabels}
-      <text x="${padL - 30}" y="${padT - 2}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
+      <text x="${padL - 30}" y="${padT - 10}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
             fill="var(--pvsim-text-2)" letter-spacing="1.4">[kWh]</text>
       <text x="${(padL + cw / 2).toFixed(2)}" y="${(H - 4).toFixed(2)}" text-anchor="middle"
             font-family="'IBM Plex Mono', monospace" font-size="9" fill="var(--pvsim-text-2)" letter-spacing="1">miesiąc</text>

@@ -584,8 +584,8 @@ window.PVSIM = window.PVSIM || {};
       themeBtns.forEach(b => b.classList.toggle('active', b.dataset.theme === theme));
       try { localStorage.setItem('pvsim-theme', theme); } catch (e) {}
     }
-    let savedTheme = 'dark';
-    try { savedTheme = localStorage.getItem('pvsim-theme') || 'dark'; } catch (e) {}
+    let savedTheme = 'light';
+    try { savedTheme = localStorage.getItem('pvsim-theme') || 'light'; } catch (e) {}
     applyTheme(savedTheme);
     themeBtns.forEach(b => b.addEventListener('click', () => applyTheme(b.dataset.theme)));
 

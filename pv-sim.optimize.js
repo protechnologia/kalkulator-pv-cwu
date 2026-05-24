@@ -25,9 +25,11 @@
      Pruning: heaterThreshold pomijany tylko gdy obie strategie = 'off'
      (wtedy żadne grzanie nie działa, próg jest bez znaczenia).
 
-     Funkcja tymczasowo nadpisuje P.state na czas pętli; przed
-     resolve przywraca pierwotne wartości — moduły 01–07 dalej
-     pokazują ustawienia użytkownika.
+     Funkcja nie mutuje P.state — buduje lokalny obiekt `params` per kombinacja
+     (snapshot wartości z momentu startu + nadpisanie pól siatki) i przekazuje
+     go jawnie do P.simulateTankYear(params) / P.computeInvestment(simYear, params).
+     Dzięki temu user może bez konsekwencji ruszać suwakami w trakcie pętli —
+     P.update() leci na P.state, optymalizator na własnym snapshotcie.
    ========================================================= */
 window.PVSIM = window.PVSIM || {};
 (function(P) {
@@ -35,10 +37,14 @@ window.PVSIM = window.PVSIM || {};
 
   P.optimize = function(maxPayback, lifetime, onProgress, enabled, cancelToken) {
     const g = P.OPT_GRID;
-    const s = P.state;
+    // Snapshot P.state z momentu startu — wszystkie kombinacje liczone na
+    // spójnym zestawie pól spoza siatki, niezależnie czy user ruszy suwakiem.
+    const baseSnapshot = Object.assign({}, P.state);
     // enabled — mapa param→bool; brak = wszystkie włączone (domyślny grid search).
-    // Wyłączony parametr przybijamy do bieżącej wartości z P.state (siatka = [1]).
+    // Wyłączony parametr przybijamy do wartości ze snapshotu (siatka = [1]).
     const en = enabled || {};
+    // Rozpakowanie flag z checkboxów widgetu „Parametry siatki" (Moduł 08).
+    // Domyślnie true — tylko jawne false z checkboxa wyłącza wymiar.
     const e = {
       kWp:           en.kWp           !== false,
       heaterKW:      en.heaterKW      !== false,
@@ -48,24 +54,17 @@ window.PVSIM = window.PVSIM || {};
       heaterTargetC: en.heaterTargetC !== false,
       strat:         en.strat         !== false
     };
-    const gridKWp        = e.kWp           ? g.kWp           : [s.kWp];
-    const gridHeaterKW   = e.heaterKW      ? g.heaterKW      : [s.heaterKW];
-    const gridHpKW       = e.hpKW          ? g.hpKW          : [s.hpKW];
-    const gridThreshold  = e.threshold     ? g.threshold     : [s.heaterThreshold];
-    const gridTankL      = e.tankL         ? g.tankL         : [s.tankL];
-    const gridTargetC    = e.heaterTargetC ? g.heaterTargetC : [s.heaterTargetC];
-    const gridStratDay   = e.strat         ? g.strat         : [s.heaterStratDay];
-    const gridStratNight = e.strat         ? g.strat         : [s.heaterStratNight];
-    const saved = {
-      kWp:              s.kWp,
-      heaterKW:         s.heaterKW,
-      hpKW:             s.hpKW,
-      heaterThreshold:  s.heaterThreshold,
-      tankL:            s.tankL,
-      heaterTargetC:    s.heaterTargetC,
-      heaterStratDay:   s.heaterStratDay,
-      heaterStratNight: s.heaterStratNight
-    };
+    // Faktyczne siatki per wymiar:
+    // włączony → pełna lista z P.OPT_GRID,
+    // wyłączony → siatka jednoelementowa z wartością ze snapshotu (de facto zamrożony).
+    const gridKWp        = e.kWp           ? g.kWp           : [baseSnapshot.kWp];
+    const gridHeaterKW   = e.heaterKW      ? g.heaterKW      : [baseSnapshot.heaterKW];
+    const gridHpKW       = e.hpKW          ? g.hpKW          : [baseSnapshot.hpKW];
+    const gridThreshold  = e.threshold     ? g.threshold     : [baseSnapshot.heaterThreshold];
+    const gridTankL      = e.tankL         ? g.tankL         : [baseSnapshot.tankL];
+    const gridTargetC    = e.heaterTargetC ? g.heaterTargetC : [baseSnapshot.heaterTargetC];
+    const gridStratDay   = e.strat         ? g.strat         : [baseSnapshot.heaterStratDay];
+    const gridStratNight = e.strat         ? g.strat         : [baseSnapshot.heaterStratNight];
 
     // Lista wszystkich kombinacji do przeliczenia (z pruningiem progu).
     const combos = [];
@@ -96,27 +95,33 @@ window.PVSIM = window.PVSIM || {};
     const total = combos.length;
     const CHUNK = 24;
 
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
       let i = 0;
       function step() {
         const end = Math.min(i + CHUNK, total);
         for (; i < end; i++) {
           const c = combos[i];
-          s.kWp              = c.kWp;
-          s.heaterKW         = c.heaterKW;
-          s.hpKW             = c.hpKW;
-          s.heaterThreshold  = c.threshold;
-          s.tankL            = c.tankL;
-          s.heaterTargetC    = c.heaterTargetC;
-          s.heaterStratDay   = c.stratDay;
-          s.heaterStratNight = c.stratNight;
+          // Świeży obiekt per kombinacja: pola spoza siatki ze snapshotu,
+          // pola siatki nadpisane z c. Izolacja — nie mutuje baseSnapshot.
+          const params = Object.assign({}, baseSnapshot, {
+            kWp:              c.kWp,
+            heaterKW:         c.heaterKW,
+            hpKW:             c.hpKW,
+            heaterThreshold:  c.threshold,
+            tankL:            c.tankL,
+            heaterTargetC:    c.heaterTargetC,
+            heaterStratDay:   c.stratDay,
+            heaterStratNight: c.stratNight
+          });
 
-          const simYear = P.simulateTankYear();
-          const inv     = P.computeInvestment(simYear);
+          const simYear = P.simulateTankYear(params);
+          const inv     = P.computeInvestment(simYear, params);
           const balance = simYear.yearly.balancePLN;
           if (balance <= 0 || !isFinite(inv.paybackYears)) continue;
           if (inv.paybackYears > maxPayback) continue;
 
+          // Wiersz wyniku: parametry kombinacji (do tabeli + „Przenieś →")
+          // + metryki ekonomiczne. lifetimeProfit jest kryterium sortowania.
           results.push({
             kWp:            c.kWp,
             heaterKW:       c.heaterKW,
@@ -134,21 +139,30 @@ window.PVSIM = window.PVSIM || {};
         }
         if (onProgress) onProgress(total > 0 ? i / total : 1, i, total);
 
+        // Anulowanie z UI („Zatrzymaj ◼") — sprawdzane między porcjami.
+        // Zwracamy wynik częściowy (to co zdążyło się policzyć) + flagę cancelled.
         if (cancelToken && cancelToken.cancelled) {
-          Object.assign(s, saved);
           results.sort((a, b) => b.lifetimeProfit - a.lifetimeProfit);
           resolve({ results: results.slice(0, 3), cancelled: true, done: i, total });
           return;
         }
+        // Albo zaplanuj kolejny chunk (setTimeout 0 oddaje sterowanie do UI),
+        // albo finisz: sort po lifetimeProfit malejąco + top-3 do tabeli.
         if (i < total) {
-          setTimeout(step, 0);
+          setTimeout(safeStep, 0);
         } else {
-          Object.assign(s, saved);   // przywróć ustawienia użytkownika
           results.sort((a, b) => b.lifetimeProfit - a.lifetimeProfit);
           resolve({ results: results.slice(0, 3), cancelled: false, done: i, total });
         }
       }
-      step();
+      // Wrapper łapie wyjątek z symulacji i zamienia go na reject Promise'a —
+      // bez tego błąd w setTimeout-owym tasku zniknąłby w void, a Promise wisiał
+      // by w nieskończoność (pasek postępu zamarznięty, przycisk wciąż „Zatrzymaj").
+      function safeStep() {
+        try { step(); }
+        catch (err) { reject(err); }
+      }
+      safeStep();
     });
   };
 

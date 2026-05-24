@@ -21,7 +21,8 @@
      - suwak mocy grzałki (moduł 04, 0 = wyłączona)
      - suwak progu włączenia grzałki (moduł 04)
      - suwak pojemności zasobnika (moduł 04)
-     - suwak temperatury grzania grzałki (moduł 04)
+     - suwak temperatury docelowej zasobnika (moduł 04 —
+       wspólny setpoint pary PC+grzałka)
      - suwaki pompy ciepła: moc, liczba biegów, pasmo „tylko PC",
        COP letni i zimowy (moduł 04, hpKW = 0 = PC wyłączona)
      - przełączniki strategii pary PC+grzałka dzień/noc (moduł 04)
@@ -32,8 +33,8 @@
      - przycisk pokaż/ukryj sidebar z podsumowaniem rocznym
        (start: widoczny dla okna ≥1100 px, ukryty poniżej)
    Każda kontrolka przy zmianie synchronizuje P.state, odświeża etykietę,
-   ustawia CSS --pvsim-fill (WebKit track fill) i wywołuje P.update()
-   lub renderGridChart() (moduł 03 nie uruchamia pełnej symulacji).
+   ustawia CSS --pvsim-fill (WebKit track fill) i wywołuje P.requestUpdate()
+   (suwaki — debouncing rAF) lub P.update() (kliki — synchronicznie).
 
    Musi być ładowany jako OSTATNI spośród plików JS —
    po config.js, physics.js i render.js.
@@ -81,6 +82,20 @@ window.PVSIM = window.PVSIM || {};
     if (renderOptParamsHook) renderOptParamsHook();
   };
 
+  // Debouncing przez requestAnimationFrame — wiele zdarzeń `input` w jednym
+  // tasku (szybki ruch suwakiem) składa się do jednego P.update() per klatka.
+  // Listenery wołają requestUpdate(); init() i applyOptimRow() używają
+  // synchronicznego P.update() bezpośrednio, gdy potrzebny natychmiastowy render.
+  let updatePending = false;
+  P.requestUpdate = function() {
+    if (updatePending) return;
+    updatePending = true;
+    requestAnimationFrame(() => {
+      updatePending = false;
+      P.update();
+    });
+  };
+
   // ===== INICJALIZACJA UI =====
   function init() {
     // Suwak mocy
@@ -92,7 +107,7 @@ window.PVSIM = window.PVSIM || {};
       const min = parseFloat(slider.min), max = parseFloat(slider.max);
       const pct = ((P.state.kWp - min) / (max - min)) * 100;
       slider.style.setProperty('--pvsim-fill', pct + '%');
-      P.update();
+      P.requestUpdate();
     }
     slider.addEventListener('input', updateSlider);
 
@@ -105,7 +120,7 @@ window.PVSIM = window.PVSIM || {};
       sliderVVal.textContent = pctVal;
       const min = parseFloat(sliderV.min), max = parseFloat(sliderV.max);
       sliderV.style.setProperty('--pvsim-fill', ((pctVal - min) / (max - min) * 100) + '%');
-      P.update();
+      P.requestUpdate();
     }
     sliderV.addEventListener('input', updateVariability);
     updateVariability();
@@ -152,13 +167,12 @@ window.PVSIM = window.PVSIM || {};
     function syncPriceGJ() {
       const val = parseFloat(inputPrice.value);
       if (!isNaN(val) && val > 0) {
-        P.PRICE_PER_GJ  = val;
-        P.PRICE_PER_KWH = P.PRICE_PER_GJ / P.KWH_PER_GJ;
+        P.state.priceHeatGJ = val;
       }
       const kwhEl = document.getElementById('pvsim-price-kwh');
-      if (kwhEl) kwhEl.textContent = P.fmt.pl2(P.PRICE_PER_KWH);
+      if (kwhEl) kwhEl.textContent = P.fmt.pl2(P.state.priceHeatGJ / P.KWH_PER_GJ);
     }
-    inputPrice.addEventListener('input', function() { syncPriceGJ(); P.update(); });
+    inputPrice.addEventListener('input', function() { syncPriceGJ(); P.requestUpdate(); });
     syncPriceGJ();
 
     // Suwak mieszkańców (Moduł 02 / CWU)
@@ -170,7 +184,7 @@ window.PVSIM = window.PVSIM || {};
       const min = parseFloat(sliderR.min), max = parseFloat(sliderR.max);
       const pct = ((P.state.residents - min) / (max - min)) * 100;
       sliderR.style.setProperty('--pvsim-fill', pct + '%');
-      P.update();
+      P.requestUpdate();
     }
     sliderR.addEventListener('input', updateResidents);
     updateResidents();
@@ -184,7 +198,7 @@ window.PVSIM = window.PVSIM || {};
       const min = parseFloat(sliderTH.min), max = parseFloat(sliderTH.max);
       const pct = ((P.state.T_hot - min) / (max - min)) * 100;
       sliderTH.style.setProperty('--pvsim-fill', pct + '%');
-      P.update();
+      P.requestUpdate();
     }
     sliderTH.addEventListener('input', updateThot);
     updateThot();
@@ -198,7 +212,7 @@ window.PVSIM = window.PVSIM || {};
       const min = parseFloat(sliderH.min), max = parseFloat(sliderH.max);
       const pct = ((P.state.heaterKW - min) / (max - min)) * 100;
       sliderH.style.setProperty('--pvsim-fill', pct + '%');
-      P.update();
+      P.requestUpdate();
     }
     sliderH.addEventListener('input', updateHeater);
     updateHeater();
@@ -210,8 +224,8 @@ window.PVSIM = window.PVSIM || {};
       P.state.heaterThreshold = parseInt(sliderHT.value, 10) / 100;
       sliderHTVal.textContent = sliderHT.value;
       const min = parseFloat(sliderHT.min), max = parseFloat(sliderHT.max);
-      sliderHT.style.setProperty('--pvsim-fill', ((parseInt(sliderHT.value) - min) / (max - min) * 100) + '%');
-      P.update();
+      sliderHT.style.setProperty('--pvsim-fill', ((parseInt(sliderHT.value, 10) - min) / (max - min) * 100) + '%');
+      P.requestUpdate();
     }
     sliderHT.addEventListener('input', updateHeaterThreshold);
     updateHeaterThreshold();
@@ -225,7 +239,7 @@ window.PVSIM = window.PVSIM || {};
       const min = parseFloat(sliderT.min), max = parseFloat(sliderT.max);
       const pct = ((P.state.tankL - min) / (max - min)) * 100;
       sliderT.style.setProperty('--pvsim-fill', pct + '%');
-      P.update();
+      P.requestUpdate();
     }
     sliderT.addEventListener('input', updateTank);
     updateTank();
@@ -239,7 +253,7 @@ window.PVSIM = window.PVSIM || {};
       const min = parseFloat(sliderHTg.min), max = parseFloat(sliderHTg.max);
       const pct = ((P.state.heaterTargetC - min) / (max - min)) * 100;
       sliderHTg.style.setProperty('--pvsim-fill', pct + '%');
-      P.update();
+      P.requestUpdate();
     }
     sliderHTg.addEventListener('input', updateHeaterTarget);
     updateHeaterTarget();
@@ -254,7 +268,7 @@ window.PVSIM = window.PVSIM || {};
         val.textContent = fmtFn ? fmtFn(v) : v;
         const min = parseFloat(sl.min), max = parseFloat(sl.max);
         sl.style.setProperty('--pvsim-fill', ((v - min) / (max - min) * 100) + '%');
-        P.update();
+        P.requestUpdate();
       }
       sl.addEventListener('input', upd);
       upd();
@@ -288,10 +302,10 @@ window.PVSIM = window.PVSIM || {};
       if (!isNaN(val) && val > 0) { P.state[key] = val; }
     }
     inputGridDay.addEventListener('input', function() {
-      syncGridPrice(this, 'gridPriceDay'); P.renderGridChart();
+      syncGridPrice(this, 'gridPriceDay'); P.requestUpdate();
     });
     inputGridNight.addEventListener('input', function() {
-      syncGridPrice(this, 'gridPriceNight'); P.renderGridChart();
+      syncGridPrice(this, 'gridPriceNight'); P.requestUpdate();
     });
     syncGridPrice(inputGridDay, 'gridPriceDay');
     syncGridPrice(inputGridNight, 'gridPriceNight');
@@ -304,7 +318,7 @@ window.PVSIM = window.PVSIM || {};
       sliderGSVal.textContent = P.state.gridDayStart;
       const pct = ((P.state.gridDayStart - 0) / 23) * 100;
       sliderGS.style.setProperty('--pvsim-fill', pct + '%');
-      P.renderGridChart();
+      P.requestUpdate();
     }
     sliderGS.addEventListener('input', updateGridDayStart);
     updateGridDayStart();
@@ -316,7 +330,7 @@ window.PVSIM = window.PVSIM || {};
       sliderGEVal.textContent = P.state.gridDayEnd;
       const pct = ((P.state.gridDayEnd - 0) / 23) * 100;
       sliderGE.style.setProperty('--pvsim-fill', pct + '%');
-      P.renderGridChart();
+      P.requestUpdate();
     }
     sliderGE.addEventListener('input', updateGridDayEnd);
     updateGridDayEnd();
@@ -331,7 +345,7 @@ window.PVSIM = window.PVSIM || {};
         const min = parseFloat(sl.min), max = parseFloat(sl.max);
         const pct = ((P.state[stateKey] - min) / (max - min)) * 100;
         sl.style.setProperty('--pvsim-fill', pct + '%');
-        P.update();
+        P.requestUpdate();
       }
       sl.addEventListener('input', upd);
       upd();

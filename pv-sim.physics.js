@@ -21,8 +21,8 @@
      Model zasobnika 1-węzłowego (fully-mixed) z 6 podkrokami na godzinę.
      Symuluje: pobór CWU (rozcieńczenie), grzanie parą PC + grzałka wg strategii
      wybranej osobno dla strefy dziennej i nocnej taryfy, straty postojowe.
-     Para grzeje do setpointu P.state.heaterTargetC (suwak Modułu 04,
-     niezależny od T_hot z Modułu 02).
+     Para grzeje do wspólnego setpointu P.state.heaterTargetC („Temperatura
+     docelowa zasobnika", suwak Modułu 04 — niezależny od T_hot z Modułu 02).
      Pompa ciepła (P.state.hpKW, hpGears, hpCOPSummer/Winter, hpOnlyBandC) ma
      priorytet w off-grid (wybiera największy bieg ≤ nadwyżki PV, grzałka dobiera
      resztę) oraz w on-grid pracuje sama w pasmie pod setpointem (bieg
@@ -123,28 +123,30 @@ window.PVSIM = window.PVSIM || {};
   // Godzinowy profil + statystyki dobowe i miesięczne dla N mieszkańców.
   // Straty cyrkulacji: stała moc P_circ rozprowadzona równomiernie przez 24h,
   // obliczona jako procent Q_użytecznej zależny od typu budynku (P.CIRC_LOSS).
-  P.simulateDHW = function(residents, monthIdx, T_hot) {
+  P.simulateDHW = function(residents, monthIdx, T_hot, params) {
+    const ps = params || P.state;
+    const priceKWh = ps.priceHeatGJ / P.KWH_PER_GJ;  // zł/kWh ciepła sieciowego
     const m = P.MONTHS[monthIdx];
     const T_in   = P.T_cold(monthIdx);
     const kwhM3  = P.kWh_per_m3(monthIdx, T_hot);
-    const priceM3 = kwhM3 * P.PRICE_PER_KWH;
+    const priceM3 = kwhM3 * priceKWh;
     const dailyM3 = (residents * P.DHW_L_PER_PERSON) / 1000;
 
     const Q_useful = dailyM3 * kwhM3;
-    const circRatio = P.CIRC_LOSS[P.state.buildingType] || P.CIRC_LOSS.old;
+    const circRatio = P.CIRC_LOSS[ps.buildingType] || P.CIRC_LOSS.old;
     const Q_circ = Q_useful * circRatio;       // kWh/dobę strat cyrkulacji
     const P_circ = Q_circ / 24;               // kW — stała moc strat przez całą dobę
 
     const hours = P.DHW_PROFILE.map((frac, h) => {
       const water  = dailyM3 * frac;         // m³/h (bo 1h)
       const energy = water * kwhM3;          // kWh w godzinie (użyteczna)
-      const cost   = energy * P.PRICE_PER_KWH;
+      const cost   = energy * priceKWh;
       return { hour: h, water, power: energy, energy, cost };
     });
 
     const Q_total = Q_useful + Q_circ;
-    const cost_useful = Q_useful * P.PRICE_PER_KWH;
-    const cost_circ   = Q_circ   * P.PRICE_PER_KWH;
+    const cost_useful = Q_useful * priceKWh;
+    const cost_circ   = Q_circ   * priceKWh;
 
     return {
       hours,
@@ -185,7 +187,8 @@ window.PVSIM = window.PVSIM || {};
   // Temperatura startowa T_zas(00:00):
   //   T_init === undefined → start zimny = T_in (temp. wody wodociągowej),
   //   T_init podane         → ciągłość dobowa (Moduł 05 — symulacja miesięczna).
-  P.simulateTank = function(simPV, simDHW, heaterKW, tankL, T_init, monthIdxArg) {
+  P.simulateTank = function(simPV, simDHW, heaterKW, tankL, T_init, params) {
+    const ps    = params || P.state;
     const cw    = P.C_WATER / 3600;                           // kWh/(kg·K)
     const m_zas = tankL;                                      // kg
     const UA    = P.TANK_UA_REF * Math.pow(tankL / P.TANK_V_REF, 2/3);  // W/K
@@ -193,22 +196,22 @@ window.PVSIM = window.PVSIM || {};
     const dt    = 1 / P.TANK_SUBSTEPS;
 
     const T_in  = simDHW.T_in;
-    const T_set = P.state.heaterTargetC;  // setpoint grzałki (Moduł 04)
+    const T_set = ps.heaterTargetC;  // setpoint grzałki (Moduł 04)
     const band  = P.TANK_ONGRID_BAND;
-    const threshold = P.state.heaterThreshold * heaterKW;
+    const threshold = ps.heaterThreshold * heaterKW;
     // Pompa ciepła — parametry sezonowe (COP zależny od miesiąca)
-    const hpKW    = P.state.hpKW;
-    const hpGears = Math.max(1, P.state.hpGears | 0);
-    const hpBand  = P.state.hpOnlyBandC;
-    const mi      = (monthIdxArg === undefined ? P.state.monthIdx : monthIdxArg);
-    const hpCOP   = (mi >= 3 && mi <= 8) ? P.state.hpCOPSummer : P.state.hpCOPWinter;
+    const hpKW    = ps.hpKW;
+    const hpGears = Math.max(1, ps.hpGears | 0);
+    const hpBand  = ps.hpOnlyBandC;
+    const mi      = ps.monthIdx;
+    const hpCOP   = (mi >= 3 && mi <= 8) ? ps.hpCOPSummer : ps.hpCOPWinter;
     const hpStep  = hpKW / hpGears;       // moc elektryczna jednego biegu
-    const hpThreshold = P.state.heaterThreshold * hpKW;  // próg dla PC (wspólny ze grzałką)
+    const hpThreshold = ps.heaterThreshold * hpKW;  // próg dla PC (wspólny ze grzałką)
     let T = (T_init === undefined ? T_in : T_init);
     const hours = [];
 
     // Przynależność godziny do strefy dziennej taryfy (Moduł 03)
-    const dayStart = P.state.gridDayStart, dayEnd = P.state.gridDayEnd;
+    const dayStart = ps.gridDayStart, dayEnd = ps.gridDayEnd;
     const isDay = h => dayStart < dayEnd
       ? h >= dayStart && h < dayEnd
       : h >= dayStart || h < dayEnd;
@@ -233,8 +236,8 @@ window.PVSIM = window.PVSIM || {};
       const P_PV    = simPV.hours[h].power;
       const m_pobor = simDHW.hours[h].water * 1000;
       const day     = isDay(h);
-      const strat   = day ? P.state.heaterStratDay : P.state.heaterStratNight;
-      const gridPrice = day ? P.state.gridPriceDay : P.state.gridPriceNight;
+      const strat   = day ? ps.heaterStratDay : ps.heaterStratNight;
+      const gridPrice = day ? ps.gridPriceDay : ps.gridPriceNight;
 
       const m_per = m_pobor / P.TANK_SUBSTEPS;
 
@@ -302,7 +305,7 @@ window.PVSIM = window.PVSIM || {};
                 const T_eff   = T_set - (hpKW > 0 ? hpBand : 0);
                 const frac    = Math.max(0, Math.min(1, (T_eff - T) / band));
                 const P_h_kW  = heaterKW * frac;
-                if (P_h_kW >= threshold) {
+                if (P_h_kW > 0 && P_h_kW >= threshold) {
                   Q_heater_per = P_h_kW * dt;
                   const P_PV_left = Math.max(P_PV - P_hp_el, 0);
                   heater_pvShare = Math.min(P_h_kW, P_PV_left) / P_h_kW;
@@ -398,8 +401,9 @@ window.PVSIM = window.PVSIM || {};
 
     const Q_CWU_total = simDHW.daily.energy;
     const coveragePct = Q_CWU_total > 0 ? (dailyQ_saved / Q_CWU_total * 100) : 0;
-    const savingPLN_d = dailyQ_saved * P.PRICE_PER_KWH;
-    const days = P.MONTHS[P.state.monthIdx].days;
+    const priceKWh = ps.priceHeatGJ / P.KWH_PER_GJ;
+    const savingPLN_d = dailyQ_saved * priceKWh;
+    const days = P.MONTHS[mi].days;
 
     // Ciepło zmagazynowane w zasobniku o 24:00 — energia ponad T_in,
     // która nie została pobrana przez CWU (start zimny, model jednodobowy).
@@ -487,11 +491,12 @@ window.PVSIM = window.PVSIM || {};
   //   0 → wszystkie dni identyczne (g[d]=1), 1 → pełny rozrzut [0, g_max].
   // Surowa czystość = r^p, gdzie p = g_max−1, więc E[r^p] = mu — rozkład sięga
   // od dni bez słońca (r≈0) po dni clear-sky (r≈1) przy zachowanej średniej.
-  P.dailyWeatherFactors = function(monthIdx, days) {
+  P.dailyWeatherFactors = function(monthIdx, days, params) {
+    const ps   = params || P.state;
     const gMax = gMaxForMonth(monthIdx);
     const mu   = gMax > 0 ? 1 / gMax : 1;          // średnia "czystość nieba" [0..1]
     const p    = Math.max(0, gMax - 1);            // wykładnik: E[r^p] = mu
-    const s    = Math.max(0, Math.min(1, P.state.pvVariability));
+    const s    = Math.max(0, Math.min(1, ps.pvVariability));
     const rng  = mulberry32(P.WEATHER_SEED + monthIdx);
 
     // 1) Surowe czystości v ∈ [0,1] — przy s=0 wszystkie równe mu.
@@ -527,14 +532,19 @@ window.PVSIM = window.PVSIM || {};
   // taki sam dla każdej doby, natomiast produkcja PV jest skalowana dobowym
   // mnożnikiem zmienności pogody (P.dailyWeatherFactors) — średnia miesięczna
   // pozostaje zachowana. Temperatura zasobnika przenosi się między dobami.
-  P.simulateTankMonth = function(simPV, simDHW, heaterKW, tankL, monthIdx) {
-    const mi    = (monthIdx === undefined ? P.state.monthIdx : monthIdx);
+  P.simulateTankMonth = function(simPV, simDHW, heaterKW, tankL, monthIdx, params) {
+    const ps    = params || P.state;
+    const mi    = (monthIdx === undefined ? ps.monthIdx : monthIdx);
     const days  = P.MONTHS[mi].days;
+    const priceKWh = ps.priceHeatGJ / P.KWH_PER_GJ;
     const T_in  = simDHW.T_in;
     const hours = [];
+    // Podparams z faktycznie symulowanym miesiącem — żeby simulateTank brał COP
+    // i dni z bieżącego mi, nie z monthIdx z UI.
+    const psMonth = (ps.monthIdx === mi) ? ps : Object.assign({}, ps, { monthIdx: mi });
 
     const daysData = [];   // agregaty na dobę — wykres dobowy energii (Moduł 05)
-    const factors = P.dailyWeatherFactors(mi, days);  // dobowe mnożniki PV
+    const factors = P.dailyWeatherFactors(mi, days, ps);  // dobowe mnożniki PV
     let T = T_in;  // start zimny
     let monthQ_saved = 0, monthQ_strat = 0;
     let monthQ_hp = 0, monthQ_heater = 0;
@@ -547,7 +557,7 @@ window.PVSIM = window.PVSIM || {};
       const dayPV = { hours: simPV.hours.map(h => ({
         hour: h.hour, power: h.power * g, energy: h.energy * g
       })) };
-      const day = P.simulateTank(dayPV, simDHW, heaterKW, tankL, T, mi);
+      const day = P.simulateTank(dayPV, simDHW, heaterKW, tankL, T, psMonth);
       day.hours.forEach(h => {
         hours.push(Object.assign({}, h, { day: d, gh: d * 24 + h.hour }));
       });
@@ -591,7 +601,7 @@ window.PVSIM = window.PVSIM || {};
         coveragePct,
         heaterHours: monthHeaterHours,
         hpHours:     monthHpHours,
-        savingPLN:   monthQ_saved * P.PRICE_PER_KWH,
+        savingPLN:   monthQ_saved * priceKWh,
         elec_pv:     monthElec_pv,
         elec_grid:   monthElec_grid,
         elec_total:  monthElec_pv + monthElec_grid,
@@ -602,7 +612,7 @@ window.PVSIM = window.PVSIM || {};
         elec_pair_total: monthElec_pv + monthElec_grid + monthElec_hp_pv + monthElec_hp_grid,
         gridCost:    monthGridCost,
         // bilans: oszczędność na cieple sieciowym − koszt energii z sieci
-        balancePLN:  monthQ_saved * P.PRICE_PER_KWH - monthGridCost
+        balancePLN:  monthQ_saved * priceKWh - monthGridCost
       },
       params: { heaterKW, tankL }
     };
@@ -614,7 +624,8 @@ window.PVSIM = window.PVSIM || {};
   // z własnymi wejściami PV i CWU — produkcja PV oraz temperatura wody zimnej
   // zmieniają się sezonowo. Zwraca agregaty miesięczne (jeden wpis na miesiąc,
   // do wykresu słupkowego) oraz sumy roczne.
-  P.simulateTankYear = function() {
+  P.simulateTankYear = function(params) {
+    const ps = params || P.state;
     const monthsData = [];
     let elec_pv = 0, elec_grid = 0, gridCost = 0;
     let elec_hp_pv = 0, elec_hp_grid = 0;
@@ -625,9 +636,9 @@ window.PVSIM = window.PVSIM || {};
     for (let mi = 0; mi < 12; mi++) {
       const days   = P.MONTHS[mi].days;
       // Symulacja roczna zawsze korzysta z doby przeciętnej PV (PVGIS), nie z trybu clear-sky
-      const simPV  = P.simulateDay(P.state.kWp, mi, 'avg');
-      const simDHW = P.simulateDHW(P.state.residents, mi, P.state.T_hot);
-      const simMonth = P.simulateTankMonth(simPV, simDHW, P.state.heaterKW, P.state.tankL, mi);
+      const simPV  = P.simulateDay(ps.kWp, mi, 'avg');
+      const simDHW = P.simulateDHW(ps.residents, mi, ps.T_hot, ps);
+      const simMonth = P.simulateTankMonth(simPV, simDHW, ps.heaterKW, ps.tankL, mi, ps);
       const mo = simMonth.monthly;
       const cwu_m = simDHW.daily.energy * days;
 
@@ -702,8 +713,8 @@ window.PVSIM = window.PVSIM || {};
   // Zwrot inwestycji liczony względem bilansu rocznego netto
   // (oszczędność na cieple − koszt prądu z sieci). Gdy bilans ≤ 0,
   // paybackYears = Infinity (brak zwrotu).
-  P.computeInvestment = function(simYear) {
-    const s = P.state;
+  P.computeInvestment = function(simYear, params) {
+    const s = params || P.state;
     const costPV     = s.kWp * s.pricePVkWp;
     const costHeater = s.heaterKW * s.priceHeaterKW;
     const costTank   = (s.tankL / 100) * s.priceTank100;

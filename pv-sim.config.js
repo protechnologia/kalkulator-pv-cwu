@@ -64,10 +64,9 @@ window.PVSIM = window.PVSIM || {};
     return 1000 * P.C_WATER * (T_hot - P.T_cold(monthIdx)) / 3600;
   };
 
-  // Taryfa ECO Opole — od 01.01.2026, dla mieszkańców (bud. wielorodzinne)
-  P.PRICE_PER_GJ  = 196.95;                        // zł/GJ brutto
-  P.KWH_PER_GJ    = 1000 / 3.6;                    // ≈ 277.78
-  P.PRICE_PER_KWH = P.PRICE_PER_GJ / P.KWH_PER_GJ; // ≈ 0.7091 zł/kWh
+  // Stały przelicznik fizyczny: 1 GJ ≈ 277.78 kWh.
+  // Cena ciepła sieciowego siedzi w P.state.priceHeatGJ (edytowalna z UI Modułu 02).
+  P.KWH_PER_GJ = 1000 / 3.6;
 
   // Profil godzinowy zużycia CWU w bud. wielorodzinnym [% zużycia dobowego]
   // Źródło: Chmielewska, A. (2025). "Characteristics of Domestic Hot Water Consumption
@@ -133,6 +132,7 @@ window.PVSIM = window.PVSIM || {};
     pvVariability: 0.5, // siła odchyleń dobowych PV [0..1] — zmienność pogody w miesiącu
     residents: 50,
     T_hot: 50,          // °C — temperatura docelowa CWU
+    priceHeatGJ: 196.95, // zł/GJ brutto — taryfa ECO Opole (od 01.01.2026, bud. wielorodzinne)
     heaterKW: 3.0,      // moc grzałki [kW]
     heaterThreshold: 0.1, // próg włączenia: PV >= threshold * heaterKW
     // Strategia grzałki, osobno dla strefy dziennej i nocnej taryfy elektrycznej:

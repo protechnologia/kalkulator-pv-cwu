@@ -6,7 +6,7 @@ Działa bezpośrednio z systemu plików (`file://`) — bez serwera, bez instala
 
 ## Uruchamianie
 
-Pobierz repozytorium i otwórz `pv-sim.v1.3.html` w przeglądarce.
+Pobierz repozytorium i otwórz `pv-sim.v1.4.html` w przeglądarce.
 
 ## Funkcje
 
@@ -36,7 +36,9 @@ Pobierz repozytorium i otwórz `pv-sim.v1.3.html` w przeglądarce.
 ### Moduł 04 — Zasobnik z pompą ciepła i grzałką elektryczną
 - Moc grzałki: 0–15 kW (0 = grzałka wyłączona)
 - Pojemność zasobnika: 200–3000 L
-- Temperatura grzania grzałki: 0–60°C (setpoint niezależny od temperatury CWU)
+- Temperatura docelowa zasobnika: 0–60°C — wspólny setpoint pary PC+grzałka
+  (oba urządzenia zatrzymują grzanie po osiągnięciu tej temperatury,
+  niezależny od temperatury CWU z Modułu 02)
 - Pompa ciepła powietrze→woda (drugie źródło ciepła, równolegle z grzałką):
   moc elektryczna 0–10 kW (0 = PC wyłączona), 1–5 biegów (równe stopnie mocy),
   pasmo „tylko PC" pod setpointem 0–20°C, sezonowy COP — letni (Kwi–Wrz)
@@ -83,7 +85,7 @@ Pobierz repozytorium i otwórz `pv-sim.v1.3.html` w przeglądarce.
 ## Struktura plików
 
 ```
-pv-sim.v1.3.html      — jedyna strona HTML
+pv-sim.v1.4.html      — jedyna strona HTML
 pv-sim.tokens.css     — zmienne CSS (kolory, tła, akcenty)
 pv-sim.layout.css     — nagłówek, suwaki, siatka miesięcy, stopka, responsive
 pv-sim.components.css — wykresy SVG, karty statystyk, warianty kolorów, sidebar

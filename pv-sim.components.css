@@ -580,6 +580,12 @@
   min-height: 14px;
 }
 .pvsim-opt-progress-label .count { color: var(--pvsim-fuchsia); font-weight: 600; }
+.pvsim-opt-hint {
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--pvsim-text-3);
+}
 
 /* -------- MODUŁ 08 — lista parametrów siatki -------- */
 .pvsim-opt-params {

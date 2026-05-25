@@ -706,21 +706,21 @@
   font-variant-numeric: tabular-nums;
 }
 .pvsim-optim-table th {
-  font-size: 8.5px;
+  font-size: 7.5px;
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--pvsim-text-2);
   text-align: right;
-  padding: 8px 8px;
+  padding: 6px 5px;
   border-bottom: 1px solid var(--pvsim-border-strong);
 }
 .pvsim-optim-table th:first-child { text-align: left; }
 .pvsim-optim-table td {
-  font-size: 12px;
+  font-size: 10.5px;
   color: var(--pvsim-text-1);
   text-align: right;
-  padding: 11px 8px;
+  padding: 8px 5px;
   border-bottom: 1px solid var(--pvsim-border);
 }
 .pvsim-optim-table td:first-child {

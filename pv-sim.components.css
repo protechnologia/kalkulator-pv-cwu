@@ -54,8 +54,10 @@
 .pvsim-chart {
   width: 100%;
   height: auto;
+  aspect-ratio: 780 / 300;
   display: block;
 }
+#pvsim-tank-chart { aspect-ratio: 780 / 350; }
 
 /* -------- STATS -------- */
 .pvsim-stats {
@@ -378,8 +380,9 @@
 .pvsim-sidebar {
   position: fixed;
   top: 58px;
-  right: 24px;
-  width: 188px;
+  right: 1%;
+  width: 13%;
+  min-width: 188px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -434,8 +437,9 @@
 .pvsim-toc {
   position: fixed;
   top: 58px;
-  left: 24px;
-  width: 210px;
+  left: 1%;
+  width: 14%;
+  min-width: 210px;
   display: flex;
   flex-direction: column;
   gap: 1px;

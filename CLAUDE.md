@@ -380,12 +380,6 @@ delikatna czerwień/pomarańcz), prąd (delikatny błękit/fiolet), pieniądze
 klasy do każdej karty w `render.js`. Cel: szybsze parsowanie wzrokowe paneli
 M04–M06, bez krzykliwości — saturacja na poziomie 5–10%.
 
-**Szerokość głównego kontenera jako procent okna** — obecnie kontener `.pvsim`
-ma stałą szerokość (max-width w px). Zamienić na procent szerokości okna
-(np. `width: 90%` z rozsądnym `max-width` na bardzo szerokich monitorach),
-żeby aplikacja wykorzystywała dostępną przestrzeń na laptopach i monitorach
-4K bez ograniczania się do sztywnej kolumny.
-
 **Mianownik `coveragePct` = `Q_total` (nie `Q_useful`)** — obecnie pokrycie
 CWU liczone jest jako `Q_saved / Q_useful` ([pv-sim.physics.js:402–403](pv-sim.physics.js#L402)
 i analogicznie w `simulateTankMonth`/`simulateTankYear`), gdzie `simDHW.daily.energy`

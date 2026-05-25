@@ -55,6 +55,8 @@
      renderYearChart()      — wykres słupkowy energii elektrycznej pary
                               PC + grzałka (jeden słupek na miesiąc,
                               PV vs sieć)
+     renderYearCoverChart() — wykres słupkowy miesięcznego pokrycia CWU
+                              (pokryte vs brak, etykieta % nad słupkiem)
      renderYearStats()      — karty roczne: pokrycie CWU, grzałka, PC,
                               zużycie prądu — źródło i — urządzenie, koszt,
                               ciepło zaoszczędzone, bilans
@@ -64,8 +66,13 @@
                               zasobnik, SCADA) i liczba lat na zwrot
 
    Moduł 08 — Optymalizacja:
-     renderOptimTable()     — tabela 3 najlepszych wariantów grid searcha,
-                              każdy wiersz z przyciskiem „Przenieś →"
+     renderOptimTable()     — tabela top 10 wariantów grid searcha
+                              (z grupowaniem wierszy o identycznym wyniku
+                              ekonomicznym — kolumna # pokazuje zakres
+                              `1–3`, różniące się parametry listowane jako
+                              `v1 / v2 / v3`). Każdy wiersz z przyciskiem
+                              „Przenieś →". Przy braku wyników wyświetla
+                              pustą tabelę z napisem „brak wyników"
    ========================================================= */
 window.PVSIM = window.PVSIM || {};
 (function(P) {
@@ -1266,6 +1273,116 @@ window.PVSIM = window.PVSIM || {};
     }
   };
 
+  // ===== RENDER WYKRESU POKRYCIA CWU — SYMULACJA ROCZNA (Moduł 06) =====
+  // Słupki miesięczne: pełna wysokość = miesięczne zapotrzebowanie CWU [kWh],
+  // dół (lime) = ciepło dostarczone z zasobnika (Q_saved), góra (szary) = reszta
+  // zapotrzebowania nieprzykryta przez układ PC + grzałka. Procent pokrycia
+  // jako etykieta nad każdym słupkiem.
+  P.renderYearCoverChart = function(simYear) {
+    const svg = document.getElementById('pvsim-year-cover-chart');
+    if (!svg) return;
+    const W = 780, H = 300;
+    const padL = 50, padR = 18, padT = 22, padB = 36;
+    const cw = W - padL - padR;
+    const ch = H - padT - padB;
+
+    const md = simYear.monthsData;
+
+    const rawMax = Math.max(...md.map(d => d.Q_CWU || 0), 0.001);
+    const niceSteps = [10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000];
+    const step = niceSteps.find(s => rawMax / s <= 6) || 5000;
+    const yMax = Math.ceil(rawMax / step + 0.001) * step;
+
+    const slot = cw / 12;
+    const x = i => padL + i * slot;
+    const y = v => padT + ch - (v / yMax) * ch;
+    const bw = slot * 0.62;
+    const bx = slot * 0.19;
+
+    let bars = '', pctLabels = '';
+    md.forEach((d, i) => {
+      const cwuM = d.Q_CWU || 0;
+      const covered = Math.min(d.Q_saved || 0, cwuM);
+      const missing = Math.max(cwuM - covered, 0);
+      const coveredH = (covered / yMax) * ch;
+      const missingH = (missing / yMax) * ch;
+      const x0 = x(i) + bx;
+      if (coveredH > 0.05) {
+        bars += `<rect x="${x0.toFixed(2)}" y="${y(covered).toFixed(2)}"
+                       width="${bw.toFixed(2)}" height="${coveredH.toFixed(2)}"
+                       fill="#a3e635" opacity="0.85"/>`;
+      }
+      if (missingH > 0.05) {
+        bars += `<rect x="${x0.toFixed(2)}" y="${y(covered + missing).toFixed(2)}"
+                       width="${bw.toFixed(2)}" height="${missingH.toFixed(2)}"
+                       fill="#71717a" opacity="0.45"/>`;
+      }
+      const pct = cwuM > 0.001 ? (covered / cwuM * 100) : 0;
+      const topY = y(cwuM);
+      const cx = (x0 + bw / 2).toFixed(2);
+      // główna etykieta — pokrycie miesięczne
+      pctLabels += `<text x="${cx}" y="${(topY - 5).toFixed(2)}" text-anchor="middle"
+                          font-family="'IBM Plex Mono', monospace" font-size="9.5" font-weight="600"
+                          fill="#a3e635" font-variant-numeric="tabular-nums">${pct.toFixed(0)}%</text>`;
+      // mniejsza etykieta nad nią — zakres pokrycia dobowego (min–max)
+      if (d.coverMaxPct != null && d.coverMaxPct >= 0) {
+        const lo = Math.round(d.coverMinPct);
+        const hi = Math.round(d.coverMaxPct);
+        pctLabels += `<text x="${cx}" y="${(topY - 17).toFixed(2)}" text-anchor="middle"
+                            font-family="'IBM Plex Mono', monospace" font-size="8" fill="var(--pvsim-text-2)"
+                            font-variant-numeric="tabular-nums" opacity="0.85">${lo}%–${hi}%</text>`;
+      }
+    });
+
+    const ticks = Math.round(yMax / step);
+    let gridLines = '', yLabels = '';
+    for (let i = 0; i <= ticks; i++) {
+      const v = i * step;
+      const yy = y(v);
+      gridLines += `<line x1="${padL}" y1="${yy.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yy.toFixed(2)}"
+                          stroke="var(--pvsim-border)" stroke-width="1" ${i === 0 ? '' : 'stroke-dasharray="2,3"'}/>`;
+      yLabels += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end"
+                        font-family="'IBM Plex Mono', monospace" font-size="10" fill="var(--pvsim-text-2)"
+                        font-variant-numeric="tabular-nums">${P.fmt.pl0(v)}</text>`;
+    }
+
+    let xLabels = '';
+    md.forEach((d, i) => {
+      xLabels += `<text x="${(x(i) + slot / 2).toFixed(2)}" y="${(padT + ch + 18).toFixed(2)}" text-anchor="middle"
+                        font-family="'IBM Plex Mono', monospace" font-size="9" fill="var(--pvsim-text-2)"
+                        letter-spacing="0.5">${d.abbr}</text>`;
+    });
+
+    const axes = `
+      <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${(padT + ch).toFixed(2)}" stroke="var(--pvsim-border-strong)" stroke-width="1"/>
+      <line x1="${padL}" y1="${(padT + ch).toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${(padT + ch).toFixed(2)}" stroke="var(--pvsim-border-strong)" stroke-width="1"/>
+    `;
+
+    const lx = W - padR - 150;
+    const legend = `
+      <rect x="${lx}" y="${padT + 2}" width="10" height="10" fill="#a3e635" opacity="0.85"/>
+      <text x="${lx + 15}" y="${padT + 11}" font-family="'IBM Plex Mono', monospace" font-size="10"
+            fill="#a1a1aa">pokryte</text>
+      <rect x="${lx + 70}" y="${padT + 2}" width="10" height="10" fill="#71717a" opacity="0.45"/>
+      <text x="${lx + 85}" y="${padT + 11}" font-family="'IBM Plex Mono', monospace" font-size="10"
+            fill="#a1a1aa">brak</text>
+    `;
+
+    svg.innerHTML = `
+      ${gridLines}${axes}${bars}${pctLabels}${legend}${yLabels}${xLabels}
+      <text x="${padL - 30}" y="${padT - 10}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
+            fill="var(--pvsim-text-2)" letter-spacing="1.4">[kWh]</text>
+      <text x="${(padL + cw / 2).toFixed(2)}" y="${(H - 4).toFixed(2)}" text-anchor="middle"
+            font-family="'IBM Plex Mono', monospace" font-size="9" fill="var(--pvsim-text-2)" letter-spacing="1">miesiąc</text>
+    `;
+
+    const ctxEl = document.getElementById('pvsim-year-cover-chart-ctx');
+    if (ctxEl) {
+      const yr = simYear.yearly;
+      ctxEl.textContent = `— pokrycie roczne ${yr.coveragePct.toFixed(0)}% · ${P.fmt.pl0(yr.Q_saved)} kWh dostarczone`;
+    }
+  };
+
   // ===== RENDER STATÓW — SYMULACJA ROCZNA (Moduł 06) =====
   P.renderYearStats = function(simYear) {
     const yr = simYear.yearly;
@@ -1335,37 +1452,73 @@ window.PVSIM = window.PVSIM || {};
   // Renderuje wynik P.optimize() jako tabelę top 3 do #pvsim-optim-table.
   // Każdy wiersz ma przycisk „Przenieś" z atrybutem data-row = indeks wyniku;
   // listener (app.js) odczytuje go i wywołuje applyOptimRow().
-  P.renderOptimTable = function(results) {
+  P.renderOptimTable = function(results, emptyMsg) {
     const box = document.getElementById('pvsim-optim-table');
     if (!box) return;
 
-    if (!results || results.length === 0) {
-      box.innerHTML = `<p class="pvsim-optim-empty">Brak wariantu spełniającego limit zwrotu —
-        zwiększ dopuszczalny czas zwrotu lub zmień parametry modułów 01–03.</p>`;
-      return;
-    }
-
     const stratLabel = { 'off': 'wył.', 'off-grid': 'off-grid', 'on-grid': 'on-grid' };
+    const COL_COUNT = 14;
 
-    let rows = '';
-    results.forEach((r, i) => {
-      rows += `<tr>
-        <td>${i + 1}</td>
-        <td>${P.fmt.pl1(r.kWp)}</td>
-        <td>${P.fmt.pl1(r.heaterKW)}</td>
-        <td>${P.fmt.pl1(r.hpKW != null ? r.hpKW : 0)}</td>
-        <td>${Math.round(r.heaterThreshold * 100)}</td>
-        <td>${r.tankL}</td>
-        <td>${r.heaterTargetC}</td>
-        <td>${stratLabel[r.stratDay]}</td>
-        <td>${stratLabel[r.stratNight]}</td>
-        <td>${P.fmt.pl0(r.cost)}</td>
-        <td>${P.fmt.pl2(r.balancePLN)}</td>
-        <td>${P.fmt.pl1(r.paybackYears)}</td>
-        <td class="pvsim-optim-profit">${P.fmt.pl0(r.lifetimeProfit)}</td>
-        <td><button class="pvsim-optim-apply" data-row="${i}">Przenieś →</button></td>
-      </tr>`;
-    });
+    let body;
+    if (!results || results.length === 0) {
+      const msg = emptyMsg || 'brak wyników';
+      body = `<tr class="pvsim-optim-empty-row"><td colspan="${COL_COUNT}">${msg}</td></tr>`;
+    } else {
+      // Grupowanie: wiersze o identycznym wyniku ekonomicznym (cost, balancePLN,
+      // lifetimeProfit) różnią się tylko parametrami nieistotnymi dla bilansu,
+      // więc fizycznie to ten sam wariant. Łączymy w jeden wiersz tabeli,
+      // a w kolumnie różniącego się parametru pokazujemy listę „v1 / v2 / v3".
+      const groupMap = new Map();
+      const groups = [];
+      results.forEach((r, idx) => {
+        const key = `${r.lifetimeProfit}|${r.cost}|${r.balancePLN}`;
+        let g = groupMap.get(key);
+        if (!g) {
+          g = { leaderIdx: idx, members: [] };
+          groupMap.set(key, g);
+          groups.push(g);
+        }
+        g.members.push(r);
+      });
+      const topGroups = groups.slice(0, 10);
+
+      // Komórka parametru: jeśli wszyscy członkowie mają tę samą wartość — zwraca ją;
+      // inaczej zwraca listę unikatów (posortowanych liczbowo lub po kolejności) złączonych „ / ".
+      const cell = (members, get, fmt) => {
+        const seen = [];
+        for (const m of members) {
+          const v = get(m);
+          if (!seen.includes(v)) seen.push(v);
+        }
+        seen.sort((a, b) => (typeof a === 'number' && typeof b === 'number') ? a - b : 0);
+        return seen.map(fmt).join(' / ');
+      };
+
+      body = '';
+      let rank = 1;
+      topGroups.forEach((g) => {
+        const n = g.members.length;
+        const rankCell = n === 1 ? `${rank}` : `${rank}–${rank + n - 1}`;
+        const first = g.members[0];
+        body += `<tr>
+          <td>${rankCell}</td>
+          <td>${cell(g.members, r => r.kWp, P.fmt.pl1)}</td>
+          <td>${cell(g.members, r => r.heaterKW, P.fmt.pl1)}</td>
+          <td>${cell(g.members, r => r.hpKW != null ? r.hpKW : 0, P.fmt.pl1)}</td>
+          <td>${cell(g.members, r => r.heaterThreshold, v => Math.round(v * 100))}</td>
+          <td>${cell(g.members, r => r.tankL, v => v)}</td>
+          <td>${cell(g.members, r => r.heaterTargetC, v => v)}</td>
+          <td>${cell(g.members, r => r.stratDay, v => stratLabel[v])}</td>
+          <td>${cell(g.members, r => r.stratNight, v => stratLabel[v])}</td>
+          <td>${P.fmt.pl0(first.cost)}</td>
+          <td>${P.fmt.pl2(first.balancePLN)}</td>
+          <td>${P.fmt.pl1(first.paybackYears)}</td>
+          <td class="pvsim-optim-profit">${P.fmt.pl0(first.lifetimeProfit)}</td>
+          <td><button class="pvsim-optim-apply" data-row="${g.leaderIdx}">Przenieś →</button></td>
+        </tr>`;
+        rank += n;
+      });
+    }
 
     box.innerHTML = `
       <table class="pvsim-optim-table">
@@ -1387,7 +1540,7 @@ window.PVSIM = window.PVSIM || {};
             <th></th>
           </tr>
         </thead>
-        <tbody>${rows}</tbody>
+        <tbody>${body}</tbody>
       </table>`;
   };
 

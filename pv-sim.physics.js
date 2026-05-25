@@ -551,6 +551,12 @@ window.PVSIM = window.PVSIM || {};
     let monthElec_pv = 0, monthElec_grid = 0;
     let monthElec_hp_pv = 0, monthElec_hp_grid = 0;
     let monthGridCost = 0, monthHeaterHours = 0, monthHpHours = 0;
+    // Pokrycie dobowe — min/max % w miesiącu. Q_CWU/dobę jest stałe
+    // (z profilu DHW), więc % to po prostu Q_saved/Q_CWU dla każdej doby.
+    // Pierwsza doba startuje zimna ("warmup") i pokrycie jest sztucznie
+    // niskie, więc do min/max bierzemy dni 1..N-1 (gdy days >= 2).
+    const Q_CWU_day = simDHW.daily.energy;
+    let coverMinPct = Infinity, coverMaxPct = -Infinity;
 
     for (let d = 0; d < days; d++) {
       const g = factors[d];
@@ -583,7 +589,17 @@ window.PVSIM = window.PVSIM || {};
       monthGridCost    += day.daily.gridCost;
       monthHeaterHours += day.daily.heaterHours;
       monthHpHours     += day.daily.hpHours;
+
+      // min/max pokrycia dobowego — pomijamy dobę 0 (warmup ze startu zimnego),
+      // chyba że miesiąc miałby tylko 1 dobę (defensywnie)
+      if (Q_CWU_day > 0.001 && (d > 0 || days < 2)) {
+        const pct = day.daily.Q_saved / Q_CWU_day * 100;
+        if (pct < coverMinPct) coverMinPct = pct;
+        if (pct > coverMaxPct) coverMaxPct = pct;
+      }
     }
+
+    if (coverMinPct === Infinity) { coverMinPct = 0; coverMaxPct = 0; }
 
     const Q_CWU_month = simDHW.daily.energy * days;
     const coveragePct = Q_CWU_month > 0 ? (monthQ_saved / Q_CWU_month * 100) : 0;
@@ -599,6 +615,8 @@ window.PVSIM = window.PVSIM || {};
         Q_hp:        monthQ_hp,
         Q_heater:    monthQ_heater,
         coveragePct,
+        coverMinPct,
+        coverMaxPct,
         heaterHours: monthHeaterHours,
         hpHours:     monthHpHours,
         savingPLN:   monthQ_saved * priceKWh,
@@ -662,7 +680,9 @@ window.PVSIM = window.PVSIM || {};
         heaterHours: mo.heaterHours,
         hpHours:     mo.hpHours,
         balancePLN:  mo.balancePLN,
-        Q_CWU:       cwu_m
+        Q_CWU:       cwu_m,
+        coverMinPct: mo.coverMinPct,
+        coverMaxPct: mo.coverMaxPct
       });
 
       elec_pv     += mo.elec_pv;

@@ -1,7 +1,7 @@
 /* =========================================================
    PV.SIM — Optymalizacja (Moduł 08, grid search)
 
-   P.optimize(maxPayback, lifetime, onProgress, enabled, cancelToken)
+   P.optimize(maxPayback, lifetime, onProgress, enabled, cancelToken, objective)
      Przeszukuje siatkę P.OPT_GRID po mocy PV, mocy grzałki, mocy PC,
      progu, pojemności zasobnika, temperaturze grzania i strategiach
      dzień/noc. Dla każdej kombinacji uruchamia P.simulateTankYear()
@@ -9,8 +9,11 @@
      inwestycji:
         lifetimeProfit = bilans roczny netto × lifetime − koszt inwestycji
      Odrzuca warianty bez zwrotu (balancePLN ≤ 0) oraz z czasem zwrotu
-     powyżej limitu maxPayback. Zwraca 3 najlepsze (malejąco wg
-     lifetimeProfit).
+     powyżej limitu maxPayback. Zwraca top 200 wg wybranego kryterium
+     (`objective`: 'profit' — lifetimeProfit malejąco, default;
+     'payback' — paybackYears rosnąco; 'coverage' — coveragePct malejąco;
+     w każdym wariancie lifetimeProfit jest tiebreakerem). Render.js
+     grupuje identyczne wyniki ekonomiczne i pokazuje top 10 grup.
 
      `enabled` — mapa flag per parametr (false ⇒ wymiar przypięty do
      bieżącej wartości P.state zamiast iterowania siatki).
@@ -35,7 +38,17 @@ window.PVSIM = window.PVSIM || {};
 (function(P) {
   'use strict';
 
-  P.optimize = function(maxPayback, lifetime, onProgress, enabled, cancelToken) {
+  // Komparator wg kryterium optymalizacji. Każdy zwraca top wg jednego pola,
+  // z lifetimeProfit (malejąco) jako tiebreakerem — gdy główne kryterium remisuje,
+  // wciąż preferujemy ekonomicznie lepszy wariant.
+  const SORTERS = {
+    profit:   (a, b) => b.lifetimeProfit - a.lifetimeProfit,
+    payback:  (a, b) => (a.paybackYears - b.paybackYears) || (b.lifetimeProfit - a.lifetimeProfit),
+    coverage: (a, b) => (b.coveragePct - a.coveragePct) || (b.lifetimeProfit - a.lifetimeProfit)
+  };
+
+  P.optimize = function(maxPayback, lifetime, onProgress, enabled, cancelToken, objective) {
+    const sorter = SORTERS[objective] || SORTERS.profit;
     const g = P.OPT_GRID;
     // Snapshot P.state z momentu startu — wszystkie kombinacje liczone na
     // spójnym zestawie pól spoza siatki, niezależnie czy user ruszy suwakiem.
@@ -134,7 +147,8 @@ window.PVSIM = window.PVSIM || {};
             cost:           inv.total,
             balancePLN:     balance,
             paybackYears:   inv.paybackYears,
-            lifetimeProfit: balance * lifetime - inv.total
+            lifetimeProfit: balance * lifetime - inv.total,
+            coveragePct:    simYear.yearly.coveragePct
           });
         }
         if (onProgress) onProgress(total > 0 ? i / total : 1, i, total);
@@ -142,8 +156,8 @@ window.PVSIM = window.PVSIM || {};
         // Anulowanie z UI („Zatrzymaj ◼") — sprawdzane między porcjami.
         // Zwracamy wynik częściowy (to co zdążyło się policzyć) + flagę cancelled.
         if (cancelToken && cancelToken.cancelled) {
-          results.sort((a, b) => b.lifetimeProfit - a.lifetimeProfit);
-          resolve({ results: results.slice(0, 3), cancelled: true, done: i, total });
+          results.sort(sorter);
+          resolve({ results: results.slice(0, 200), cancelled: true, done: i, total });
           return;
         }
         // Albo zaplanuj kolejny chunk (setTimeout 0 oddaje sterowanie do UI),
@@ -151,8 +165,8 @@ window.PVSIM = window.PVSIM || {};
         if (i < total) {
           setTimeout(safeStep, 0);
         } else {
-          results.sort((a, b) => b.lifetimeProfit - a.lifetimeProfit);
-          resolve({ results: results.slice(0, 3), cancelled: false, done: i, total });
+          results.sort(sorter);
+          resolve({ results: results.slice(0, 200), cancelled: false, done: i, total });
         }
       }
       // Wrapper łapie wyjątek z symulacji i zamienia go na reject Promise'a —

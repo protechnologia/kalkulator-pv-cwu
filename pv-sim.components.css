@@ -259,6 +259,19 @@
   opacity: 0.7;
 }
 
+/* Opis aktywnej strategii grzałka + PC — pod każdym togglem (Moduł 04) */
+.pvsim-strat-desc {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-left: 2px solid var(--pvsim-amber);
+  background: rgba(245, 158, 11, 0.06);
+  color: var(--pvsim-text-2);
+  font-size: 8.5px;
+  line-height: 1.5;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.pvsim-strat-desc strong { color: var(--pvsim-amber); font-weight: 600; }
+
 /* -------- VIOLET VARIANTS (Moduł 04 — sieć) -------- */
 .pvsim-module-divider.violet .tag { color: var(--pvsim-violet); }
 .pvsim-module-divider.violet .rule {
@@ -617,55 +630,73 @@
 
 /* -------- MODUŁ 08 — lista parametrów siatki -------- */
 .pvsim-opt-params {
-  list-style: none;
   margin: 0;
   padding: 8px 12px;
   background: var(--pvsim-bg-2);
   border: 1px solid var(--pvsim-border);
+  border-collapse: collapse;
+  width: 100%;
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
+  font-size: 8px;
   font-variant-numeric: tabular-nums;
   color: var(--pvsim-text-1);
 }
-.pvsim-opt-params li {
-  display: grid;
-  grid-template-columns: 100px 1fr auto;
-  align-items: baseline;
-  gap: 10px;
-  padding: 4px 0;
+.pvsim-opt-params tbody tr {
   border-bottom: 1px dashed var(--pvsim-border);
 }
-.pvsim-opt-params li:last-child { border-bottom: 0; }
-.pvsim-opt-params .name {
+.pvsim-opt-params tbody tr:last-child { border-bottom: 0; }
+.pvsim-opt-params td {
+  padding: 4px 10px;
+  vertical-align: baseline;
+}
+.pvsim-opt-params td:first-child { padding-left: 4px; }
+.pvsim-opt-params td:last-child { padding-right: 4px; }
+.pvsim-opt-params td.name {
   color: var(--pvsim-text-2);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  font-size: 10px;
+  font-size: 7.5px;
+  white-space: nowrap;
+  width: 1%;
+}
+.pvsim-opt-params td.name label {
   display: flex;
   align-items: center;
   gap: 6px;
   cursor: pointer;
 }
-.pvsim-opt-params .name input[type="checkbox"] {
+.pvsim-opt-params td.name input[type="checkbox"] {
   accent-color: var(--pvsim-fuchsia);
-  width: 12px;
-  height: 12px;
+  width: 11px;
+  height: 11px;
   margin: 0;
 }
-.pvsim-opt-params .vals { color: var(--pvsim-text-0); font-size: 10.5px; }
-.pvsim-opt-params .count { color: var(--pvsim-fuchsia); font-weight: 600; font-size: 10px; }
-.pvsim-opt-params .total {
-  margin-top: 6px;
+.pvsim-opt-params td.vals { color: var(--pvsim-text-0); font-size: 8px; }
+.pvsim-opt-params td.count {
+  color: var(--pvsim-fuchsia);
+  font-weight: 600;
+  font-size: 7.5px;
+  text-align: right;
+  white-space: nowrap;
+}
+.pvsim-opt-params tfoot tr.total td {
   padding-top: 6px;
   border-top: 1px solid var(--pvsim-border);
-  display: flex;
-  justify-content: space-between;
-  font-size: 10.5px;
+  font-size: 8px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--pvsim-text-2);
 }
-.pvsim-opt-params .total b { color: var(--pvsim-fuchsia); font-weight: 600; }
+.pvsim-opt-params tfoot tr.total td:last-child { text-align: right; }
+.pvsim-opt-params tfoot tr.total b { color: var(--pvsim-fuchsia); font-weight: 600; }
+.pvsim-opt-params tfoot tr.note td {
+  border-top: 0;
+  padding-top: 2px;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 8px;
+  color: var(--pvsim-text-3);
+}
 
 /* -------- MODUŁ 08 — tabela wyników -------- */
 .pvsim-optim-table {
@@ -698,6 +729,13 @@
   font-weight: 600;
 }
 .pvsim-optim-table tbody tr:hover { background: var(--pvsim-bg-2); }
+.pvsim-optim-table tbody tr.pvsim-optim-empty-row:hover { background: transparent; }
+.pvsim-optim-table .pvsim-optim-empty-row td {
+  text-align: center;
+  color: var(--pvsim-text-3);
+  font-style: italic;
+  padding: 18px 8px;
+}
 .pvsim-optim-table .pvsim-optim-profit {
   color: var(--pvsim-fuchsia);
   font-weight: 600;

@@ -40,7 +40,7 @@ Pobierz repozytorium i otwórz `pv-sim.v1.4.html` w przeglądarce.
   (oba urządzenia zatrzymują grzanie po osiągnięciu tej temperatury,
   niezależny od temperatury CWU z Modułu 02)
 - Pompa ciepła powietrze→woda (drugie źródło ciepła, równolegle z grzałką):
-  moc elektryczna 0–10 kW (0 = PC wyłączona), 1–5 biegów (równe stopnie mocy),
+  moc elektryczna 0–15 kW (0 = PC wyłączona), 1–5 biegów (równe stopnie mocy),
   pasmo „tylko PC" pod setpointem 0–20°C, sezonowy COP — letni (Kwi–Wrz)
   i zimowy (Paź–Mar) w zakresie 2,0–5,0
 - W off-grid PC ma priorytet — wybiera największy bieg, dla którego moc
@@ -75,11 +75,18 @@ Pobierz repozytorium i otwórz `pv-sim.v1.4.html` w przeglądarce.
 
 ### Moduł 08 — Optymalizacja (grid search)
 - Automatyczny dobór najlepszej konfiguracji PV, grzałki, PC i zasobnika
-- Użytkownik podaje maksymalny czas zwrotu i zakładany okres życia inwestycji
+- Użytkownik podaje maksymalny czas zwrotu, zakładany okres życia inwestycji
+  oraz kryterium optymalizacji (maks. zysk netto / min. czas zwrotu /
+  maks. pokrycie CWU)
 - Przeszukuje siatkę kombinacji (moc PV, grzałka, moc PC, próg, zasobnik,
-  temperatura grzania, strategie dzień/noc) i prezentuje 3 najlepsze warianty;
-  każdy parametr można checkboxem wyłączyć z optymalizacji (przypięty
-  do bieżącej wartości suwaka), trwającą optymalizację można zatrzymać
+  temperatura grzania, strategie dzień/noc) i prezentuje top 10 wariantów
+  posortowanych wg wybranego kryterium (z bilansem netto jako tiebreakerem).
+  Wiersze o identycznym
+  wyniku ekonomicznym są łączone — kolumna # pokazuje zakres rang `1–3`,
+  a w komórkach różniących się parametrów (np. próg dla off/off) widać listę
+  `v1 / v2 / v3`. Każdy parametr można checkboxem wyłączyć z optymalizacji
+  (przypięty do bieżącej wartości suwaka). Pasek postępu pokazuje licznik
+  i ETA; trwającą optymalizację można zatrzymać
 - Wynik można jednym kliknięciem przenieść do kontrolek Modułu 04
 
 ## Struktura plików

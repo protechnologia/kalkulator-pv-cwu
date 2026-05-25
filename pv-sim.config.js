@@ -163,18 +163,19 @@ window.PVSIM = window.PVSIM || {};
     priceHPkWth:   3000,    // zł / 1 kW mocy grzewczej PC (kW × COP_średni)
     // Moduł 08 — optymalizacja (grid search)
     optMaxPayback: 5,       // maksymalny dopuszczalny czas zwrotu [lata]
-    optLifetime:   20       // zakładany okres życia inwestycji [lata]
+    optLifetime:   20,      // zakładany okres życia inwestycji [lata]
+    optObjective:  'profit' // kryterium sortowania: 'profit' | 'payback' | 'coverage'
   };
 
   // ===== SIATKA OPTYMALIZACJI (Moduł 08) =====
   // Zgrubne zbiory wartości przeszukiwane przez P.optimize() — grid search.
   P.OPT_GRID = {
     kWp:           [0, 5, 10, 15, 20, 30, 40, 50],
-    heaterKW:      [0, 2, 3, 4.5, 6, 9, 12, 15],
-    threshold:     [0.1, 0.2, 0.4, 0.6, 0.8],
-    tankL:         [200, 300, 500, 800, 1200, 2000, 3000],
+    heaterKW:      [0, 2, 5, 10, 15],
+    threshold:     [0.1, 0.2, 0.3],
+    tankL:         [300, 500, 1000, 1500, 2000, 3000],
     heaterTargetC: [45, 50, 55, 60],
-    hpKW:          [0, 2, 3, 5, 8],
+    hpKW:          [0, 3, 5, 8, 10, 12, 15],
     strat:         ['off', 'off-grid', 'on-grid']
   };
 

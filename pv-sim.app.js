@@ -27,9 +27,10 @@
        COP letni i zimowy (moduł 04, hpKW = 0 = PC wyłączona)
      - przełączniki strategii pary PC+grzałka dzień/noc (moduł 04)
      - suwaki cen inwestycji: PV, grzałki, PC, zasobnik, SCADA (moduł 07)
-     - suwaki limitu zwrotu i okresu życia, checkboxy włączania
-       poszczególnych wymiarów siatki, przyciski start/stop optymalizacji
-       (moduł 08)
+     - suwaki limitu zwrotu i okresu życia, przełącznik kryterium
+       optymalizacji (maks. zysk / min. zwrot / maks. pokrycie),
+       checkboxy włączania poszczególnych wymiarów siatki, przyciski
+       start/stop optymalizacji (moduł 08)
      - przycisk pokaż/ukryj sidebar z podsumowaniem rocznym
        (start: widoczny dla okna ≥1100 px, ukryty poniżej)
    Każda kontrolka przy zmianie synchronizuje P.state, odświeża etykietę,
@@ -46,6 +47,36 @@ window.PVSIM = window.PVSIM || {};
   // Hook ustawiany przez init() — odświeża widget „Parametry siatki" (Moduł 08)
   // po zmianie wartości w P.state, żeby pola „stałe: …" pokazywały aktualne dane.
   let renderOptParamsHook = null;
+
+  // Opisy strategii grzałka + PC — pokazywane pod aktywnym przyciskiem
+  // togglea (Moduł 04). Treść identyczna dla strefy dziennej i nocnej —
+  // strategia ma to samo znaczenie, różni się tylko cena prądu z sieci.
+  const STRAT_DESC = {
+    'off':
+      '<strong>Grzanie wyłączone.</strong> W tej strefie taryfy ani grzałka, ani pompa ciepła nie pracują. ' +
+      'Zasobnik traci ciepło na rozbiór CWU i straty postojowe, a temperatura spada. ' +
+      'Sensowne w strefie nocnej, gdy zakładamy, że dzienna nadwyżka PV w pełni naładuje zasobnik, ' +
+      'albo gdy chcemy świadomie zrezygnować z grzania w drogiej strefie taryfy.',
+    'off-grid':
+      '<strong>Tylko nadwyżka PV (power diverter).</strong> Układ grzeje wyłącznie wtedy, gdy produkcja PV przekracza próg włączenia, ' +
+      'i pobiera tylko tyle prądu, ile aktualnie produkują panele — nic z sieci. ' +
+      'Pompa ciepła ma priorytet (wybiera najwyższy bieg mieszczący się w nadwyżce), a grzałka dobiera resztę PV. ' +
+      'Grzanie zatrzymuje się po osiągnięciu temperatury docelowej zasobnika — nadwyżka PV ponad ten setpoint jest tracona. ' +
+      'Najtańszy tryb w eksploatacji, ale w pochmurne dni lub po dużym poborze CWU zasobnik może zostać niedogrzany.',
+    'on-grid':
+      '<strong>Z dopłatą z sieci.</strong> Układ grzeje zawsze, gdy temperatura zasobnika jest poniżej setpointu. ' +
+      'W wąskim paśmie tuż pod setpointem pracuje sama pompa ciepła, dobierając bieg proporcjonalnie do bieżącego zapotrzebowania, ' +
+      'a grzałka pozostaje wyłączona. Poniżej tego pasa pompa ciepła przechodzi na najwyższy bieg, ' +
+      'a grzałka dołącza jako dopalacz, modulując moc do dogrzewania. ' +
+      'Nadwyżka PV jest wykorzystywana w pierwszej kolejności, a brakującą energię układ pobiera z sieci po cenie aktualnej strefy taryfy.'
+  };
+
+  function renderStratDesc() {
+    const dEl = document.getElementById('pvsim-strat-day-desc');
+    const nEl = document.getElementById('pvsim-strat-night-desc');
+    if (dEl) dEl.innerHTML = STRAT_DESC[P.state.heaterStratDay]   || '';
+    if (nEl) nEl.innerHTML = STRAT_DESC[P.state.heaterStratNight] || '';
+  }
 
   // ===== AKTUALIZACJA =====
   P.update = function() {
@@ -73,12 +104,14 @@ window.PVSIM = window.PVSIM || {};
 
     const simYear = P.simulateTankYear();
     P.renderYearChart(simYear);
+    P.renderYearCoverChart(simYear);
     P.renderYearStats(simYear);
 
     const inv = P.computeInvestment(simYear);
     P.renderInvestStats(inv);
 
     P.renderGridChart();
+    renderStratDesc();
     if (renderOptParamsHook) renderOptParamsHook();
   };
 
@@ -294,6 +327,19 @@ window.PVSIM = window.PVSIM || {};
     wireStratToggle('pvsim-strat-day-toggle', 'heaterStratDay');
     wireStratToggle('pvsim-strat-night-toggle', 'heaterStratNight');
 
+    // Przełącznik kryterium optymalizacji (Moduł 08) — nie wywołuje P.update(),
+    // bo optymalizator startuje tylko przyciskiem, a moduł 08 nie jest częścią `update()`.
+    (function() {
+      const btns = document.querySelectorAll('#pvsim-opt-objective-toggle .pvsim-toggle-btn');
+      btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          P.state.optObjective = btn.dataset.obj;
+          btns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        });
+      });
+    })();
+
     // Pola cen energii elektrycznej (Moduł 03)
     const inputGridDay = document.getElementById('pvsim-grid-price-day');
     const inputGridNight = document.getElementById('pvsim-grid-price-night');
@@ -441,21 +487,25 @@ window.PVSIM = window.PVSIM || {};
         const vals = G[k];
         if (!vals) return '';
         const on = optEnabled[k];
-        const valsTxt = on ? (vals.join(' · ') + (unit ? ' ' + unit : '')) : `stałe: ${currentParamVal(k)}${unit ? ' ' + unit : ''}`;
+        const fmtVal = (v) => k === 'threshold' ? `${Math.round(v * 100)}%` : v;
+        const unitSuffix = (k === 'threshold' || !unit) ? '' : ' ' + unit;
+        const valsTxt = on ? (vals.map(fmtVal).join(' · ') + unitSuffix) : `stałe: ${fmtVal(currentParamVal(k))}${unitSuffix}`;
         let countTxt;
         if (!on)                    countTxt = '× 1';
         else if (k === 'strat')     countTxt = `${vals.length}² par`;
         else if (k === 'threshold') countTxt = `× ${vals.length} *`;
         else                        countTxt = `× ${vals.length}`;
-        return `<li>`
-             + `<label class="name"><input type="checkbox" data-opt="${k}" ${on?'checked':''}> ${name}</label>`
-             + `<span class="vals">${valsTxt}</span>`
-             + `<span class="count">${countTxt}</span>`
-             + `</li>`;
+        return `<tr>`
+             + `<td class="name"><label><input type="checkbox" data-opt="${k}" ${on?'checked':''}> ${name}</label></td>`
+             + `<td class="vals">${valsTxt}</td>`
+             + `<td class="count">${countTxt}</td>`
+             + `</tr>`;
       }).join('');
-      optParams.innerHTML = rows
-        + `<div class="total"><span>Razem kombinacji</span><b>${P.fmt.pl0(total)}</b></div>`
-        + (optEnabled.threshold ? `<div class="total" style="text-transform:none; letter-spacing:0; font-size:9.5px; color: var(--pvsim-text-3); padding-top:2px; border-top:0;">* próg pomijany tylko gdy obie strefy = off</div>` : '');
+      optParams.innerHTML = `<tbody>${rows}</tbody>`
+        + `<tfoot>`
+        + `<tr class="total"><td colspan="2">Razem kombinacji</td><td><b>${P.fmt.pl0(total)}</b></td></tr>`
+        + (optEnabled.threshold ? `<tr class="total note"><td colspan="3">* próg pomijany tylko gdy obie strefy = off</td></tr>` : '')
+        + `</tfoot>`;
     }
     function currentParamVal(k) {
       const s = P.state;
@@ -477,6 +527,7 @@ window.PVSIM = window.PVSIM || {};
     });
     renderOptParamsHook = renderOptParams;
     renderOptParams();
+    P.renderOptimTable(null);
 
     const optRun   = document.getElementById('pvsim-opt-run');
     const optBar   = document.getElementById('pvsim-opt-progress-fill');
@@ -500,12 +551,29 @@ window.PVSIM = window.PVSIM || {};
       optBar.style.width = '0%';
       optLabel.innerHTML = '<span class="count">0</span> / 0';
       renderOptParams(); // odśwież „stałe: …" jeśli zmieniło się P.state
+      const optStartMs = performance.now();
+      const fmtEta = (s) => {
+        if (!isFinite(s) || s < 0) return '—';
+        s = Math.round(s);
+        if (s < 60) return s + ' s';
+        const m = Math.floor(s / 60), r = s % 60;
+        if (m < 60) return m + ' min ' + (r < 10 ? '0' : '') + r + ' s';
+        const h = Math.floor(m / 60), mm = m % 60;
+        return h + ' h ' + (mm < 10 ? '0' : '') + mm + ' min';
+      };
       P.optimize(P.state.optMaxPayback, P.state.optLifetime, (frac, done, total) => {
         optBar.style.width = Math.round(frac * 100) + '%';
-        optLabel.innerHTML = '<span class="count">' + P.fmt.pl0(done) + '</span> / ' + P.fmt.pl0(total);
-      }, optEnabled, optCancel).then(res => {
+        const elapsed = (performance.now() - optStartMs) / 1000;
+        const etaTxt = (done > 0 && frac < 1)
+          ? ' — ETA ' + fmtEta(elapsed * (total - done) / done)
+          : '';
+        optLabel.innerHTML = '<span class="count">' + P.fmt.pl0(done) + '</span> / ' + P.fmt.pl0(total) + etaTxt;
+      }, optEnabled, optCancel, P.state.optObjective).then(res => {
         optResults = res.results;
-        P.renderOptimTable(optResults);
+        P.renderOptimTable(
+          optResults,
+          'Brak wariantu spełniającego limit zwrotu — zwiększ dopuszczalny czas zwrotu lub zmień parametry modułów 01–03.'
+        );
         if (res.cancelled) {
           optLabel.innerHTML = '<span class="count">' + P.fmt.pl0(res.done) + '</span> / ' + P.fmt.pl0(res.total) + ' — zatrzymano';
         }

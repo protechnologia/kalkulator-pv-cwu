@@ -131,6 +131,57 @@ window.PVSIM = window.PVSIM || {};
 
   // ===== INICJALIZACJA UI =====
   function init() {
+    // Hydracja kontrolek z P.state — JS jest jedynym źródłem prawdy dla wartości
+    // domyślnych. HTML nie ma już atrybutów value="..." / class="active" duplikujących
+    // defaults; ustawiamy je tu raz, a istniejące sync*/update*/wire* poniżej działają
+    // jak dotąd (czytają z DOM, ustawiają --pvsim-fill i etykiety).
+    const HYDRATE_INPUTS = [
+      ['pvsim-power',            'kWp'],
+      ['pvsim-pv-variability',   'pvVariability',    v => Math.round(v * 100)],
+      ['pvsim-price-gj',         'priceHeatGJ'],
+      ['pvsim-residents',        'residents'],
+      ['pvsim-thot',             'T_hot'],
+      ['pvsim-heater',           'heaterKW'],
+      ['pvsim-heater-threshold', 'heaterThreshold',  v => Math.round(v * 100)],
+      ['pvsim-tank',             'tankL'],
+      ['pvsim-heater-target',    'heaterTargetC'],
+      ['pvsim-hp',               'hpKW'],
+      ['pvsim-hp-gears',         'hpGears'],
+      ['pvsim-hp-band',          'hpOnlyBandC'],
+      ['pvsim-hp-cop-summer',    'hpCOPSummer'],
+      ['pvsim-hp-cop-winter',    'hpCOPWinter'],
+      ['pvsim-grid-price-day',   'gridPriceDay'],
+      ['pvsim-grid-price-night', 'gridPriceNight'],
+      ['pvsim-grid-day-start',   'gridDayStart'],
+      ['pvsim-grid-day-end',     'gridDayEnd'],
+      ['pvsim-price-pv',         'pricePVkWp'],
+      ['pvsim-price-heater',     'priceHeaterKW'],
+      ['pvsim-price-hp',         'priceHPkWth'],
+      ['pvsim-price-tank',       'priceTank100'],
+      ['pvsim-price-scada',      'priceScada'],
+      ['pvsim-opt-payback',      'optMaxPayback'],
+      ['pvsim-opt-lifetime',     'optLifetime'],
+    ];
+    HYDRATE_INPUTS.forEach(([id, key, transform]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const v = P.state[key];
+      el.value = String(transform ? transform(v) : v);
+    });
+    const HYDRATE_TOGGLES = [
+      ['pvsim-mode-toggle',          'mode',     'pvMode'],
+      ['pvsim-building-toggle',      'building', 'buildingType'],
+      ['pvsim-strat-day-toggle',     'strat',    'heaterStratDay'],
+      ['pvsim-strat-night-toggle',   'strat',    'heaterStratNight'],
+      ['pvsim-opt-objective-toggle', 'obj',      'optObjective'],
+    ];
+    HYDRATE_TOGGLES.forEach(([toggleId, dataAttr, stateKey]) => {
+      const wanted = String(P.state[stateKey]);
+      document.querySelectorAll('#' + toggleId + ' .pvsim-toggle-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset[dataAttr] === wanted);
+      });
+    });
+
     // Suwak mocy
     const slider = document.getElementById('pvsim-power');
     const sliderVal = document.getElementById('pvsim-power-val');

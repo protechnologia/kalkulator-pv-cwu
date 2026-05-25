@@ -66,11 +66,11 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 - Parametry: liczba mieszkańców (1–200), temperatura docelowa T_hot (35–65°C), cena energii cieplnej [zł/GJ]
 - Profil godzinowy: Chmielewska 2025, Energies 18(17), 42 budynki w Polsce
 - Temperatura wody zimnej: model sinusoidalny, min luty ~6°C, max sierpień ~16°C
-- Taryfa: ECO Opole od 01.01.2026 → domyślnie `P.state.priceHeatGJ = 196.95 zł/GJ` (edytowalna z UI — pole „Cena ciepła")
+- Taryfa: domyślnie `P.state.priceHeatGJ = 130 zł/GJ` (edytowalna z UI — pole „Cena ciepła")
 
 ### Moduł 03 — Sieć (taryfa energii elektrycznej)
 - Parametry: cena strefy dziennej [zł/kWh], cena strefy nocnej [zł/kWh], godziny strefy dziennej (start/koniec)
-- Wartości domyślne: G12 Tauron 2026 — dzień 0,6950 zł/kWh, noc 0,3500 zł/kWh, strefa 6:00–22:00
+- Wartości domyślne: dzień 1,20 zł/kWh, noc 1,20 zł/kWh, strefa 6:00–22:00
 - Wykres krokowy 24h — słupki fioletowe (dzień) i szare (noc), oś Y z ładnymi krokami
 - Ceny stref i godziny granic taryfy wykorzystuje Moduł 04 (strategie grzałki, koszt energii z sieci)
 
@@ -252,8 +252,8 @@ P.state = {
   hpOnlyBandC:  5,      // °C — pasmo „tylko PC" pod setpointem (on-grid)
   buildingType: 'old',  // 'old' | 'new' — straty cyrkulacji (60% / 35%)
   // Moduł 03 — taryfa energii elektrycznej (on-grid w przygotowaniu)
-  gridPriceDay:   0.6950, // zł/kWh — strefa dzienna
-  gridPriceNight: 0.3500, // zł/kWh — strefa nocna
+  gridPriceDay:   1.20,   // zł/kWh — strefa dzienna
+  gridPriceNight: 1.20,   // zł/kWh — strefa nocna
   gridDayStart:   6,      // godz. początku strefy dziennej
   gridDayEnd:     22,     // godz. końca strefy dziennej
   // Moduł 07 — inwestycja (ceny jednostkowe)
@@ -351,12 +351,6 @@ spadnie wraz z dodaniem strat cyrkulacji do bilansu zasobnika.
 guziki wymuszają wybór między dwoma punktami, suwak pozwala oddać realny stan
 budynku między nimi.
 
-**Domyślne ceny** — zaktualizować wartości startowe w `P.state`:
-`priceHeatGJ = 130 zł/GJ` (Moduł 02; obecnie 196.95 z ECO Opole 2026),
-`gridPriceDay = gridPriceNight = 1.20 zł/kWh` (Moduł 03; obecnie 0.6950/0.3500
-z G12 Tauron 2026). Zaktualizować też atrybuty `value` w HTML i opisy
-w README.md / CLAUDE.md.
-
 **Zakresy suwaków** — zwiększyć górne limity:
 - liczba mieszkańców (Moduł 02) z 200 → 1000 (atrybut `max` w HTML +
   ewentualnie opis w README/CLAUDE).
@@ -392,11 +386,6 @@ delikatna czerwień/pomarańcz), prąd (delikatny błękit/fiolet), pieniądze
 (delikatna zieleń). Klasy CSS per kategoria w `components.css` + przypisanie
 klasy do każdej karty w `render.js`. Cel: szybsze parsowanie wzrokowe paneli
 M04–M06, bez krzykliwości — saturacja na poziomie 5–10%.
-
-**Mniejsza czcionka w tabeli wyników optymalizacji** — zmniejszyć `font-size`
-tabeli `#pvsim-optim-table` (Moduł 08), żeby grupowane listy wartości
-`v1 / v2 / v3` w komórkach mieściły się bez łamania i całość była czytelna
-bez przewijania w bok.
 
 **Szerokość głównego kontenera jako procent okna** — obecnie kontener `.pvsim`
 ma stałą szerokość (max-width w px). Zamienić na procent szerokości okna

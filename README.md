@@ -25,12 +25,12 @@ Pobierz repozytorium i otwórz `pv-sim.v1.5.html` w przeglądarce.
 - Temperatura docelowa: 35–65°C
 - Profil godzinowy poboru wody wg Chmielewska (2025), badania 42 budynków w Polsce
 - Temperatura wody zimnej: model sinusoidalny (min ~6°C w lutym, max ~16°C w sierpniu)
-- Taryfa ciepła: ECO Opole od 01.01.2026
+- Taryfa ciepła: domyślnie 130 zł/GJ (edytowalna z UI)
 
 ### Moduł 03 — Sieć (taryfa energii elektrycznej)
 - Konfigurowalna taryfa 2-strefowa: cena dzienna i nocna [zł/kWh]
 - Regulowane godziny granic strefy dziennej (start/koniec)
-- Wartości domyślne: G12 Tauron 2026 — dzień 0,6950 zł/kWh, noc 0,3500 zł/kWh
+- Wartości domyślne: dzień 1,20 zł/kWh, noc 1,20 zł/kWh
 - Ceny i godziny stref wykorzystuje Moduł 04 (strategie grzałki, koszt z sieci)
 
 ### Moduł 04 — Zasobnik z pompą ciepła i grzałką elektryczną
@@ -110,8 +110,6 @@ pv-sim.app.js         — P.update(), init(), obsługa UI
 | Produkcja PV | PVGIS, Komisja Europejska |
 | Profil poboru CWU | Chmielewska A. (2025), *Energies* 18(17), DOI: [10.3390/en18174578](https://doi.org/10.3390/en18174578) |
 | Temperatura wody zimnej | Górka A., RynekInstalacyjny.pl, 90 punktów sieci PL |
-| Taryfa ciepła | ECO Opole, cennik od 01.01.2026 |
-| Taryfa energii elektrycznej | G12 Tauron, cennik 2026 |
 
 ## Technologie
 

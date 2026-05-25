@@ -43,7 +43,7 @@
         <div class="pvsim-label">Parametry instalacji &nbsp;[ kWp ]</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
-            <input type="range" min="0" max="50" value="10" step="0.5" class="pvsim-slider" id="pvsim-power">
+            <input type="range" min="0" max="50" step="0.5" class="pvsim-slider" id="pvsim-power">
           </div>
           <div class="pvsim-value-box"><span id="pvsim-power-val">10.0</span><span class="unit">kWp</span></div>
         </div>
@@ -53,7 +53,7 @@
         <div class="pvsim-label">Zmienność pogody dobowej &nbsp;[ % ]</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
-            <input type="range" min="0" max="100" value="50" step="5" class="pvsim-slider" id="pvsim-pv-variability">
+            <input type="range" min="0" max="100" step="5" class="pvsim-slider" id="pvsim-pv-variability">
           </div>
           <div class="pvsim-value-box"><span id="pvsim-pv-variability-val">50</span><span class="unit">%</span></div>
         </div>
@@ -63,7 +63,7 @@
     <div>
       <div class="pvsim-label">Tryb symulacji PV</div>
       <div class="pvsim-toggle" id="pvsim-mode-toggle">
-        <button class="pvsim-toggle-btn active" data-mode="avg">
+        <button class="pvsim-toggle-btn" data-mode="avg">
           <span class="num">01</span>DOBA PRZECIĘTNA
         </button>
         <button class="pvsim-toggle-btn" data-mode="clear">
@@ -139,7 +139,7 @@
         <div class="pvsim-label teal">Mieszkańcy budynku &nbsp;[ os. ]</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
-            <input type="range" min="5" max="200" value="50" step="1" class="pvsim-slider teal" id="pvsim-residents">
+            <input type="range" min="5" max="200" step="1" class="pvsim-slider teal" id="pvsim-residents">
           </div>
           <div class="pvsim-value-box teal"><span id="pvsim-residents-val">50</span><span class="unit">osób</span></div>
         </div>
@@ -148,7 +148,7 @@
         <div class="pvsim-label teal">Temperatura docelowa CWU &nbsp;[ °C ]</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
-            <input type="range" min="40" max="60" value="50" step="1" class="pvsim-slider teal" id="pvsim-thot">
+            <input type="range" min="40" max="60" step="1" class="pvsim-slider teal" id="pvsim-thot">
           </div>
           <div class="pvsim-value-box teal"><span id="pvsim-thot-val">50</span><span class="unit">°C</span></div>
         </div>
@@ -156,14 +156,14 @@
       <div>
         <div class="pvsim-label teal">Cena energii cieplnej &nbsp;[ zł/GJ ]</div>
         <div class="pvsim-power-row">
-          <input type="number" min="50" max="600" step="0.01" value="196.95" class="pvsim-number-input teal" id="pvsim-price-gj">
-          <div class="pvsim-value-box teal"><span id="pvsim-price-kwh">0,71</span><span class="unit">zł/kWh</span></div>
+          <input type="number" min="50" max="600" step="0.01" class="pvsim-number-input teal" id="pvsim-price-gj">
+          <div class="pvsim-value-box teal"><span id="pvsim-price-kwh">0,47</span><span class="unit">zł/kWh</span></div>
         </div>
       </div>
       <div>
         <div class="pvsim-label teal">Typ budynku &nbsp;/ straty cyrkulacji</div>
         <div class="pvsim-toggle" id="pvsim-building-toggle">
-          <button class="pvsim-toggle-btn teal active" data-building="old">
+          <button class="pvsim-toggle-btn teal" data-building="old">
             <span class="num">01</span>STARY BUDYNEK &nbsp;<span class="num">38% STRAT</span>
           </button>
           <button class="pvsim-toggle-btn teal" data-building="new">
@@ -234,14 +234,14 @@
       <div>
         <div class="pvsim-label violet">Cena strefy dziennej &nbsp;[ zł/kWh ]</div>
         <div class="pvsim-power-row">
-          <input type="number" min="0.01" max="5" step="0.0001" value="0.6950" class="pvsim-number-input violet" id="pvsim-grid-price-day">
+          <input type="number" min="0.01" max="5" step="0.0001" class="pvsim-number-input violet" id="pvsim-grid-price-day">
           <div class="pvsim-value-box violet"><span class="unit">zł/kWh</span></div>
         </div>
       </div>
       <div>
         <div class="pvsim-label violet">Cena strefy nocnej &nbsp;[ zł/kWh ]</div>
         <div class="pvsim-power-row">
-          <input type="number" min="0.01" max="5" step="0.0001" value="0.3500" class="pvsim-number-input violet" id="pvsim-grid-price-night">
+          <input type="number" min="0.01" max="5" step="0.0001" class="pvsim-number-input violet" id="pvsim-grid-price-night">
           <div class="pvsim-value-box violet"><span class="unit">zł/kWh</span></div>
         </div>
       </div>
@@ -249,7 +249,7 @@
         <div class="pvsim-label violet">Początek strefy dziennej &nbsp;[ h ]</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
-            <input type="range" min="0" max="23" value="6" step="1" class="pvsim-slider violet" id="pvsim-grid-day-start">
+            <input type="range" min="0" max="23" step="1" class="pvsim-slider violet" id="pvsim-grid-day-start">
           </div>
           <div class="pvsim-value-box violet"><span id="pvsim-grid-day-start-val">6</span><span class="unit">:00</span></div>
         </div>
@@ -258,7 +258,7 @@
         <div class="pvsim-label violet">Koniec strefy dziennej &nbsp;[ h ]</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
-            <input type="range" min="0" max="23" value="22" step="1" class="pvsim-slider violet" id="pvsim-grid-day-end">
+            <input type="range" min="0" max="23" step="1" class="pvsim-slider violet" id="pvsim-grid-day-end">
           </div>
           <div class="pvsim-value-box violet"><span id="pvsim-grid-day-end-val">22</span><span class="unit">:00</span></div>
         </div>
@@ -299,7 +299,7 @@
           <button class="pvsim-toggle-btn amber" data-strat="off">
             <span class="num">01</span>WYŁĄCZONA
           </button>
-          <button class="pvsim-toggle-btn amber active" data-strat="off-grid">
+          <button class="pvsim-toggle-btn amber" data-strat="off-grid">
             <span class="num">02</span>OFF-GRID
           </button>
           <button class="pvsim-toggle-btn amber" data-strat="on-grid">
@@ -314,7 +314,7 @@
           <button class="pvsim-toggle-btn amber" data-strat="off">
             <span class="num">01</span>WYŁĄCZONA
           </button>
-          <button class="pvsim-toggle-btn amber active" data-strat="off-grid">
+          <button class="pvsim-toggle-btn amber" data-strat="off-grid">
             <span class="num">02</span>OFF-GRID
           </button>
           <button class="pvsim-toggle-btn amber" data-strat="on-grid">
@@ -331,7 +331,7 @@
         <div class="pvsim-label amber">Pojemność zasobnika &nbsp;[ l ]</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
-            <input type="range" min="200" max="3000" value="500" step="50" class="pvsim-slider amber" id="pvsim-tank">
+            <input type="range" min="200" max="3000" step="50" class="pvsim-slider amber" id="pvsim-tank">
           </div>
           <div class="pvsim-value-box amber"><span id="pvsim-tank-val">500</span><span class="unit">l</span></div>
         </div>
@@ -340,7 +340,7 @@
         <div class="pvsim-label amber">Temperatura docelowa zasobnika &nbsp;[ °C ]</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
-            <input type="range" min="0" max="60" value="50" step="1" class="pvsim-slider amber" id="pvsim-heater-target">
+            <input type="range" min="0" max="60" step="1" class="pvsim-slider amber" id="pvsim-heater-target">
           </div>
           <div class="pvsim-value-box amber"><span id="pvsim-heater-target-val">50</span><span class="unit">°C</span></div>
         </div>
@@ -353,7 +353,7 @@
         <div class="pvsim-label amber">Moc elektryczna pompy ciepła &nbsp;[ kW ]</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
-            <input type="range" min="0" max="15" value="2" step="0.5" class="pvsim-slider amber" id="pvsim-hp">
+            <input type="range" min="0" max="15" step="0.5" class="pvsim-slider amber" id="pvsim-hp">
           </div>
           <div class="pvsim-value-box amber"><span id="pvsim-hp-val">2,0</span><span class="unit">kW</span></div>
         </div>
@@ -362,7 +362,7 @@
         <div class="pvsim-label amber">Liczba biegów pompy ciepła</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
-            <input type="range" min="1" max="5" value="2" step="1" class="pvsim-slider amber" id="pvsim-hp-gears">
+            <input type="range" min="1" max="5" step="1" class="pvsim-slider amber" id="pvsim-hp-gears">
           </div>
           <div class="pvsim-value-box amber"><span id="pvsim-hp-gears-val">2</span><span class="unit">biegi</span></div>
         </div>
@@ -373,7 +373,7 @@
         <div class="pvsim-label amber">Pasmo „tylko PC" pod setpointem &nbsp;[ °C ]</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
-            <input type="range" min="0" max="20" value="5" step="1" class="pvsim-slider amber" id="pvsim-hp-band">
+            <input type="range" min="0" max="20" step="1" class="pvsim-slider amber" id="pvsim-hp-band">
           </div>
           <div class="pvsim-value-box amber"><span id="pvsim-hp-band-val">5</span><span class="unit">°C</span></div>
         </div>
@@ -385,7 +385,7 @@
         <div class="pvsim-label amber">COP pompy &nbsp;/ lato (Kwi–Wrz)</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
-            <input type="range" min="2" max="5" value="3.5" step="0.1" class="pvsim-slider amber" id="pvsim-hp-cop-summer">
+            <input type="range" min="2" max="5" step="0.1" class="pvsim-slider amber" id="pvsim-hp-cop-summer">
           </div>
           <div class="pvsim-value-box amber"><span id="pvsim-hp-cop-summer-val">3,5</span><span class="unit">COP</span></div>
         </div>
@@ -394,7 +394,7 @@
         <div class="pvsim-label amber">COP pompy &nbsp;/ zima (Paź–Mar)</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
-            <input type="range" min="2" max="5" value="2.5" step="0.1" class="pvsim-slider amber" id="pvsim-hp-cop-winter">
+            <input type="range" min="2" max="5" step="0.1" class="pvsim-slider amber" id="pvsim-hp-cop-winter">
           </div>
           <div class="pvsim-value-box amber"><span id="pvsim-hp-cop-winter-val">2,5</span><span class="unit">COP</span></div>
         </div>
@@ -407,7 +407,7 @@
         <div class="pvsim-label amber">Moc grzałki &nbsp;[ kW ]</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
-            <input type="range" min="0" max="15" value="3" step="0.5" class="pvsim-slider amber" id="pvsim-heater">
+            <input type="range" min="0" max="15" step="0.5" class="pvsim-slider amber" id="pvsim-heater">
           </div>
           <div class="pvsim-value-box amber"><span id="pvsim-heater-val">3,0</span><span class="unit">kW</span></div>
         </div>
@@ -416,7 +416,7 @@
         <div class="pvsim-label amber">Próg włączenia grzałki &nbsp;[ % mocy grzałki ]</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
-            <input type="range" min="10" max="100" value="10" step="10" class="pvsim-slider amber" id="pvsim-heater-threshold">
+            <input type="range" min="10" max="100" step="10" class="pvsim-slider amber" id="pvsim-heater-threshold">
           </div>
           <div class="pvsim-value-box amber"><span id="pvsim-heater-threshold-val">10</span><span class="unit">%</span></div>
         </div>
@@ -736,7 +736,7 @@
         <div class="pvsim-label rose">Cena instalacji PV &nbsp;[ zł / kWp ]</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
-            <input type="range" min="2000" max="8000" value="4500" step="100" class="pvsim-slider rose" id="pvsim-price-pv">
+            <input type="range" min="2000" max="8000" step="100" class="pvsim-slider rose" id="pvsim-price-pv">
           </div>
           <div class="pvsim-value-box rose"><span id="pvsim-price-pv-val">4 500</span><span class="unit">zł/kWp</span></div>
         </div>
@@ -745,7 +745,7 @@
         <div class="pvsim-label rose">Cena grzałek &nbsp;[ zł / kW ]</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
-            <input type="range" min="100" max="2000" value="500" step="50" class="pvsim-slider rose" id="pvsim-price-heater">
+            <input type="range" min="100" max="2000" step="50" class="pvsim-slider rose" id="pvsim-price-heater">
           </div>
           <div class="pvsim-value-box rose"><span id="pvsim-price-heater-val">500</span><span class="unit">zł/kW</span></div>
         </div>
@@ -754,7 +754,7 @@
         <div class="pvsim-label rose">Cena pompy ciepła &nbsp;[ zł / kW grzewczej ]</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
-            <input type="range" min="500" max="8000" value="3000" step="100" class="pvsim-slider rose" id="pvsim-price-hp">
+            <input type="range" min="500" max="8000" step="100" class="pvsim-slider rose" id="pvsim-price-hp">
           </div>
           <div class="pvsim-value-box rose"><span id="pvsim-price-hp-val">3 000</span><span class="unit">zł/kW</span></div>
         </div>
@@ -763,7 +763,7 @@
         <div class="pvsim-label rose">Cena zasobnika &nbsp;[ zł / 100 l ]</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
-            <input type="range" min="300" max="3000" value="1100" step="100" class="pvsim-slider rose" id="pvsim-price-tank">
+            <input type="range" min="300" max="3000" step="100" class="pvsim-slider rose" id="pvsim-price-tank">
           </div>
           <div class="pvsim-value-box rose"><span id="pvsim-price-tank-val">1 100</span><span class="unit">zł/100l</span></div>
         </div>
@@ -772,7 +772,7 @@
         <div class="pvsim-label rose">Automatyka + SCADA &nbsp;[ zł ]</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
-            <input type="range" min="0" max="50000" value="10000" step="1000" class="pvsim-slider rose" id="pvsim-price-scada">
+            <input type="range" min="0" max="50000" step="1000" class="pvsim-slider rose" id="pvsim-price-scada">
           </div>
           <div class="pvsim-value-box rose"><span id="pvsim-price-scada-val">10 000</span><span class="unit">zł</span></div>
         </div>
@@ -818,7 +818,7 @@
         <div class="pvsim-label fuchsia">Maks. czas zwrotu &nbsp;[ lata ]</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
-            <input type="range" min="1" max="25" value="5" step="1" class="pvsim-slider fuchsia" id="pvsim-opt-payback">
+            <input type="range" min="1" max="25" step="1" class="pvsim-slider fuchsia" id="pvsim-opt-payback">
           </div>
           <div class="pvsim-value-box fuchsia"><span id="pvsim-opt-payback-val">5</span><span class="unit">lat</span></div>
         </div>
@@ -827,7 +827,7 @@
         <div class="pvsim-label fuchsia">Okres życia inwestycji &nbsp;[ lata ]</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
-            <input type="range" min="5" max="40" value="20" step="1" class="pvsim-slider fuchsia" id="pvsim-opt-lifetime">
+            <input type="range" min="5" max="40" step="1" class="pvsim-slider fuchsia" id="pvsim-opt-lifetime">
           </div>
           <div class="pvsim-value-box fuchsia"><span id="pvsim-opt-lifetime-val">20</span><span class="unit">lat</span></div>
         </div>
@@ -835,7 +835,7 @@
       <div>
         <div class="pvsim-label fuchsia">Kryterium optymalizacji</div>
         <div class="pvsim-toggle three" id="pvsim-opt-objective-toggle">
-          <button class="pvsim-toggle-btn fuchsia active" data-obj="profit">
+          <button class="pvsim-toggle-btn fuchsia" data-obj="profit">
             <span class="num">01</span>MAKS. ZYSK
           </button>
           <button class="pvsim-toggle-btn fuchsia" data-obj="payback">

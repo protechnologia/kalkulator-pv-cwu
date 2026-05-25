@@ -132,7 +132,7 @@ window.PVSIM = window.PVSIM || {};
     pvVariability: 0.5, // siła odchyleń dobowych PV [0..1] — zmienność pogody w miesiącu
     residents: 50,
     T_hot: 50,          // °C — temperatura docelowa CWU
-    priceHeatGJ: 196.95, // zł/GJ brutto — taryfa ECO Opole (od 01.01.2026, bud. wielorodzinne)
+    priceHeatGJ: 130,   // zł/GJ brutto — domyślna cena ciepła sieciowego (edytowalna z UI)
     heaterKW: 3.0,      // moc grzałki [kW]
     heaterThreshold: 0.1, // próg włączenia: PV >= threshold * heaterKW
     // Strategia grzałki, osobno dla strefy dziennej i nocnej taryfy elektrycznej:
@@ -150,9 +150,9 @@ window.PVSIM = window.PVSIM || {};
     hpGears:      2,    // liczba biegów PC; bieg k z N daje moc (k/N)·hpKW
     hpOnlyBandC:  5,    // °C — szerokość pasma "tylko PC" pod setpointem (strategia on-grid)
     buildingType: 'old', // 'new' | 'old' — typ budynku (straty cyrkulacji)
-    // Moduł 03 — taryfa energii elektrycznej z sieci (G12 Tauron 2026)
-    gridPriceDay:   0.6950, // zł/kWh — strefa dzienna
-    gridPriceNight: 0.3500, // zł/kWh — strefa nocna
+    // Moduł 03 — taryfa energii elektrycznej z sieci
+    gridPriceDay:   1.20,   // zł/kWh — strefa dzienna
+    gridPriceNight: 1.20,   // zł/kWh — strefa nocna
     gridDayStart:   6,      // godz. początku strefy dziennej (0–23)
     gridDayEnd:     22,     // godz. końca strefy dziennej (0–23)
     // Moduł 07 — inwestycja (ceny jednostkowe)

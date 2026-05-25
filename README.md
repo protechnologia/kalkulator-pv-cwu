@@ -36,7 +36,7 @@ Pobierz repozytorium i otwórz `pv-sim.v1.5.html` w przeglądarce.
 ### Moduł 04 — Zasobnik z pompą ciepła i grzałką elektryczną
 - Moc grzałki: 0–15 kW (0 = grzałka wyłączona)
 - Pojemność zasobnika: 200–5000 L
-- Temperatura docelowa zasobnika: 0–60°C — wspólny setpoint pary PC+grzałka
+- Temperatura docelowa zasobnika: 0–70°C — wspólny setpoint pary PC+grzałka
   (oba urządzenia zatrzymują grzanie po osiągnięciu tej temperatury,
   niezależny od temperatury CWU z Modułu 02)
 - Pompa ciepła powietrze→woda (drugie źródło ciepła, równolegle z grzałką):
@@ -50,7 +50,7 @@ Pobierz repozytorium i otwórz `pv-sim.v1.5.html` w przeglądarce.
 - Model termodynamiczny 1-węzłowy (fully-mixed), 6 podkroków na godzinę
 - Trzy strategie pary PC + grzałka wybierane osobno dla strefy dziennej i nocnej:
   **off**, **off-grid**, **on-grid**
-- Termostat: max 60°C (granica anty-Legionella wg PN-EN 12897)
+- Termostat: max 70°C (powyżej 60°C — magazynowanie ciepła kosztem niższego COP PC)
 - Straty ciepła klasy B/C wg PN-EN 12897
 
 ### Moduł 05 — Symulacja miesięczna

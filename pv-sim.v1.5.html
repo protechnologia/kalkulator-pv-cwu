@@ -109,15 +109,15 @@
 
   <!-- STATS -->
   <div class="pvsim-stats">
-    <div class="pvsim-stat orange">
+    <div class="pvsim-stat orange cat-elec">
       <div class="pvsim-stat-label">PRODUKCJA DOBOWA</div>
       <div class="pvsim-stat-value"><span id="pvsim-daily">0,00</span><span class="unit">kWh</span></div>
     </div>
-    <div class="pvsim-stat orange">
+    <div class="pvsim-stat orange cat-elec">
       <div class="pvsim-stat-label">PRODUKCJA MIESIĘCZNA</div>
       <div class="pvsim-stat-value"><span id="pvsim-monthly">0</span><span class="unit">kWh</span></div>
     </div>
-    <div class="pvsim-stat teal">
+    <div class="pvsim-stat teal cat-elec">
       <div class="pvsim-stat-label">MOC SZCZYTOWA</div>
       <div class="pvsim-stat-value"><span id="pvsim-peak">0,00</span><span class="unit">kW</span></div>
     </div>
@@ -190,28 +190,28 @@
 
   <!-- STATY CWU -->
   <div class="pvsim-stats four">
-    <div class="pvsim-stat teal">
+    <div class="pvsim-stat teal cat-heat">
       <div class="pvsim-stat-label">ZUŻYCIE WODY</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-dhw-water-d">0,00</span><span class="unit">m³ / dobę</span></div>
         <div class="secondary"><span id="pvsim-dhw-water-m">0</span><span class="unit">m³ / mc</span></div>
       </div>
     </div>
-    <div class="pvsim-stat teal">
+    <div class="pvsim-stat teal cat-heat">
       <div class="pvsim-stat-label">ENERGIA (całkowita)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-dhw-energy-d">0</span><span class="unit">kWh / dobę</span></div>
         <div class="secondary"><span id="pvsim-dhw-energy-m">0</span><span class="unit">kWh / mc</span></div>
       </div>
     </div>
-    <div class="pvsim-stat teal">
+    <div class="pvsim-stat teal cat-heat">
       <div class="pvsim-stat-label">STRATY CYRKULACJI</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-dhw-circ-d">0</span><span class="unit">kWh / dobę</span></div>
         <div class="secondary"><span id="pvsim-dhw-circ-pct-tot">0</span><span class="unit">% całkowitej</span></div>
       </div>
     </div>
-    <div class="pvsim-stat teal">
+    <div class="pvsim-stat teal cat-money">
       <div class="pvsim-stat-label">KOSZT (Z SIECI)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-dhw-cost-d">0,00</span><span class="unit">zł / dobę</span></div>
@@ -340,7 +340,7 @@
         <div class="pvsim-label amber">Temperatura docelowa zasobnika &nbsp;[ °C ]</div>
         <div class="pvsim-power-row">
           <div class="pvsim-slider-wrap">
-            <input type="range" min="0" max="60" step="1" class="pvsim-slider amber" id="pvsim-heater-target">
+            <input type="range" min="0" max="70" step="1" class="pvsim-slider amber" id="pvsim-heater-target">
           </div>
           <div class="pvsim-value-box amber"><span id="pvsim-heater-target-val">50</span><span class="unit">°C</span></div>
         </div>
@@ -469,7 +469,7 @@
 
   <!-- STATY MODUŁU 04 -->
   <div class="pvsim-stats">
-    <div class="pvsim-stat amber">
+    <div class="pvsim-stat amber cat-heat">
       <div class="pvsim-stat-label">Pokrycie CWU</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-cover">0</span><span class="unit">%</span></div>
@@ -478,21 +478,21 @@
         <div class="secondary"><span id="pvsim-cover-strat">0</span><span class="unit">kWh straty zasobnika</span></div>
       </div>
     </div>
-    <div class="pvsim-stat amber">
+    <div class="pvsim-stat amber cat-elec">
       <div class="pvsim-stat-label">Grzałka</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-heater-hrs">0</span><span class="unit">h / dobę</span></div>
         <div class="secondary"><span id="pvsim-heater-kwh">0,0</span><span class="unit">kWh / dobę</span></div>
       </div>
     </div>
-    <div class="pvsim-stat amber">
+    <div class="pvsim-stat amber cat-elec">
       <div class="pvsim-stat-label">PC</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-hp-hrs">0</span><span class="unit">h / dobę</span></div>
         <div class="secondary"><span id="pvsim-hp-kwh">0,0</span><span class="unit">kWh / dobę</span></div>
       </div>
     </div>
-    <div class="pvsim-stat amber">
+    <div class="pvsim-stat amber cat-elec">
       <div class="pvsim-stat-label">Zużycie prądu — źródło</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-elec-total">0,0</span><span class="unit">kWh / dobę</span></div>
@@ -500,7 +500,7 @@
         <div class="secondary"><span id="pvsim-elec-grid">0,0</span><span class="unit">kWh z sieci</span></div>
       </div>
     </div>
-    <div class="pvsim-stat amber">
+    <div class="pvsim-stat amber cat-elec">
       <div class="pvsim-stat-label">Zużycie prądu — urządzenie</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-elec-dev-total">0,0</span><span class="unit">kWh / dobę</span></div>
@@ -508,7 +508,7 @@
         <div class="secondary"><span id="pvsim-elec-dev-hp">0,0</span><span class="unit">kWh — PC</span></div>
       </div>
     </div>
-    <div class="pvsim-stat amber">
+    <div class="pvsim-stat amber cat-money">
       <div class="pvsim-stat-label">Koszt energii z sieci</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-grid-cost-d">0,00</span><span class="unit">zł / dobę</span></div>
@@ -557,7 +557,7 @@
 
   <!-- STATY MODUŁU 05 -->
   <div class="pvsim-stats">
-    <div class="pvsim-stat sky">
+    <div class="pvsim-stat sky cat-heat">
       <div class="pvsim-stat-label">Pokrycie CWU (miesiąc)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-month-cover">0</span><span class="unit">%</span></div>
@@ -565,21 +565,21 @@
         <div class="secondary"><span id="pvsim-month-cover-strat">0</span><span class="unit">kWh straty zasobnika</span></div>
       </div>
     </div>
-    <div class="pvsim-stat sky">
+    <div class="pvsim-stat sky cat-heat">
       <div class="pvsim-stat-label">Grzałka (miesiąc)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-month-heater-hrs">0</span><span class="unit">h / mc</span></div>
         <div class="secondary"><span id="pvsim-month-heater-kwh">0</span><span class="unit">kWh ciepła / mc</span></div>
       </div>
     </div>
-    <div class="pvsim-stat sky">
+    <div class="pvsim-stat sky cat-heat">
       <div class="pvsim-stat-label">PC (miesiąc)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-month-hp-hrs">0</span><span class="unit">h / mc</span></div>
         <div class="secondary"><span id="pvsim-month-hp-kwh">0</span><span class="unit">kWh ciepła / mc</span></div>
       </div>
     </div>
-    <div class="pvsim-stat sky">
+    <div class="pvsim-stat sky cat-elec">
       <div class="pvsim-stat-label">Zużycie prądu &mdash; źródło (miesiąc)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-month-elec-total">0</span><span class="unit">kWh / mc</span></div>
@@ -587,7 +587,7 @@
         <div class="secondary"><span id="pvsim-month-elec-grid">0</span><span class="unit">kWh z sieci</span></div>
       </div>
     </div>
-    <div class="pvsim-stat sky">
+    <div class="pvsim-stat sky cat-elec">
       <div class="pvsim-stat-label">Zużycie prądu &mdash; urządzenie (miesiąc)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-month-elec-dev-total">0</span><span class="unit">kWh / mc</span></div>
@@ -595,13 +595,13 @@
         <div class="secondary"><span id="pvsim-month-elec-dev-hp">0</span><span class="unit">kWh &mdash; PC</span></div>
       </div>
     </div>
-    <div class="pvsim-stat sky">
+    <div class="pvsim-stat sky cat-money">
       <div class="pvsim-stat-label">Koszt energii z sieci (miesiąc)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-month-grid-cost">0,00</span><span class="unit">zł / mc</span></div>
       </div>
     </div>
-    <div class="pvsim-stat sky">
+    <div class="pvsim-stat sky cat-money">
       <div class="pvsim-stat-label">Ciepło zaoszczędzone (miesiąc)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-month-saving">0,00</span><span class="unit">zł / mc</span></div>
@@ -609,7 +609,7 @@
         <div class="secondary"><span id="pvsim-month-saving-gj">0,00</span><span class="unit">GJ zaoszczędzonych</span></div>
       </div>
     </div>
-    <div class="pvsim-stat sky">
+    <div class="pvsim-stat sky cat-money">
       <div class="pvsim-stat-label">Bilans miesięczny</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-month-balance">0,00</span><span class="unit">zł / mc</span></div>
@@ -658,7 +658,7 @@
 
   <!-- STATY MODUŁU 06 -->
   <div class="pvsim-stats">
-    <div class="pvsim-stat lime">
+    <div class="pvsim-stat lime cat-heat">
       <div class="pvsim-stat-label">Pokrycie CWU (rok)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-year-cover">0</span><span class="unit">%</span></div>
@@ -666,21 +666,21 @@
         <div class="secondary"><span id="pvsim-year-cover-strat">0</span><span class="unit">kWh straty zasobnika</span></div>
       </div>
     </div>
-    <div class="pvsim-stat lime">
+    <div class="pvsim-stat lime cat-heat">
       <div class="pvsim-stat-label">Grzałka (rok)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-year-heater-hrs">0</span><span class="unit">h / rok</span></div>
         <div class="secondary"><span id="pvsim-year-heater-kwh">0</span><span class="unit">kWh ciepła / rok</span></div>
       </div>
     </div>
-    <div class="pvsim-stat lime">
+    <div class="pvsim-stat lime cat-heat">
       <div class="pvsim-stat-label">PC (rok)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-year-hp-hrs">0</span><span class="unit">h / rok</span></div>
         <div class="secondary"><span id="pvsim-year-hp-kwh">0</span><span class="unit">kWh ciepła / rok</span></div>
       </div>
     </div>
-    <div class="pvsim-stat lime">
+    <div class="pvsim-stat lime cat-elec">
       <div class="pvsim-stat-label">Zużycie prądu &mdash; źródło (rok)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-year-elec-total">0</span><span class="unit">kWh / rok</span></div>
@@ -688,7 +688,7 @@
         <div class="secondary"><span id="pvsim-year-elec-grid">0</span><span class="unit">kWh z sieci</span></div>
       </div>
     </div>
-    <div class="pvsim-stat lime">
+    <div class="pvsim-stat lime cat-elec">
       <div class="pvsim-stat-label">Zużycie prądu &mdash; urządzenie (rok)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-year-elec-dev-total">0</span><span class="unit">kWh / rok</span></div>
@@ -696,13 +696,13 @@
         <div class="secondary"><span id="pvsim-year-elec-dev-hp">0</span><span class="unit">kWh &mdash; PC</span></div>
       </div>
     </div>
-    <div class="pvsim-stat lime">
+    <div class="pvsim-stat lime cat-money">
       <div class="pvsim-stat-label">Koszt energii z sieci (rok)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-year-grid-cost">0,00</span><span class="unit">zł / rok</span></div>
       </div>
     </div>
-    <div class="pvsim-stat lime">
+    <div class="pvsim-stat lime cat-money">
       <div class="pvsim-stat-label">Ciepło zaoszczędzone (rok)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-year-saving">0,00</span><span class="unit">zł / rok</span></div>
@@ -710,7 +710,7 @@
         <div class="secondary"><span id="pvsim-year-saving-gj">0,00</span><span class="unit">GJ zaoszczędzonych</span></div>
       </div>
     </div>
-    <div class="pvsim-stat lime">
+    <div class="pvsim-stat lime cat-money">
       <div class="pvsim-stat-label">Bilans roczny</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-year-balance">0,00</span><span class="unit">zł / rok</span></div>
@@ -782,7 +782,7 @@
 
   <!-- STATY MODUŁU 07 -->
   <div class="pvsim-stats two">
-    <div class="pvsim-stat rose">
+    <div class="pvsim-stat rose cat-money">
       <div class="pvsim-stat-label">Koszt inwestycji</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-inv-total">0</span><span class="unit">zł</span></div>
@@ -793,7 +793,7 @@
         <div class="secondary"><span id="pvsim-inv-scada">0</span><span class="unit">zł automatyka + SCADA</span></div>
       </div>
     </div>
-    <div class="pvsim-stat rose">
+    <div class="pvsim-stat rose cat-money">
       <div class="pvsim-stat-label">Zwrot inwestycji</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-inv-payback">0</span><span class="unit">lat</span></div>
@@ -900,7 +900,7 @@
   <button class="pvsim-sidebar-toggle" id="pvsim-sidebar-toggle" aria-expanded="true">Podsumowanie ▾</button>
   <aside class="pvsim-sidebar" id="pvsim-sidebar">
     <div class="pvsim-sidebar-title">Podsumowanie / rok</div>
-    <div class="pvsim-stat lime">
+    <div class="pvsim-stat lime cat-elec">
       <div class="pvsim-stat-label">Zużycie prądu (rok)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-sb-elec-total">0</span><span class="unit">kWh / rok</span></div>
@@ -908,13 +908,13 @@
         <div class="secondary"><span id="pvsim-sb-elec-grid">0</span><span class="unit">kWh z sieci</span></div>
       </div>
     </div>
-    <div class="pvsim-stat lime">
+    <div class="pvsim-stat lime cat-money">
       <div class="pvsim-stat-label">Koszt energii z sieci (rok)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-sb-grid-cost">0,00</span><span class="unit">zł / rok</span></div>
       </div>
     </div>
-    <div class="pvsim-stat lime">
+    <div class="pvsim-stat lime cat-money">
       <div class="pvsim-stat-label">Ciepło zaoszczędzone (rok)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-sb-saving">0,00</span><span class="unit">zł / rok</span></div>
@@ -922,7 +922,7 @@
         <div class="secondary"><span id="pvsim-sb-saving-gj">0,00</span><span class="unit">GJ zaoszczędzonych</span></div>
       </div>
     </div>
-    <div class="pvsim-stat lime">
+    <div class="pvsim-stat lime cat-money">
       <div class="pvsim-stat-label">Bilans roczny</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-sb-balance">0,00</span><span class="unit">zł / rok</span></div>
@@ -930,7 +930,7 @@
         <div class="secondary"><span id="pvsim-sb-balance-cost">0,00</span><span class="unit">zł koszt energii z sieci</span></div>
       </div>
     </div>
-    <div class="pvsim-stat rose">
+    <div class="pvsim-stat rose cat-money">
       <div class="pvsim-stat-label">Koszt inwestycji</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-sb-inv-total">0</span><span class="unit">zł</span></div>
@@ -941,7 +941,7 @@
         <div class="secondary"><span id="pvsim-sb-inv-scada">0</span><span class="unit">zł automatyka + SCADA</span></div>
       </div>
     </div>
-    <div class="pvsim-stat rose">
+    <div class="pvsim-stat rose cat-money">
       <div class="pvsim-stat-label">Zwrot inwestycji</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-sb-inv-payback">0</span><span class="unit">lat</span></div>

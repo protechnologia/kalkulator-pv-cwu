@@ -76,7 +76,7 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 
 ### Moduł 04 — Zasobnik z grzałką + pompą ciepła
 - Parametry: moc grzałki (0–15 kW, 0 = grzałka wyłączona), próg włączenia (10–100%), pojemność zasobnika (200–5000 L),
-  temperatura docelowa zasobnika (0–60°C, suwak — wspólny setpoint pary PC+grzałka,
+  temperatura docelowa zasobnika (0–70°C, suwak — wspólny setpoint pary PC+grzałka,
   oba urządzenia zatrzymują grzanie po jej osiągnięciu; `P.state.heaterTargetC`,
   niezależny od T_hot z Modułu 02 — nazwa pola historyczna, sprzed dodania PC),
   strategia grzałka + PC — wybierana osobno dla strefy dziennej i nocnej taryfy (Moduł 03)
@@ -98,7 +98,7 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
     Grzeje tylko do setpointu `heaterTargetC` — nadwyżka PV ponad to trafia do `Q_wasted`
   - `on-grid` — moc proporcjonalna: `heaterKW × clamp((heaterTargetC − T)/TANK_ONGRID_BAND, 0, 1)`;
     nadwyżkę PV wykorzystuje w pierwszej kolejności, resztę dobiera z sieci
-- Termostat: max 60°C (granica higieniczna anty-Legionella)
+- Termostat: max 70°C (suwak `heaterTargetC` 0–70°C; powyżej 60°C — magazynowanie ciepła kosztem niższego COP PC)
 - Straty: `UA(V) = UA_REF · (V/V_REF)^(2/3)`, klasa B/C wg PN-EN 12897
 - Wykresy: temperatura zasobnika (tło grzania w osobnym odcieniu dla strefy
   dziennej i nocnej), słupkowy wykres mocy elektrycznej PC + grzałki
@@ -365,20 +365,6 @@ energię użyteczną, zaaplikować procent strat raz, a uzyskaną wartość rozd
 równomiernie na doby (np. `Q_circ_per_day = Q_useful_year · pctCirc / 365`).
 Skutek: bardziej realistyczny profil zapotrzebowania ciepła, brak sztucznych
 sezonowych skoków strat cyrkulacji.
-
-**Górny limit temperatury zasobnika 60 → 70°C** — zwiększyć zakres suwaka
-`heaterTargetC` (Moduł 04) z 60 do 70°C oraz podnieść termostat w
-`P.simulateTank()` (obecnie twardy cap 60°C jako granica anty-Legionella wg
-PN-EN 12897). Pozwala magazynować więcej ciepła na pochmurne dni; uwaga —
-trzeba zweryfikować, czy straty zasobnika i COP PC dalej dają sensowne wyniki
-przy wyższych temperaturach (COP PC spada przy większym ΔT do otoczenia).
-
-**Kolorowanie tła kafelek statystyk wg kategorii** — dodać bardzo lekkie tło
-kolorowe do kart statystyk w zależności od dziedziny wartości: ciepło (np.
-delikatna czerwień/pomarańcz), prąd (delikatny błękit/fiolet), pieniądze
-(delikatna zieleń). Klasy CSS per kategoria w `components.css` + przypisanie
-klasy do każdej karty w `render.js`. Cel: szybsze parsowanie wzrokowe paneli
-M04–M06, bez krzykliwości — saturacja na poziomie 5–10%.
 
 **Mianownik `coveragePct` = `Q_total` (nie `Q_useful`)** — obecnie pokrycie
 CWU liczone jest jako `Q_saved / Q_useful` ([pv-sim.physics.js:402–403](pv-sim.physics.js#L402)

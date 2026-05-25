@@ -174,7 +174,7 @@ window.PVSIM = window.PVSIM || {};
     heaterKW:      [0, 2, 5, 10, 15],
     threshold:     [0.1, 0.2, 0.3],
     tankL:         [300, 500, 1000, 2000, 3500, 5000],
-    heaterTargetC: [45, 50, 55, 60],
+    heaterTargetC: [50, 60, 70],
     hpKW:          [0, 3, 5, 8, 10, 12, 15],
     strat:         ['off', 'off-grid', 'on-grid']
   };

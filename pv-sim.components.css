@@ -5,7 +5,9 @@
    - sekcja wykresu SVG (.pvsim-chart-section, -wrap, -chart)
      z nagłówkiem, tytułem i etykietą osi
    - karty statystyk (.pvsim-stat) z wariantami kolorów
-     oraz układem dwuwierszowym (primary + secondary)
+     oraz układem dwuwierszowym (primary + secondary);
+     klasy kategorii cat-heat/cat-elec/cat-money nakładają
+     bardzo lekkie tło wg dziedziny wartości (ciepło/prąd/pieniądze)
    - separator modułów (.pvsim-module-divider) z animowaną
      kropką i gradientową linią
    - warianty kolorów akcentu dla modułów 02–05 (teal — CWU,
@@ -85,6 +87,13 @@
   transition: border-color 0.2s ease;
 }
 .pvsim-stat:hover { border-color: var(--pvsim-border-strong); }
+/* Kategorie domenowe — bardzo lekkie tło wskazujące rodzaj wielkości:
+   ciepło (kWh ciepła, GJ, m³ ciepłej wody), prąd (kWh elektryczne, kW)
+   i pieniądze (zł). Saturacja ~6% żeby nie krzyczało, ale parsing wzrokowy
+   panelu od razu pokazuje grupy. */
+.pvsim-stat.cat-heat  { background: color-mix(in srgb, var(--pvsim-bg-1) 94%, #fb7185); }
+.pvsim-stat.cat-elec  { background: color-mix(in srgb, var(--pvsim-bg-1) 94%, #38bdf8); }
+.pvsim-stat.cat-money { background: color-mix(in srgb, var(--pvsim-bg-1) 92%, #a3e635); }
 .pvsim-stat::before {
   content: '';
   position: absolute;

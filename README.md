@@ -21,7 +21,7 @@ Pobierz repozytorium i otwórz `pv-sim.v1.5.html` w przeglądarce.
 - Dane nasłonecznienia: PVGIS, Opole (φ = 50.67°N), nachylenie 30°, optymalne azymut
 
 ### Moduł 02 — CWU (ciepła woda użytkowa)
-- Liczba mieszkańców: 1–200
+- Liczba mieszkańców: 1–1000
 - Temperatura docelowa: 35–65°C
 - Profil godzinowy poboru wody wg Chmielewska (2025), badania 42 budynków w Polsce
 - Temperatura wody zimnej: model sinusoidalny (min ~6°C w lutym, max ~16°C w sierpniu)
@@ -35,7 +35,7 @@ Pobierz repozytorium i otwórz `pv-sim.v1.5.html` w przeglądarce.
 
 ### Moduł 04 — Zasobnik z pompą ciepła i grzałką elektryczną
 - Moc grzałki: 0–15 kW (0 = grzałka wyłączona)
-- Pojemność zasobnika: 200–3000 L
+- Pojemność zasobnika: 200–5000 L
 - Temperatura docelowa zasobnika: 0–60°C — wspólny setpoint pary PC+grzałka
   (oba urządzenia zatrzymują grzanie po osiągnięciu tej temperatury,
   niezależny od temperatury CWU z Modułu 02)

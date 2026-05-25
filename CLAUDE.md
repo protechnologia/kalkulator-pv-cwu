@@ -63,7 +63,7 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
   wielodobowymi modułów 05–08
 
 ### Moduł 02 — CWU (ciepła woda użytkowa)
-- Parametry: liczba mieszkańców (1–200), temperatura docelowa T_hot (35–65°C), cena energii cieplnej [zł/GJ]
+- Parametry: liczba mieszkańców (1–1000), temperatura docelowa T_hot (35–65°C), cena energii cieplnej [zł/GJ]
 - Profil godzinowy: Chmielewska 2025, Energies 18(17), 42 budynki w Polsce
 - Temperatura wody zimnej: model sinusoidalny, min luty ~6°C, max sierpień ~16°C
 - Taryfa: domyślnie `P.state.priceHeatGJ = 130 zł/GJ` (edytowalna z UI — pole „Cena ciepła")
@@ -75,7 +75,7 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 - Ceny stref i godziny granic taryfy wykorzystuje Moduł 04 (strategie grzałki, koszt energii z sieci)
 
 ### Moduł 04 — Zasobnik z grzałką + pompą ciepła
-- Parametry: moc grzałki (0–15 kW, 0 = grzałka wyłączona), próg włączenia (10–100%), pojemność zasobnika (200–3000 L),
+- Parametry: moc grzałki (0–15 kW, 0 = grzałka wyłączona), próg włączenia (10–100%), pojemność zasobnika (200–5000 L),
   temperatura docelowa zasobnika (0–60°C, suwak — wspólny setpoint pary PC+grzałka,
   oba urządzenia zatrzymują grzanie po jej osiągnięciu; `P.state.heaterTargetC`,
   niezależny od T_hot z Modułu 02 — nazwa pola historyczna, sprzed dodania PC),
@@ -350,13 +350,6 @@ spadnie wraz z dodaniem strat cyrkulacji do bilansu zasobnika.
 (`old`/`new` ⇒ 60%/35% z `P.CIRC_LOSS`) na ciągły suwak procentowy. Dyskretne
 guziki wymuszają wybór między dwoma punktami, suwak pozwala oddać realny stan
 budynku między nimi.
-
-**Zakresy suwaków** — zwiększyć górne limity:
-- liczba mieszkańców (Moduł 02) z 200 → 1000 (atrybut `max` w HTML +
-  ewentualnie opis w README/CLAUDE).
-- pojemność zasobnika (Moduł 04) z 3000 → 5000 L (atrybut `max` w HTML +
-  README/CLAUDE) oraz dołożyć większe wartości do `P.OPT_GRID.tankL`
-  w `config.js`, żeby optymalizator mógł je przeszukiwać.
 
 **Kafelek „ENERGIA (całkowita)" Modułu 02** — obok wartości dobowej/miesięcznej
 dodać przeliczenie roczne (suma 12 miesięcy z uwzględnieniem sezonowości

@@ -80,6 +80,16 @@ Słońce, tym dłuższa droga w atmosferze i większe tłumienie). Daje kształt
 godzinowej krzywej napromienienia w idealnym dniu — w aplikacji ta krzywa
 jest następnie przeskalowana do realnych warunków danego miesiąca.
 
+**Łączenie obu modeli.** Cooper daje wartość astronomiczną — deklinację `δ`
+dla wybranego dnia roku. Razem z szerokością geograficzną `φ` (Opole, 50,67°N)
+i kątem godzinnym `ω` (przeliczonym z godziny doby) wyznaczamy wysokość
+Słońca nad horyzontem: `sin α = sin φ · sin δ + cos φ · cos δ · cos ω`.
+To `α` jest wejściem do modelu Hottela, który dla każdej godziny zwraca
+względne napromienienie. Sumując 24 godziny dostajemy surowy uzysk dobowy
+(jeszcze bez kalibracji do realnych warunków) — i dopiero ta suma jest
+skalowana do `CLEAR_SCALE` (tryb `clear`) lub do dobowego uzysku PVGIS dla
+danego miesiąca (tryb `avg`).
+
 ### Rozrzut dobowy PV — inverse CDF + korekta średniej
 Dla symulacji miesięcznej i rocznej każda doba dostaje dobowy mnożnik
 produkcji `g[d] ∈ [0, g_max]`, gdzie `g_max = clear-sky / avg` (sezonowy —

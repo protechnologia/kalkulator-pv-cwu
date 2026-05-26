@@ -52,9 +52,7 @@ window.PVSIM = window.PVSIM || {};
       const yy = y(v);
       gridLines += `<line x1="${padL}" y1="${yy.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yy.toFixed(2)}"
                           stroke="var(--pvsim-border)" stroke-width="1" ${i === 0 ? '' : 'stroke-dasharray="2,3"'}/>`;
-      yLabels += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end"
-                        font-family="'IBM Plex Mono', monospace" font-size="10" fill="var(--pvsim-text-2)"
-                        font-variant-numeric="tabular-nums">${Math.round(v)}</text>`;
+      yLabels += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end">${Math.round(v)}</text>`;
     }
 
     // Linie referencyjne:
@@ -65,18 +63,15 @@ window.PVSIM = window.PVSIM || {};
     const refLines = `
       <line x1="${padL}" y1="${y(T_hot).toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${y(T_hot).toFixed(2)}"
             stroke="#2dd4bf" stroke-width="1" stroke-dasharray="6,4" opacity="0.5"/>
-      <text x="${(W - padR - 4).toFixed(2)}" y="${(y(T_hot) - 4).toFixed(2)}" text-anchor="end"
-            font-family="'IBM Plex Mono', monospace" font-size="9.5" fill="#2dd4bf" opacity="0.8">T_kran ${T_hot}°</text>
+      <text x="${(W - padR - 4).toFixed(2)}" y="${(y(T_hot) - 4).toFixed(2)}" text-anchor="end" font-size="9.5" fill="#2dd4bf" opacity="0.8">T_kran ${T_hot}°</text>
 
       <line x1="${padL}" y1="${y(P.TANK_T_MAX).toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${y(P.TANK_T_MAX).toFixed(2)}"
             stroke="#ef4444" stroke-width="1" stroke-dasharray="6,4" opacity="0.4"/>
-      <text x="${(W - padR - 4).toFixed(2)}" y="${(y(P.TANK_T_MAX) - 4).toFixed(2)}" text-anchor="end"
-            font-family="'IBM Plex Mono', monospace" font-size="9.5" fill="#ef4444" opacity="0.7">T_max 60°</text>
+      <text x="${(W - padR - 4).toFixed(2)}" y="${(y(P.TANK_T_MAX) - 4).toFixed(2)}" text-anchor="end" font-size="9.5" fill="#ef4444" opacity="0.7">T_max 60°</text>
 
       <line x1="${padL}" y1="${y(T_in).toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${y(T_in).toFixed(2)}"
             stroke="var(--pvsim-text-2)" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
-      <text x="${(W - padR - 4).toFixed(2)}" y="${(y(T_in) - 4).toFixed(2)}" text-anchor="end"
-            font-family="'IBM Plex Mono', monospace" font-size="9.5" fill="#a1a1aa" opacity="0.7">T_wodociąg ${T_in.toFixed(1)}°</text>
+      <text x="${(W - padR - 4).toFixed(2)}" y="${(y(T_in) - 4).toFixed(2)}" text-anchor="end" font-size="9.5" fill="#a1a1aa" opacity="0.7">T_wodociąg ${T_in.toFixed(1)}°</text>
     `;
 
     let xLabels = '', xGrid = '';
@@ -85,9 +80,7 @@ window.PVSIM = window.PVSIM || {};
       xGrid += `<line x1="${xx.toFixed(2)}" y1="${padT}" x2="${xx.toFixed(2)}" y2="${(padT + ch).toFixed(2)}"
                       stroke="var(--pvsim-border)" stroke-width="1" stroke-dasharray="1,4"/>`;
       const hh = String(h % 24).padStart(2, '0');
-      xLabels += `<text x="${xx.toFixed(2)}" y="${(padT + ch + 18).toFixed(2)}" text-anchor="middle"
-                        font-family="'IBM Plex Mono', monospace" font-size="10" fill="var(--pvsim-text-2)"
-                        font-variant-numeric="tabular-nums">${hh}:00</text>`;
+      xLabels += `<text x="${xx.toFixed(2)}" y="${(padT + ch + 18).toFixed(2)}" text-anchor="middle">${hh}:00</text>`;
     }
 
     // Pasma pracy: dwie wąskie poziome wstęgi pod osią X, rozsunięte odstępem.
@@ -126,12 +119,8 @@ window.PVSIM = window.PVSIM || {};
             stroke="#f59e0b" stroke-width="1" opacity="0.5"/>
     `;
 
-    const hpLabel = `<text x="${padL - 6}" y="${(hpBandTop + bandH / 2 + 3.5).toFixed(2)}" text-anchor="end"
-                           font-family="'IBM Plex Mono', monospace" font-size="9" font-weight="600"
-                           fill="#22d3ee" opacity="0.85" letter-spacing="1">PC</text>`;
-    const heaterLabel = `<text x="${padL - 6}" y="${(heaterBandTop + bandH / 2 + 3.5).toFixed(2)}" text-anchor="end"
-                               font-family="'IBM Plex Mono', monospace" font-size="9" font-weight="600"
-                               fill="#f59e0b" opacity="0.85" letter-spacing="1">GRZ.</text>`;
+    const hpLabel = `<text x="${padL - 6}" y="${(hpBandTop + bandH / 2 + 3.5).toFixed(2)}" text-anchor="end" font-size="9" font-weight="600" fill="#22d3ee" opacity="0.85" letter-spacing="1">PC</text>`;
+    const heaterLabel = `<text x="${padL - 6}" y="${(heaterBandTop + bandH / 2 + 3.5).toFixed(2)}" text-anchor="end" font-size="9" font-weight="600" fill="#f59e0b" opacity="0.85" letter-spacing="1">GRZ.</text>`;
 
     const axes = `
       <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${(padT + ch).toFixed(2)}" stroke="var(--pvsim-border-strong)" stroke-width="1"/>
@@ -161,8 +150,7 @@ window.PVSIM = window.PVSIM || {};
       ${heaterLabel}
       ${yLabels}
       ${xLabels}
-      <text x="${padL - 30}" y="${padT - 10}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
-            fill="var(--pvsim-text-2)" letter-spacing="1.4">[°C]</text>
+      <text x="${padL - 30}" y="${padT - 10}" font-size="9.5" letter-spacing="1.4">[°C]</text>
     `;
   };
 
@@ -222,9 +210,7 @@ window.PVSIM = window.PVSIM || {};
       const yy = y(v);
       gridLines += `<line x1="${padL}" y1="${yy.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yy.toFixed(2)}"
                           stroke="var(--pvsim-border)" stroke-width="1" ${i === 0 ? '' : 'stroke-dasharray="2,3"'}/>`;
-      yLabels += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end"
-                        font-family="'IBM Plex Mono', monospace" font-size="10" fill="var(--pvsim-text-2)"
-                        font-variant-numeric="tabular-nums">${P.fmt.pl1(v)}</text>`;
+      yLabels += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end">${P.fmt.pl1(v)}</text>`;
     }
 
     let xLabels = '', xGrid = '';
@@ -232,9 +218,7 @@ window.PVSIM = window.PVSIM || {};
       const xx = x(h);
       xGrid += `<line x1="${xx.toFixed(2)}" y1="${padT}" x2="${xx.toFixed(2)}" y2="${(padT + ch).toFixed(2)}"
                       stroke="var(--pvsim-border)" stroke-width="1" stroke-dasharray="1,4"/>`;
-      xLabels += `<text x="${xx.toFixed(2)}" y="${(padT + ch + 18).toFixed(2)}" text-anchor="middle"
-                        font-family="'IBM Plex Mono', monospace" font-size="10" fill="var(--pvsim-text-2)"
-                        font-variant-numeric="tabular-nums">${String(h % 24).padStart(2, '0')}:00</text>`;
+      xLabels += `<text x="${xx.toFixed(2)}" y="${(padT + ch + 18).toFixed(2)}" text-anchor="middle">${String(h % 24).padStart(2, '0')}:00</text>`;
     }
 
     const axes = `
@@ -250,16 +234,12 @@ window.PVSIM = window.PVSIM || {};
     const nomHeater = heaterKW > 0.01 ? `
       <line x1="${padL}" y1="${yHeater.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yHeater.toFixed(2)}"
             stroke="#f59e0b" stroke-width="1.25" stroke-dasharray="5,3" opacity="0.85"/>
-      <text x="${(W - padR - 4).toFixed(2)}" y="${(yHeater - 4).toFixed(2)}" text-anchor="end"
-            font-family="'IBM Plex Mono', monospace" font-size="10" fill="#f59e0b"
-            font-variant-numeric="tabular-nums">grzałka ${P.fmt.pl1(heaterKW)} kW</text>
+      <text x="${(W - padR - 4).toFixed(2)}" y="${(yHeater - 4).toFixed(2)}" text-anchor="end" fill="#f59e0b">grzałka ${P.fmt.pl1(heaterKW)} kW</text>
     ` : '';
     const nomHp = hpKW > 0.01 ? `
       <line x1="${padL}" y1="${yHp.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yHp.toFixed(2)}"
             stroke="#22d3ee" stroke-width="1.25" stroke-dasharray="5,3" opacity="0.85"/>
-      <text x="${(padL + 4).toFixed(2)}" y="${(yHp - 4).toFixed(2)}" text-anchor="start"
-            font-family="'IBM Plex Mono', monospace" font-size="10" fill="#22d3ee"
-            font-variant-numeric="tabular-nums">PC ${P.fmt.pl1(hpKW)} kW</text>
+      <text x="${(padL + 4).toFixed(2)}" y="${(yHp - 4).toFixed(2)}" text-anchor="start" fill="#22d3ee">PC ${P.fmt.pl1(hpKW)} kW</text>
     ` : '';
     const nominal = nomHeater + nomHp;
 
@@ -267,17 +247,14 @@ window.PVSIM = window.PVSIM || {};
     const lx = W - padR - 150;
     const legend = `
       <rect x="${lx}" y="${padT + 2}" width="10" height="10" fill="#f59e0b" opacity="0.85"/>
-      <text x="${lx + 15}" y="${padT + 11}" font-family="'IBM Plex Mono', monospace" font-size="10"
-            fill="#a1a1aa">z PV</text>
+      <text x="${lx + 15}" y="${padT + 11}" fill="#a1a1aa">z PV</text>
       <rect x="${lx + 60}" y="${padT + 2}" width="10" height="10" fill="#a78bfa" opacity="0.85"/>
-      <text x="${lx + 75}" y="${padT + 11}" font-family="'IBM Plex Mono', monospace" font-size="10"
-            fill="#a1a1aa">z sieci</text>
+      <text x="${lx + 75}" y="${padT + 11}" fill="#a1a1aa">z sieci</text>
     `;
 
     svg.innerHTML = `
       ${gridLines}${xGrid}${axes}${bars}${nominal}${legend}${yLabels}${xLabels}
-      <text x="${padL - 30}" y="${padT - 10}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
-            fill="var(--pvsim-text-2)" letter-spacing="1.4">[kW]</text>
+      <text x="${padL - 30}" y="${padT - 10}" font-size="9.5" letter-spacing="1.4">[kW]</text>
     `;
 
     const ctxEl = document.getElementById('pvsim-tank-elec-ctx');
@@ -350,9 +327,7 @@ window.PVSIM = window.PVSIM || {};
       const yy = y(v);
       gridLines += `<line x1="${padL}" y1="${yy.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yy.toFixed(2)}"
                           stroke="var(--pvsim-border)" stroke-width="1" ${i === 0 ? '' : 'stroke-dasharray="2,3"'}/>`;
-      yLabels += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end"
-                        font-family="'IBM Plex Mono', monospace" font-size="10" fill="var(--pvsim-text-2)"
-                        font-variant-numeric="tabular-nums">${P.fmt.pl1(v)}</text>`;
+      yLabels += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end">${P.fmt.pl1(v)}</text>`;
     }
 
     let xLabels = '', xGrid = '';
@@ -360,9 +335,7 @@ window.PVSIM = window.PVSIM || {};
       const xx = x(h);
       xGrid += `<line x1="${xx.toFixed(2)}" y1="${padT}" x2="${xx.toFixed(2)}" y2="${(padT + ch).toFixed(2)}"
                       stroke="var(--pvsim-border)" stroke-width="1" stroke-dasharray="1,4"/>`;
-      xLabels += `<text x="${xx.toFixed(2)}" y="${(padT + ch + 18).toFixed(2)}" text-anchor="middle"
-                        font-family="'IBM Plex Mono', monospace" font-size="10" fill="var(--pvsim-text-2)"
-                        font-variant-numeric="tabular-nums">${String(h % 24).padStart(2, '0')}:00</text>`;
+      xLabels += `<text x="${xx.toFixed(2)}" y="${(padT + ch + 18).toFixed(2)}" text-anchor="middle">${String(h % 24).padStart(2, '0')}:00</text>`;
     }
 
     const axes = `
@@ -373,9 +346,9 @@ window.PVSIM = window.PVSIM || {};
     const lx = W - padR - 180;
     const legend = `
       <rect x="${lx}"       y="${padT + 2}" width="10" height="10" fill="#22d3ee" opacity="0.85"/>
-      <text x="${lx + 15}"  y="${padT + 11}" font-family="'IBM Plex Mono', monospace" font-size="10" fill="#a1a1aa">PC</text>
+      <text x="${lx + 15}" y="${padT + 11}" fill="#a1a1aa">PC</text>
       <rect x="${lx + 100}" y="${padT + 2}" width="10" height="10" fill="#f59e0b" opacity="0.85"/>
-      <text x="${lx + 115}" y="${padT + 11}" font-family="'IBM Plex Mono', monospace" font-size="10" fill="#a1a1aa">grzałka</text>
+      <text x="${lx + 115}" y="${padT + 11}" fill="#a1a1aa">grzałka</text>
     `;
 
     const yHeater = y(heaterKW);
@@ -383,20 +356,17 @@ window.PVSIM = window.PVSIM || {};
     const nomHeater = heaterKW > 0.01 ? `
       <line x1="${padL}" y1="${yHeater.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yHeater.toFixed(2)}"
             stroke="#f59e0b" stroke-width="1" stroke-dasharray="4,3" opacity="0.7"/>
-      <text x="${(W - padR - 4).toFixed(2)}" y="${(yHeater - 3).toFixed(2)}" text-anchor="end"
-            font-family="'IBM Plex Mono', monospace" font-size="9.5" fill="#f59e0b" opacity="0.85">grzałka ${P.fmt.pl1(heaterKW)} kWh/h</text>
+      <text x="${(W - padR - 4).toFixed(2)}" y="${(yHeater - 3).toFixed(2)}" text-anchor="end" font-size="9.5" fill="#f59e0b" opacity="0.85">grzałka ${P.fmt.pl1(heaterKW)} kWh/h</text>
     ` : '';
     const nomHp = hpQNom > 0.01 ? `
       <line x1="${padL}" y1="${yHp.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yHp.toFixed(2)}"
             stroke="#22d3ee" stroke-width="1" stroke-dasharray="4,3" opacity="0.7"/>
-      <text x="${(W - padR - 4).toFixed(2)}" y="${(yHp - 3).toFixed(2)}" text-anchor="end"
-            font-family="'IBM Plex Mono', monospace" font-size="9.5" fill="#22d3ee" opacity="0.85">PC ${P.fmt.pl1(hpQNom)} kWh/h (COP ${P.fmt.pl1(hpCOP)})</text>
+      <text x="${(W - padR - 4).toFixed(2)}" y="${(yHp - 3).toFixed(2)}" text-anchor="end" font-size="9.5" fill="#22d3ee" opacity="0.85">PC ${P.fmt.pl1(hpQNom)} kWh/h (COP ${P.fmt.pl1(hpCOP)})</text>
     ` : '';
 
     svg.innerHTML = `
       ${gridLines}${xGrid}${axes}${bars}${nomHeater}${nomHp}${legend}${yLabels}${xLabels}
-      <text x="${padL - 30}" y="${padT - 10}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
-            fill="var(--pvsim-text-2)" letter-spacing="1.4">[kWh]</text>
+      <text x="${padL - 30}" y="${padT - 10}" font-size="9.5" letter-spacing="1.4">[kWh]</text>
     `;
 
     const ctxEl = document.getElementById('pvsim-tank-split-ctx');

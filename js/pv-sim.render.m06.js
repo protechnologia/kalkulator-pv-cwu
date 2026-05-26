@@ -69,16 +69,12 @@ window.PVSIM = window.PVSIM || {};
       const yy = y(v);
       gridLines += `<line x1="${padL}" y1="${yy.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yy.toFixed(2)}"
                           stroke="var(--pvsim-border)" stroke-width="1" ${i === 0 ? '' : 'stroke-dasharray="2,3"'}/>`;
-      yLabels += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end"
-                        font-family="'IBM Plex Mono', monospace" font-size="10" fill="var(--pvsim-text-2)"
-                        font-variant-numeric="tabular-nums">${P.fmt.pl0(v)}</text>`;
+      yLabels += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end">${P.fmt.pl0(v)}</text>`;
     }
 
     let xLabels = '';
     md.forEach((d, i) => {
-      xLabels += `<text x="${(x(i) + slot / 2).toFixed(2)}" y="${(padT + ch + 18).toFixed(2)}" text-anchor="middle"
-                        font-family="'IBM Plex Mono', monospace" font-size="9" fill="var(--pvsim-text-2)"
-                        letter-spacing="0.5">${d.abbr}</text>`;
+      xLabels += `<text x="${(x(i) + slot / 2).toFixed(2)}" y="${(padT + ch + 18).toFixed(2)}" text-anchor="middle" font-size="9" letter-spacing="0.5">${d.abbr}</text>`;
     });
 
     const axes = `
@@ -89,19 +85,15 @@ window.PVSIM = window.PVSIM || {};
     const lx = W - padR - 150;
     const legend = `
       <rect x="${lx}" y="${padT + 2}" width="10" height="10" fill="#f59e0b" opacity="0.8"/>
-      <text x="${lx + 15}" y="${padT + 11}" font-family="'IBM Plex Mono', monospace" font-size="10"
-            fill="#a1a1aa">z PV</text>
+      <text x="${lx + 15}" y="${padT + 11}" fill="#a1a1aa">z PV</text>
       <rect x="${lx + 60}" y="${padT + 2}" width="10" height="10" fill="#a78bfa" opacity="0.75"/>
-      <text x="${lx + 75}" y="${padT + 11}" font-family="'IBM Plex Mono', monospace" font-size="10"
-            fill="#a1a1aa">z sieci</text>
+      <text x="${lx + 75}" y="${padT + 11}" fill="#a1a1aa">z sieci</text>
     `;
 
     svg.innerHTML = `
       ${gridLines}${axes}${bars}${legend}${yLabels}${xLabels}
-      <text x="${padL - 30}" y="${padT - 10}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
-            fill="var(--pvsim-text-2)" letter-spacing="1.4">[kWh]</text>
-      <text x="${(padL + cw / 2).toFixed(2)}" y="${(H - 4).toFixed(2)}" text-anchor="middle"
-            font-family="'IBM Plex Mono', monospace" font-size="9" fill="var(--pvsim-text-2)" letter-spacing="1">miesiąc</text>
+      <text x="${padL - 30}" y="${padT - 10}" font-size="9.5" letter-spacing="1.4">[kWh]</text>
+      <text x="${(padL + cw / 2).toFixed(2)}" y="${(H - 4).toFixed(2)}" text-anchor="middle" font-size="9" letter-spacing="1">miesiąc</text>
     `;
 
     const ctxEl = document.getElementById('pvsim-year-chart-ctx');
@@ -161,16 +153,12 @@ window.PVSIM = window.PVSIM || {};
       const topY = y(cwuM);
       const cx = (x0 + bw / 2).toFixed(2);
       // główna etykieta — pokrycie miesięczne
-      pctLabels += `<text x="${cx}" y="${(topY - 5).toFixed(2)}" text-anchor="middle"
-                          font-family="'IBM Plex Mono', monospace" font-size="9.5" font-weight="600"
-                          fill="#a3e635" font-variant-numeric="tabular-nums">${pct.toFixed(0)}%</text>`;
+      pctLabels += `<text x="${cx}" y="${(topY - 5).toFixed(2)}" text-anchor="middle" font-size="9.5" font-weight="600" fill="#a3e635">${pct.toFixed(0)}%</text>`;
       // mniejsza etykieta nad nią — zakres pokrycia dobowego (min–max)
       if (d.coverMaxPct != null && d.coverMaxPct >= 0) {
         const lo = Math.round(d.coverMinPct);
         const hi = Math.round(d.coverMaxPct);
-        pctLabels += `<text x="${cx}" y="${(topY - 17).toFixed(2)}" text-anchor="middle"
-                            font-family="'IBM Plex Mono', monospace" font-size="8" fill="var(--pvsim-text-2)"
-                            font-variant-numeric="tabular-nums" opacity="0.85">${lo}%–${hi}%</text>`;
+        pctLabels += `<text x="${cx}" y="${(topY - 17).toFixed(2)}" text-anchor="middle" font-size="8" opacity="0.85">${lo}%–${hi}%</text>`;
       }
     });
 
@@ -181,16 +169,12 @@ window.PVSIM = window.PVSIM || {};
       const yy = y(v);
       gridLines += `<line x1="${padL}" y1="${yy.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yy.toFixed(2)}"
                           stroke="var(--pvsim-border)" stroke-width="1" ${i === 0 ? '' : 'stroke-dasharray="2,3"'}/>`;
-      yLabels += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end"
-                        font-family="'IBM Plex Mono', monospace" font-size="10" fill="var(--pvsim-text-2)"
-                        font-variant-numeric="tabular-nums">${P.fmt.pl0(v)}</text>`;
+      yLabels += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end">${P.fmt.pl0(v)}</text>`;
     }
 
     let xLabels = '';
     md.forEach((d, i) => {
-      xLabels += `<text x="${(x(i) + slot / 2).toFixed(2)}" y="${(padT + ch + 18).toFixed(2)}" text-anchor="middle"
-                        font-family="'IBM Plex Mono', monospace" font-size="9" fill="var(--pvsim-text-2)"
-                        letter-spacing="0.5">${d.abbr}</text>`;
+      xLabels += `<text x="${(x(i) + slot / 2).toFixed(2)}" y="${(padT + ch + 18).toFixed(2)}" text-anchor="middle" font-size="9" letter-spacing="0.5">${d.abbr}</text>`;
     });
 
     const axes = `
@@ -201,19 +185,15 @@ window.PVSIM = window.PVSIM || {};
     const lx = W - padR - 150;
     const legend = `
       <rect x="${lx}" y="${padT + 2}" width="10" height="10" fill="#a3e635" opacity="0.85"/>
-      <text x="${lx + 15}" y="${padT + 11}" font-family="'IBM Plex Mono', monospace" font-size="10"
-            fill="#a1a1aa">pokryte</text>
+      <text x="${lx + 15}" y="${padT + 11}" fill="#a1a1aa">pokryte</text>
       <rect x="${lx + 70}" y="${padT + 2}" width="10" height="10" fill="#71717a" opacity="0.45"/>
-      <text x="${lx + 85}" y="${padT + 11}" font-family="'IBM Plex Mono', monospace" font-size="10"
-            fill="#a1a1aa">brak</text>
+      <text x="${lx + 85}" y="${padT + 11}" fill="#a1a1aa">brak</text>
     `;
 
     svg.innerHTML = `
       ${gridLines}${axes}${bars}${pctLabels}${legend}${yLabels}${xLabels}
-      <text x="${padL - 30}" y="${padT - 10}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
-            fill="var(--pvsim-text-2)" letter-spacing="1.4">[kWh]</text>
-      <text x="${(padL + cw / 2).toFixed(2)}" y="${(H - 4).toFixed(2)}" text-anchor="middle"
-            font-family="'IBM Plex Mono', monospace" font-size="9" fill="var(--pvsim-text-2)" letter-spacing="1">miesiąc</text>
+      <text x="${padL - 30}" y="${padT - 10}" font-size="9.5" letter-spacing="1.4">[kWh]</text>
+      <text x="${(padL + cw / 2).toFixed(2)}" y="${(H - 4).toFixed(2)}" text-anchor="middle" font-size="9" letter-spacing="1">miesiąc</text>
     `;
 
     const ctxEl = document.getElementById('pvsim-year-cover-chart-ctx');

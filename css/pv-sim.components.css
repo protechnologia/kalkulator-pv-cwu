@@ -61,6 +61,15 @@
 }
 #pvsim-tank-chart { aspect-ratio: 780 / 350; }
 
+/* Domyślne style etykiet SVG — nadpisywane atrybutami inline tylko gdy trzeba
+   (inny font-size, kolor akcentu, font-weight, letter-spacing). */
+.pvsim-chart text {
+  font-family: 'IBM Plex Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 10px;
+  fill: var(--pvsim-text-2);
+}
+
 /* -------- STATS -------- */
 .pvsim-stats {
   padding: 0 28px 28px;

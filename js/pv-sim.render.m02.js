@@ -91,17 +91,13 @@ window.PVSIM = window.PVSIM || {};
       const yy = y(vL);
       gridLines += `<line x1="${padL}" y1="${yy.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yy.toFixed(2)}"
                           stroke="var(--pvsim-border)" stroke-width="1" ${i === 0 ? '' : 'stroke-dasharray="2,3"'}/>`;
-      yLabelsL += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end"
-                         font-family="'IBM Plex Mono', monospace" font-size="10" fill="#2dd4bf"
-                         font-variant-numeric="tabular-nums">${fmtL(vL)}</text>`;
+      yLabelsL += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end" fill="#2dd4bf">${fmtL(vL)}</text>`;
     }
     // Prawa oś — własny zakres yMaxR, pozycje Y z yR()
     for (let i = 0; i <= ticksR; i++) {
       const vR = i * stepR;
       const yy = yR(vR);
-      yLabelsR += `<text x="${(W - padR + 8).toFixed(2)}" y="${(yy + 3.5).toFixed(2)}" text-anchor="start"
-                         font-family="'IBM Plex Mono', monospace" font-size="10" fill="#f59e0b"
-                         font-variant-numeric="tabular-nums">${fmtR(vR)}</text>`;
+      yLabelsR += `<text x="${(W - padR + 8).toFixed(2)}" y="${(yy + 3.5).toFixed(2)}" text-anchor="start" fill="#f59e0b">${fmtR(vR)}</text>`;
     }
 
     let xLabels = '', xGrid = '';
@@ -110,9 +106,7 @@ window.PVSIM = window.PVSIM || {};
       xGrid += `<line x1="${xx.toFixed(2)}" y1="${padT}" x2="${xx.toFixed(2)}" y2="${(padT + ch).toFixed(2)}"
                       stroke="var(--pvsim-border)" stroke-width="1" stroke-dasharray="1,4"/>`;
       const hh = String(h % 24).padStart(2, '0');
-      xLabels += `<text x="${xx.toFixed(2)}" y="${(padT + ch + 18).toFixed(2)}" text-anchor="middle"
-                        font-family="'IBM Plex Mono', monospace" font-size="10" fill="var(--pvsim-text-2)"
-                        font-variant-numeric="tabular-nums">${hh}:00</text>`;
+      xLabels += `<text x="${xx.toFixed(2)}" y="${(padT + ch + 18).toFixed(2)}" text-anchor="middle">${hh}:00</text>`;
     }
 
     let peakIdx = 0;
@@ -126,9 +120,7 @@ window.PVSIM = window.PVSIM || {};
       <line x1="${ppx.toFixed(2)}" y1="${(padT).toFixed(2)}" x2="${ppx.toFixed(2)}" y2="${ppy.toFixed(2)}"
             stroke="#ff7a1a" stroke-width="1" stroke-dasharray="2,3" opacity="0.4"/>
       <circle cx="${ppx.toFixed(2)}" cy="${ppy.toFixed(2)}" r="4" fill="var(--pvsim-bg-0)" stroke="#2dd4bf" stroke-width="2"/>
-      <text x="${ppx.toFixed(2)}" y="${(ppy - 10).toFixed(2)}" text-anchor="middle"
-            font-family="'IBM Plex Mono', monospace" font-size="10" font-weight="600" fill="#2dd4bf"
-            font-variant-numeric="tabular-nums">peak ${P.fmt.pl2(peakHour.power)} kW · ${P.fmt.pl2(peakHour.water)} m³/h</text>
+      <text x="${ppx.toFixed(2)}" y="${(ppy - 10).toFixed(2)}" text-anchor="middle" font-weight="600" fill="#2dd4bf">peak ${P.fmt.pl2(peakHour.power)} kW · ${P.fmt.pl2(peakHour.water)} m³/h</text>
     ` : '';
 
     const axes = `
@@ -142,9 +134,7 @@ window.PVSIM = window.PVSIM || {};
     const circLine = P_circ > 0.001 ? `
       <line x1="${padL}" y1="${y_circ.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${y_circ.toFixed(2)}"
             stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.7"/>
-      <text x="${(padL + 6).toFixed(2)}" y="${(y_circ - 5).toFixed(2)}"
-            font-family="'IBM Plex Mono', monospace" font-size="9.5" fill="#f59e0b" opacity="0.85"
-            font-variant-numeric="tabular-nums">P_cyrk. ${P.fmt.pl2(P_circ)} kW</text>
+      <text x="${(padL + 6).toFixed(2)}" y="${(y_circ - 5).toFixed(2)}" font-size="9.5" fill="#f59e0b" opacity="0.85">P_cyrk. ${P.fmt.pl2(P_circ)} kW</text>
     ` : '';
 
     // Linia średniej mocy użytecznej — Q_useful / 24h (osie prawa, kW)
@@ -153,9 +143,7 @@ window.PVSIM = window.PVSIM || {};
     const useLine = P_use > 0.001 ? `
       <line x1="${padL}" y1="${y_use.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${y_use.toFixed(2)}"
             stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.7"/>
-      <text x="${(padL + 6).toFixed(2)}" y="${(y_use - 5).toFixed(2)}"
-            font-family="'IBM Plex Mono', monospace" font-size="9.5" fill="#f59e0b" opacity="0.85"
-            font-variant-numeric="tabular-nums">P_użyt. ${P.fmt.pl2(P_use)} kW (śr.)</text>
+      <text x="${(padL + 6).toFixed(2)}" y="${(y_use - 5).toFixed(2)}" font-size="9.5" fill="#f59e0b" opacity="0.85">P_użyt. ${P.fmt.pl2(P_use)} kW (śr.)</text>
     ` : '';
 
     svg.innerHTML = `
@@ -177,10 +165,8 @@ window.PVSIM = window.PVSIM || {};
       ${yLabelsL}
       ${yLabelsR}
       ${xLabels}
-      <text x="${padL - 30}" y="${padT - 10}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
-            fill="#2dd4bf" letter-spacing="1.4">[m³/h]</text>
-      <text x="${(W - padR + 4).toFixed(2)}" y="${padT - 10}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
-            fill="#f59e0b" letter-spacing="1.4">[kW]</text>
+      <text x="${padL - 30}" y="${padT - 10}" font-size="9.5" fill="#2dd4bf" letter-spacing="1.4">[m³/h]</text>
+      <text x="${(W - padR + 4).toFixed(2)}" y="${padT - 10}" font-size="9.5" fill="#f59e0b" letter-spacing="1.4">[kW]</text>
     `;
   };
 

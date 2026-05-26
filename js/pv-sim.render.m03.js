@@ -56,9 +56,7 @@ window.PVSIM = window.PVSIM || {};
       const yy = y(v);
       gridLines += `<line x1="${padL}" y1="${yy.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yy.toFixed(2)}"
                           stroke="var(--pvsim-border)" stroke-width="1" ${i === 0 ? '' : 'stroke-dasharray="2,3"'}/>`;
-      yLabels += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end"
-                        font-family="'IBM Plex Mono', monospace" font-size="10" fill="var(--pvsim-text-2)"
-                        font-variant-numeric="tabular-nums">${v.toFixed(2)}</text>`;
+      yLabels += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end">${v.toFixed(2)}</text>`;
     }
 
     let xLabels = '', xGrid = '';
@@ -66,9 +64,7 @@ window.PVSIM = window.PVSIM || {};
       const xx = x(h);
       xGrid += `<line x1="${xx.toFixed(2)}" y1="${padT}" x2="${xx.toFixed(2)}" y2="${(padT + ch).toFixed(2)}"
                       stroke="var(--pvsim-border)" stroke-width="1" stroke-dasharray="1,4"/>`;
-      xLabels += `<text x="${xx.toFixed(2)}" y="${(padT + ch + 18).toFixed(2)}" text-anchor="middle"
-                        font-family="'IBM Plex Mono', monospace" font-size="10" fill="var(--pvsim-text-2)"
-                        font-variant-numeric="tabular-nums">${String(h % 24).padStart(2, '0')}:00</text>`;
+      xLabels += `<text x="${xx.toFixed(2)}" y="${(padT + ch + 18).toFixed(2)}" text-anchor="middle">${String(h % 24).padStart(2, '0')}:00</text>`;
     }
 
     const axes = `
@@ -82,8 +78,7 @@ window.PVSIM = window.PVSIM || {};
 
     svg.innerHTML = `
       ${gridLines}${xGrid}${axes}${bars}${refDay}${refNight}${yLabels}${xLabels}
-      <text x="${padL - 42}" y="${padT - 10}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
-            fill="var(--pvsim-text-2)" letter-spacing="1.4">[zł/kWh]</text>
+      <text x="${padL - 42}" y="${padT - 10}" font-size="9.5" letter-spacing="1.4">[zł/kWh]</text>
     `;
   };
 

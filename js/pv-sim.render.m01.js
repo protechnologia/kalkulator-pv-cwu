@@ -47,9 +47,7 @@ window.PVSIM = window.PVSIM || {};
       const yy = y(v);
       gridLines += `<line x1="${padL}" y1="${yy.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yy.toFixed(2)}"
                           stroke="var(--pvsim-border)" stroke-width="1" ${i === 0 ? '' : 'stroke-dasharray="2,3"'}/>`;
-      yLabels += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end"
-                        font-family="'IBM Plex Mono', monospace" font-size="10" fill="var(--pvsim-text-2)"
-                        font-variant-numeric="tabular-nums">${Math.round(v)}</text>`;
+      yLabels += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end">${Math.round(v)}</text>`;
     }
 
     let xLabels = '';
@@ -59,9 +57,7 @@ window.PVSIM = window.PVSIM || {};
       xGrid += `<line x1="${xx.toFixed(2)}" y1="${padT}" x2="${xx.toFixed(2)}" y2="${(padT + ch).toFixed(2)}"
                       stroke="var(--pvsim-border)" stroke-width="1" stroke-dasharray="1,4"/>`;
       const hh = String(h % 24).padStart(2, '0');
-      xLabels += `<text x="${xx.toFixed(2)}" y="${(padT + ch + 18).toFixed(2)}" text-anchor="middle"
-                        font-family="'IBM Plex Mono', monospace" font-size="10" fill="var(--pvsim-text-2)"
-                        font-variant-numeric="tabular-nums">${hh}:00</text>`;
+      xLabels += `<text x="${xx.toFixed(2)}" y="${(padT + ch + 18).toFixed(2)}" text-anchor="middle">${hh}:00</text>`;
     }
 
     const px = x(12);
@@ -70,9 +66,7 @@ window.PVSIM = window.PVSIM || {};
       <line x1="${px.toFixed(2)}" y1="${(padT).toFixed(2)}" x2="${px.toFixed(2)}" y2="${py.toFixed(2)}"
             stroke="#2dd4bf" stroke-width="1" stroke-dasharray="2,3" opacity="0.5"/>
       <circle cx="${px.toFixed(2)}" cy="${py.toFixed(2)}" r="4" fill="var(--pvsim-bg-0)" stroke="#ff7a1a" stroke-width="2"/>
-      <text x="${(px + 8).toFixed(2)}" y="${(py - 6).toFixed(2)}"
-            font-family="'IBM Plex Mono', monospace" font-size="10" font-weight="600" fill="#ff7a1a"
-            font-variant-numeric="tabular-nums">P_max ${P.fmt.pl2(sim.peak)} kW</text>
+      <text x="${(px + 8).toFixed(2)}" y="${(py - 6).toFixed(2)}" font-weight="600" fill="#ff7a1a">P_max ${P.fmt.pl2(sim.peak)} kW</text>
     ` : '';
 
     const axes = `
@@ -96,8 +90,7 @@ window.PVSIM = window.PVSIM || {};
       ${peakMarker}
       ${yLabels}
       ${xLabels}
-      <text x="${padL - 30}" y="${padT - 10}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
-            fill="var(--pvsim-text-2)" letter-spacing="1.4">[kW]</text>
+      <text x="${padL - 30}" y="${padT - 10}" font-size="9.5" letter-spacing="1.4">[kW]</text>
     `;
   };
 
@@ -151,9 +144,7 @@ window.PVSIM = window.PVSIM || {};
     const avgY = y(avgDaily);
     const avgLine = `<line x1="${padL}" y1="${avgY.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${avgY.toFixed(2)}"
                            stroke="#2dd4bf" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.8"/>
-      <text x="${(W - padR - 4).toFixed(2)}" y="${(avgY - 5).toFixed(2)}" text-anchor="end"
-            font-family="'IBM Plex Mono', monospace" font-size="10" font-weight="600" fill="#2dd4bf"
-            font-variant-numeric="tabular-nums">śr. ${P.fmt.pl2(avgDaily)} kWh</text>`;
+      <text x="${(W - padR - 4).toFixed(2)}" y="${(avgY - 5).toFixed(2)}" text-anchor="end" font-weight="600" fill="#2dd4bf">śr. ${P.fmt.pl2(avgDaily)} kWh</text>`;
 
     const ticks = Math.round(yMax / step);
     let gridLines = '', yLabels = '';
@@ -162,18 +153,14 @@ window.PVSIM = window.PVSIM || {};
       const yy = y(v);
       gridLines += `<line x1="${padL}" y1="${yy.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yy.toFixed(2)}"
                           stroke="var(--pvsim-border)" stroke-width="1" ${i === 0 ? '' : 'stroke-dasharray="2,3"'}/>`;
-      yLabels += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end"
-                        font-family="'IBM Plex Mono', monospace" font-size="10" fill="var(--pvsim-text-2)"
-                        font-variant-numeric="tabular-nums">${P.fmt.pl0(v)}</text>`;
+      yLabels += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end">${P.fmt.pl0(v)}</text>`;
     }
 
     const labelEvery = days > 16 ? 2 : 1;
     let xLabels = '';
     for (let d = 0; d < days; d++) {
       if (d % labelEvery === 0) {
-        xLabels += `<text x="${(x(d) + slot / 2).toFixed(2)}" y="${(padT + ch + 18).toFixed(2)}" text-anchor="middle"
-                          font-family="'IBM Plex Mono', monospace" font-size="10" fill="var(--pvsim-text-2)"
-                          font-variant-numeric="tabular-nums">${d + 1}</text>`;
+        xLabels += `<text x="${(x(d) + slot / 2).toFixed(2)}" y="${(padT + ch + 18).toFixed(2)}" text-anchor="middle">${d + 1}</text>`;
       }
     }
 
@@ -184,10 +171,8 @@ window.PVSIM = window.PVSIM || {};
 
     svg.innerHTML = `
       ${gridLines}${axes}${bars}${avgLine}${yLabels}${xLabels}
-      <text x="${padL - 30}" y="${padT - 10}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
-            fill="var(--pvsim-text-2)" letter-spacing="1.4">[kWh]</text>
-      <text x="${(padL + cw / 2).toFixed(2)}" y="${(H - 4).toFixed(2)}" text-anchor="middle"
-            font-family="'IBM Plex Mono', monospace" font-size="9" fill="var(--pvsim-text-2)" letter-spacing="1">doba</text>
+      <text x="${padL - 30}" y="${padT - 10}" font-size="9.5" letter-spacing="1.4">[kWh]</text>
+      <text x="${(padL + cw / 2).toFixed(2)}" y="${(H - 4).toFixed(2)}" text-anchor="middle" font-size="9" letter-spacing="1">doba</text>
     `;
 
     const ctxEl = document.getElementById('pvsim-pv-month-ctx');

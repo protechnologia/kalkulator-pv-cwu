@@ -54,6 +54,69 @@ Automatycznie dobiera najlepszą konfigurację układu pod zadane kryterium
 maksymalnym czasie zwrotu. Top 10 wariantów można jednym kliknięciem
 przenieść do kontrolek Modułu 04.
 
+## Algorytmy
+
+### Produkcja PV — clear-sky × skalowanie do PVGIS
+Krzywa godzinowa zaczyna się od czystej fizyki: kąt wysokości słońca liczony
+modelem Coopera (1969) na podstawie szerokości geograficznej, deklinacji i kąta
+godzinnego, a wartość napromienienia w danej godzinie — uproszczonym modelem
+clear-sky Hottela (transmisja atmosfery jako funkcja masy powietrza). Dla
+trybu **clear** wynik mnożony jest przez stały skaler `CLEAR_SCALE`, żeby suma
+dobowa zgadzała się z idealnym bezchmurnym dniem. Dla trybu **avg** skaler
+dobierany jest na bieżąco tak, by suma dobowa równała się dobowemu uzyskowi
+PVGIS dla danego miesiąca (chmury wliczone). Kształt krzywej w obu trybach jest
+ten sam — różni je tylko amplituda.
+
+### Rozrzut dobowy PV — inverse CDF + korekta średniej
+Dla symulacji miesięcznej i rocznej każda doba dostaje dobowy mnożnik
+produkcji `g[d] ∈ [0, g_max]`, gdzie `g_max = clear-sky / avg` (sezonowy —
+zimą ~3, latem ~1,5). Surowa „czystość nieba" losowana jest metodą odwrotnej
+dystrybuanty: `r = U^p` z `U ~ Uniform(0,1)` i `p = g_max − 1` — taki rozkład
+ma `E[r^p] = 1/g_max`, więc bez korekty średnia dobowa już z grubsza pasuje.
+Następnie blendowana z suwakiem `pvVariability` (`0` → wszystkie doby
+identyczne, `1` → pełny zakres od pochmurnych do clear-sky), a na końcu
+monotoniczna korekta wymusza **dokładną** średnią — suma miesięczna PV jest
+zachowana bit-w-bit. Generator (`mulberry32`, ziarno = `WEATHER_SEED + monthIdx`)
+jest deterministyczny: ten sam wzorzec dni przy każdym renderze, suwak tylko
+skaluje rozrzut bez tasowania.
+
+### Strategie pracy pary PC + grzałka
+Każda godzina doby jest przypisana do strefy dziennej lub nocnej (Moduł 03),
+a strategia wybierana jest osobno dla każdej strefy:
+
+- **off** — oba urządzenia wyłączone w tej strefie.
+- **off-grid** (power diverter) — grzejemy **wyłącznie nadwyżką PV**. PC ma
+  priorytet: wybiera największy bieg `k`, dla którego `(k/N)·hpKW ≤ P_PV`;
+  grzałka throttluje do reszty nadwyżki. Próg włączenia `heaterThreshold ×
+  heaterKW` zapobiega cyklicznym startom przy słabej PV. Po osiągnięciu
+  setpointu — stop, nadwyżka PV zapisana jako `Q_wasted`.
+- **on-grid** — pełna moc proporcjonalna do brakującej temperatury, nadwyżka
+  PV używana w pierwszej kolejności, resztę dobiera sieć (po cenie strefy).
+  W pasmie `[T_set − hpOnlyBand, T_set)` pracuje **tylko PC** (bieg dobrany
+  proporcjonalnie do zapotrzebowania); poniżej pasma PC bierze top bieg,
+  a grzałka modulowana wg `(T_set − T) / BAND` dobiera resztę.
+
+### Fizyka zasobnika
+Model 1-węzłowy (fully-mixed) — zasobnik traktowany jako jednorodna masa
+wody o temperaturze `T(t)`. Każda godzina liczona w **6 podkrokach**, w każdym:
+
+1. **Pobór** — strumień ciepłej wody zastępowany wodą wodociągową `T_in`,
+   nowa temperatura jako średnia ważona masami. Oszczędność `Q_saved`
+   = ile mniej ciepła musiałby dostarczyć stary węzeł ECO (Δ od `T_in`).
+2. **Grzanie** — moce PC i grzałki wg strategii (powyżej), cap mocy do
+   ilości potrzebnej, by nie przekroczyć setpointu w tym podkroku.
+3. **Straty postojowe** — `Q_strat = UA · (T − T_otoczenia) · dt`,
+   gdzie `UA(V) = UA_REF · (V/V_REF)^(2/3)` (skalowanie powierzchni
+   zasobnika z objętością, klasa B/C wg PN-EN 12897).
+
+COP pompy ciepła sezonowy — letni (Kwi–Wrz) lub zimowy (Paź–Mar) — więc
+ciepło dostarczone do zasobnika to `Q_hp = elec_hp × COP_sezonowy`. Cena
+energii z sieci uwzględnia strefę godziny pracy.
+
+W symulacji miesięcznej i rocznej (Moduły 05–06) temperatura zasobnika
+przenosi się między dobami (`T_end` jednej doby = `T_start` następnej),
+więc układ wchodzi w stan ustalony po kilku pierwszych dobach.
+
 ## Struktura plików
 
 ```

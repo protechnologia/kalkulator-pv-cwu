@@ -67,6 +67,19 @@ dobierany jest na bieżąco tak, by suma dobowa równała się dobowemu uzyskowi
 PVGIS dla danego miesiąca (chmury wliczone). Kształt krzywej w obu trybach jest
 ten sam — różni je tylko amplituda.
 
+**Model Coopera (1969)** — prosty wzór astronomiczny na deklinację Słońca
+(czyli kąt między płaszczyzną równika a kierunkiem na Słońce) w zależności od
+dnia roku. Pozwala policzyć, jak wysoko Słońce stoi nad horyzontem o danej
+godzinie w danym dniu i miejscu na Ziemi — to wejście do każdego dalszego
+modelu napromienienia.
+
+**Model clear-sky Hottela** — empiryczny model bezchmurnego nieba: dla danej
+wysokości Słońca i wysokości n.p.m. szacuje, jaka część stałej słonecznej
+dociera do powierzchni Ziemi po przejściu przez czystą atmosferę (im niżej
+Słońce, tym dłuższa droga w atmosferze i większe tłumienie). Daje kształt
+godzinowej krzywej napromienienia w idealnym dniu — w aplikacji ta krzywa
+jest następnie przeskalowana do realnych warunków danego miesiąca.
+
 ### Rozrzut dobowy PV — inverse CDF + korekta średniej
 Dla symulacji miesięcznej i rocznej każda doba dostaje dobowy mnożnik
 produkcji `g[d] ∈ [0, g_max]`, gdzie `g_max = clear-sky / avg` (sezonowy —

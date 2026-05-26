@@ -212,22 +212,22 @@ więc układ wchodzi w stan ustalony po kilku pierwszych dobach.
 
 ```
 pv-sim.v1.5.html      — jedyna strona HTML
-pv-sim.tokens.css     — zmienne CSS (kolory, tła, akcenty)
-pv-sim.layout.css     — nagłówek, suwaki, siatka miesięcy, stopka, responsive
-pv-sim.components.css — wykresy SVG, karty statystyk, warianty kolorów, sidebar
-pv-sim.config.js      — stałe, MONTHS[], state{}, OPT_GRID, funkcje pomocnicze
-pv-sim.physics.js     — simulateDay/DHW/Tank/TankMonth/TankYear, computeInvestment
-pv-sim.optimize.js    — optimize() (grid search, Moduł 08)
-pv-sim.render.js      — wspólne helpery warstwy renderowania (P.fmt, P._smoothPath)
-pv-sim.render.m01.js  — renderowanie Modułu 01 (PV)
-pv-sim.render.m02.js  — renderowanie Modułu 02 (CWU)
-pv-sim.render.m03.js  — renderowanie Modułu 03 (sieć)
-pv-sim.render.m04.js  — renderowanie Modułu 04 (zasobnik)
-pv-sim.render.m05.js  — renderowanie Modułu 05 (symulacja miesięczna)
-pv-sim.render.m06.js  — renderowanie Modułu 06 (symulacja roczna)
-pv-sim.render.m07.js  — renderowanie Modułu 07 (inwestycja)
-pv-sim.render.m08.js  — renderowanie Modułu 08 (optymalizacja)
-pv-sim.app.js         — P.update(), init(), obsługa UI
+css/pv-sim.tokens.css     — zmienne CSS (kolory, tła, akcenty)
+css/pv-sim.layout.css     — nagłówek, suwaki, siatka miesięcy, stopka, responsive
+css/pv-sim.components.css — wykresy SVG, karty statystyk, warianty kolorów, sidebar
+js/pv-sim.config.js      — stałe, MONTHS[], state{}, OPT_GRID, funkcje pomocnicze
+js/pv-sim.physics.js     — simulateDay/DHW/Tank/TankMonth/TankYear, computeInvestment
+js/pv-sim.optimize.js    — optimize() (grid search, Moduł 08)
+js/pv-sim.render.js      — wspólne helpery warstwy renderowania (P.fmt, P._smoothPath)
+js/pv-sim.render.m01.js  — renderowanie Modułu 01 (PV)
+js/pv-sim.render.m02.js  — renderowanie Modułu 02 (CWU)
+js/pv-sim.render.m03.js  — renderowanie Modułu 03 (sieć)
+js/pv-sim.render.m04.js  — renderowanie Modułu 04 (zasobnik)
+js/pv-sim.render.m05.js  — renderowanie Modułu 05 (symulacja miesięczna)
+js/pv-sim.render.m06.js  — renderowanie Modułu 06 (symulacja roczna)
+js/pv-sim.render.m07.js  — renderowanie Modułu 07 (inwestycja)
+js/pv-sim.render.m08.js  — renderowanie Modułu 08 (optymalizacja)
+js/pv-sim.app.js         — P.update(), init(), obsługa UI
 ```
 
 ## Dane źródłowe

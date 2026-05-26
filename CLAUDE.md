@@ -12,22 +12,22 @@ Otwórz `pv-sim.v1.5.html` w przeglądarce. Nie wymaga żadnej instalacji ani se
 
 ```
 pv-sim.v1.5.html      — jedyna strona HTML; ładuje CSS i JS w odpowiedniej kolejności
-pv-sim.tokens.css     — zmienne CSS (kolory, tła, akcenty); bazowy kontener .pvsim
-pv-sim.layout.css     — nagłówek, suwaki, siatka miesięcy, stopka, responsive
-pv-sim.components.css — wykresy SVG, karty statystyk, separatory modułów, warianty kolorów
-pv-sim.config.js      — stałe, MONTHS[], state{}, T_cold(), kWh_per_m3()
-pv-sim.physics.js     — simulateDay(), simulateDHW(), simulateTank(), simulateTankMonth(), simulateTankYear(), computeInvestment()
-pv-sim.optimize.js    — P.optimize() (grid search, Moduł 08)
-pv-sim.render.js      — P.fmt, P._smoothPath() (helpery używane przez pliki render.mXX)
-pv-sim.render.m01.js  — renderChart, renderStats, renderPVMonthChart (Moduł 01)
-pv-sim.render.m02.js  — renderDHWChart, renderDHWStats (Moduł 02)
-pv-sim.render.m03.js  — renderGridChart (Moduł 03)
-pv-sim.render.m04.js  — renderTankChart, renderTankElecChart, renderHeatSplitChart, renderTankStats (Moduł 04)
-pv-sim.render.m05.js  — renderMonthTankChart, renderMonthElecChart, renderMonthStats (Moduł 05)
-pv-sim.render.m06.js  — renderYearChart, renderYearCoverChart, renderYearStats (Moduł 06)
-pv-sim.render.m07.js  — renderInvestStats (Moduł 07)
-pv-sim.render.m08.js  — renderOptimTable (Moduł 08)
-pv-sim.app.js         — P.update(), init(), listenery suwaków i przycisków
+css/pv-sim.tokens.css     — zmienne CSS (kolory, tła, akcenty); bazowy kontener .pvsim
+css/pv-sim.layout.css     — nagłówek, suwaki, siatka miesięcy, stopka, responsive
+css/pv-sim.components.css — wykresy SVG, karty statystyk, separatory modułów, warianty kolorów
+js/pv-sim.config.js      — stałe, MONTHS[], state{}, T_cold(), kWh_per_m3()
+js/pv-sim.physics.js     — simulateDay(), simulateDHW(), simulateTank(), simulateTankMonth(), simulateTankYear(), computeInvestment()
+js/pv-sim.optimize.js    — P.optimize() (grid search, Moduł 08)
+js/pv-sim.render.js      — P.fmt, P._smoothPath() (helpery używane przez pliki render.mXX)
+js/pv-sim.render.m01.js  — renderChart, renderStats, renderPVMonthChart (Moduł 01)
+js/pv-sim.render.m02.js  — renderDHWChart, renderDHWStats (Moduł 02)
+js/pv-sim.render.m03.js  — renderGridChart (Moduł 03)
+js/pv-sim.render.m04.js  — renderTankChart, renderTankElecChart, renderHeatSplitChart, renderTankStats (Moduł 04)
+js/pv-sim.render.m05.js  — renderMonthTankChart, renderMonthElecChart, renderMonthStats (Moduł 05)
+js/pv-sim.render.m06.js  — renderYearChart, renderYearCoverChart, renderYearStats (Moduł 06)
+js/pv-sim.render.m07.js  — renderInvestStats (Moduł 07)
+js/pv-sim.render.m08.js  — renderOptimTable (Moduł 08)
+js/pv-sim.app.js         — P.update(), init(), listenery suwaków i przycisków
 ```
 
 ### Kolejność ładowania (obowiązkowa)

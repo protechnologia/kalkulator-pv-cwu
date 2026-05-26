@@ -57,28 +57,54 @@ przenieść do kontrolek Modułu 04.
 ## Algorytmy
 
 ### Produkcja PV — clear-sky × skalowanie do PVGIS
-Krzywa godzinowa zaczyna się od czystej fizyki: kąt wysokości słońca liczony
-modelem Coopera (1969) na podstawie szerokości geograficznej, deklinacji i kąta
-godzinnego, a wartość napromienienia w danej godzinie — uproszczonym modelem
-clear-sky Hottela (transmisja atmosfery jako funkcja masy powietrza). Dla
-trybu **clear** wynik mnożony jest przez stały skaler `CLEAR_SCALE`, żeby suma
-dobowa zgadzała się z idealnym bezchmurnym dniem. Dla trybu **avg** skaler
-dobierany jest na bieżąco tak, by suma dobowa równała się dobowemu uzyskowi
-PVGIS dla danego miesiąca (chmury wliczone). Kształt krzywej w obu trybach jest
-ten sam — różni je tylko amplituda.
+Chcemy policzyć, ile prądu wyprodukuje instalacja PV w każdej godzinie doby
+wybranego miesiąca. Robimy to dwuetapowo: najpierw fizyka daje **kształt**
+godzinowej krzywej (kiedy i jak wysoko stoi Słońce), a potem skalowanie
+dopasowuje **wysokość** krzywej do realnego uzysku dobowego z PVGIS
+(chmury wliczone) albo do idealnego dnia bezchmurnego.
 
-**Model Coopera (1969)** — prosty wzór astronomiczny na deklinację Słońca
-(czyli kąt między płaszczyzną równika a kierunkiem na Słońce) w zależności od
-dnia roku. Pozwala policzyć, jak wysoko Słońce stoi nad horyzontem o danej
-godzinie w danym dniu i miejscu na Ziemi — to wejście do każdego dalszego
-modelu napromienienia.
+**Model Coopera (1969).** Używamy go, żeby wiedzieć, jak wysoko nad
+horyzontem stoi Słońce o danej godzinie w wybranym dniu roku — im wyżej,
+tym krótsza droga promieni przez atmosferę i więcej energii na panelu.
 
-**Model clear-sky Hottela** — empiryczny model bezchmurnego nieba: dla danej
-wysokości Słońca i wysokości n.p.m. szacuje, jaka część stałej słonecznej
-dociera do powierzchni Ziemi po przejściu przez czystą atmosferę (im niżej
-Słońce, tym dłuższa droga w atmosferze i większe tłumienie). Daje kształt
-godzinowej krzywej napromienienia w idealnym dniu — w aplikacji ta krzywa
-jest następnie przeskalowana do realnych warunków danego miesiąca.
+Cooper to prosty wzór, który dla dnia roku zwraca **deklinację `δ`** — kąt
+między płaszczyzną równika a kierunkiem na Słońce. Ziemia obiega nachylone
+o 23,45° Słońce, więc `δ` zmienia się sezonowo: czerwiec `+23,45°` (półkula
+północna nadstawiona), grudzień `−23,45°` (półkula południowa), równonoce
+`0°`. To właśnie z tej zmiany biorą się pory roku.
+
+Sama `δ` nie mówi jeszcze, jak wysoko Słońce wzejdzie u nas — łączymy ją
+z szerokością geograficzną `φ` i godziną doby `ω` trygonometrią sferyczną
+(wzór `sin α = …` w „Łączeniu obu modeli" niżej).
+
+**Model clear-sky Hottela.** Używamy go, żeby z wysokości Słońca `α` dostać
+**kształt** dziennej krzywej napromienienia — względne (bezwymiarowe)
+wartości godzina po godzinie, bez przesądzania, ile to fizycznie kWh.
+
+Hottel to empiryczny wzór, który dla danego `α` zwraca **względne**
+napromienienie bezchmurnego nieba: ile w tej chwili dochodzi przez atmosferę
+w porównaniu z momentem, gdy Słońce stoi najwyżej. Im niżej Słońce, tym
+dłuższa droga promieni przez atmosferę i tym większe tłumienie — dlatego
+krzywa dzienna ma kształt dzwonu z maksimum w południe.
+
+Dlaczego niskie Słońce = dłuższa droga, mimo że Ziemia jest kulą? Bo
+atmosfera to cienka skorupka (~100 km) wokół promienia ~6370 km — w skali
+doby odległość do Słońca się nie zmienia, zmienia się tylko **kąt padania**
+promieni na tę warstwę. Słońce w zenicie wchodzi prostopadle (najkrótsza
+droga, masa powietrza AM = 1); Słońce nisko nad horyzontem ślizga się przez
+atmosferę ukośnie, pokonując w niej kilkukrotnie dłuższą drogę
+(AM ≈ 1/sin α — przy `α = 10°` to już ~5,7×). Więcej drogi = więcej
+rozpraszania i pochłaniania, mniej energii dochodzi do panelu. To samo
+zjawisko, dla którego o świcie i zachodzie Słońce jest pomarańczowe i
+słabsze.
+
+Sam Hottel **nie zna kWh** — nie liczy konwersji napromienienia na płaszczyznę
+nachylonego panelu, sprawności modułu, strat temperaturowych ani strat
+falownika. Daje tylko **kształt** krzywej; jej **wysokość** (czyli faktyczną
+energię) ustala dopiero skalowanie sumy dobowej — do `CLEAR_SCALE` (tryb
+`clear`, kalibracja do 7,8 kWh/kWp/dobę typowego słonecznego czerwca w PL)
+albo do dobowego uzysku PVGIS dla danego miesiąca (tryb `avg`, chmury
+wliczone). Jeden mnożnik pochłania cały łańcuch strat układu PV.
 
 **Łączenie obu modeli.** Cooper daje wartość astronomiczną — deklinację `δ`
 dla wybranego dnia roku. Razem z szerokością geograficzną `φ` (Opole, 50,67°N)
@@ -89,6 +115,48 @@ względne napromienienie. Sumując 24 godziny dostajemy surowy uzysk dobowy
 (jeszcze bez kalibracji do realnych warunków) — i dopiero ta suma jest
 skalowana do `CLEAR_SCALE` (tryb `clear`) lub do dobowego uzysku PVGIS dla
 danego miesiąca (tryb `avg`).
+
+Interpretacja `CLEAR_SCALE`: **ile kWh/kWp/dobę daje jedna jednostka
+„surowego Hottela"**. Wartość `1,4577` = `7,8 / 5,351` — kotwica kWh/kWp
+typowego słonecznego czerwcowego dnia w PL podzielona przez surową sumę
+Hottela dla 21 czerwca w Opolu. Jedna stała wystarcza na cały rok, bo
+sezonowość siedzi już w `raw` (krótszy dzień, niższe `α` → mniejsza suma);
+skala tylko zamienia bezwymiarowy kształt na energię.
+
+**Krok po kroku, jak liczymy moc PV dla wybranego miesiąca:**
+
+1. **Dzień reprezentatywny miesiąca** — bierzemy 15. dzień miesiąca (`n` ∈ 1..365).
+2. **Deklinacja Słońca** (Cooper): `δ = 23,45° · sin(360° · (284 + n) / 365)` —
+   to kąt między równikiem a kierunkiem na Słońce dla tego dnia.
+3. **Dla każdej godziny doby `h ∈ 0..23`:**
+   - **Kąt godzinny:** `ω = 15° · (h − 12)` — położenie Słońca w stosunku do
+     południa lokalnego (15° na godzinę).
+   - **Wysokość Słońca:** `sin α = sin φ · sin δ + cos φ · cos δ · cos ω`.
+     Jeśli `α ≤ 0` (Słońce pod horyzontem) → moc dla tej godziny = 0, idziemy
+     dalej.
+   - **Względne napromienienie** `I_rel(α)` z modelu Hottela — funkcja tylko
+     od wysokości Słońca, bez jednostek (kształt krzywej dziennej).
+4. **Surowy uzysk dobowy:** `raw = Σ I_rel(α_h)` po 24 godzinach.
+5. **Skalowanie do realnych warunków.** `raw` jest bezwymiarowy — żeby
+   dostać kWh/kWp, mnożymy go przez `scale`, czyli **cenę jednej jednostki
+   Hottela w kWh/kWp**:
+   - tryb `clear` → `scale = CLEAR_SCALE = 1,4577` (stała na cały rok,
+     skalibrowana raz: `7,8 kWh/kWp ÷ raw_21cze = 7,8 / 5,351`; kotwicą jest
+     typowy bezchmurny czerwcowy dzień w PL). Dobowy uzysk clear-sky dla
+     dowolnego miesiąca = `raw × 1,4577` — krótsze i niższe Słońce zimą daje
+     mniejszy `raw`, więc i mniejszy uzysk.
+   - tryb `avg` → `scale = dailyYield_PVGIS[miesiąc] / raw` (12 osobnych
+     wartości — `dailyYield_PVGIS` to wieloletnia średnia kWh/kWp/dobę z PVGIS
+     dla PL, panel 30°, **chmury wliczone**). `scale` zimą jest dużo mniejsza
+     niż latem — bo średnia statystyczna doba grudnia jest pochmurna i daje
+     w realu ułamek tego, co dałby clear-sky.
+
+   Oba `scale` mają tę samą interpretację (kWh/kWp na jednostkę Hottela) —
+   różnią się tylko kotwicą: `clear` celuje w idealny dzień, `avg` w realną
+   średnią miesiąca.
+6. **Moc godzinowa dla instalacji `kWp`:** `P(h) = kWp · I_rel(α_h) · scale`.
+   Suma `P(h)` po dobie = uzysk dobowy [kWh], suma po miesiącu = uzysk
+   miesięczny.
 
 ### Rozrzut dobowy PV — inverse CDF + korekta średniej
 Dla symulacji miesięcznej i rocznej każda doba dostaje dobowy mnożnik

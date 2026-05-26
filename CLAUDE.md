@@ -286,6 +286,23 @@ Każda zmiana w UI → `P.update()` → pięć symulacji + `computeInvestment()`
 
 Warianty `-dim` (`--pvsim-orange-dim` itp.) używane jako tło aktywnych przycisków.
 
+## Kafelki statystyk
+
+Kafelek = `<div class="pvsim-stat KOLOR cat-KAT">` z `<div class="pvsim-stat-label">…</div>`
+i `<div class="pvsim-stat-value">…</div>`. Wartość może mieć trzy warianty:
+
+- **single** — sam `<span>` z liczbą + `<span class="unit">`. Bez dodatkowej klasy.
+- **dual** — `<div class="pvsim-stat-value dual">` z dwoma wierszami:
+  `<div class="primary">…</div>` (24px, kolor akcentu) i `<div class="secondary">…</div>`
+  (13px, prefiks `↳`). Używane np. w M02 ZUŻYCIE WODY (doba ↳ miesiąc).
+- **triple** — ta sama `dual`, dodatkowy `<div class="tertiary">…</div>` (te same style
+  co `.secondary`, też z prefiksem `↳`). Używane w M02 dla wartości doba ↳ miesiąc ↳ rok
+  (ENERGIA, KOSZT, ZUŻYCIE WODY).
+
+Klasy `cat-heat` / `cat-elec` / `cat-money` ustawiają delikatne tło tematyczne (~6–8%
+przez `color-mix`), niezależnie od koloru akcentu. Kolor akcentu (np. `teal`, `amber`)
+maluje tylko liczbę `primary`.
+
 ## Wykresy SVG
 
 Wykresy generowane dynamicznie przez `render.js` jako inline SVG wstrzykiwany do `.pvsim-chart`.

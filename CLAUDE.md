@@ -18,14 +18,15 @@ pv-sim.components.css — wykresy SVG, karty statystyk, separatory modułów, wa
 pv-sim.config.js      — stałe, MONTHS[], state{}, T_cold(), kWh_per_m3()
 pv-sim.physics.js     — simulateDay(), simulateDHW(), simulateTank(), simulateTankMonth(), simulateTankYear(), computeInvestment()
 pv-sim.optimize.js    — P.optimize() (grid search, Moduł 08)
-pv-sim.render.js      — fmt, smoothPath(), renderChart/Stats dla 8 modułów
+pv-sim.render.js      — fmt, smoothPath(), renderChart/Stats dla modułów 01–03 i 05–08
+pv-sim.render.m04.js  — renderTankChart, renderTankElecChart, renderHeatSplitChart, renderTankStats (Moduł 04)
 pv-sim.app.js         — P.update(), init(), listenery suwaków i przycisków
 ```
 
 ### Kolejność ładowania (obowiązkowa)
 
 CSS: `tokens` → `layout` → `components`
-JS: `config` → `physics` → `optimize` → `render` → `app`
+JS: `config` → `physics` → `optimize` → `render` → `render.m04` → `app`
 
 ## Architektura JS
 

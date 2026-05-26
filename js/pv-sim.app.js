@@ -77,7 +77,23 @@ window.PVSIM = window.PVSIM || {};
     const nEl = document.getElementById('pvsim-strat-night-desc');
     if (dEl) dEl.innerHTML = STRAT_DESC[P.state.heaterStratDay]   || '';
     if (nEl) nEl.innerHTML = STRAT_DESC[P.state.heaterStratNight] || '';
+    const cEl = document.getElementById('pvsim-circroute-desc');
+    if (cEl) cEl.innerHTML = CIRCROUTE_DESC[P.state.circRoute] || '';
   }
+
+  // Opisy trasy cyrkulacji CWU — pokazywane pod aktywnym przyciskiem
+  // togglea „Trasa cyrkulacji CWU" (Moduł 04).
+  const CIRCROUTE_DESC = {
+    'eco':
+      '<strong>Cyrkulację ogarnia stary węzeł.</strong> Pętla cyrkulacyjna pozostaje wpięta do istniejącego węzła cieplnego, ' +
+      'nasz zasobnik jej nie obsługuje. W bilansie pokrycia uwzględniamy ją jednak po stronie mianownika — ' +
+      'stary węzeł musi dostarczyć więcej energii (użyteczna + straty pętli), więc pokrycie liczymy względem energii całkowitej CWU.',
+    'tank':
+      '<strong>Cyrkulację bierze nasz zasobnik.</strong> Uproszczony model pętli umie tylko wysysać energię ze zbiornika ' +
+      '(stałą mocą P_circ, aż do poziomu wody wodociągowej — niżej nie schłodzi). ' +
+      'Stary węzeł nie musi już podgrzewać cyrkulacji, więc pokrycie liczymy względem samej energii użytecznej CWU (kran), ' +
+      'a ciepło dostarczone do pętli wlicza się do Q_saved zasobnika.'
+  };
 
   // ===== AKTUALIZACJA =====
   P.update = function() {
@@ -174,6 +190,7 @@ window.PVSIM = window.PVSIM || {};
       ['pvsim-mode-toggle',          'mode',     'pvMode'],
       ['pvsim-strat-day-toggle',     'strat',    'heaterStratDay'],
       ['pvsim-strat-night-toggle',   'strat',    'heaterStratNight'],
+      ['pvsim-circroute-toggle',     'route',    'circRoute'],
       ['pvsim-opt-objective-toggle', 'obj',      'optObjective'],
     ];
     HYDRATE_TOGGLES.forEach(([toggleId, dataAttr, stateKey]) => {
@@ -395,6 +412,19 @@ window.PVSIM = window.PVSIM || {};
     }
     wireStratToggle('pvsim-strat-day-toggle', 'heaterStratDay');
     wireStratToggle('pvsim-strat-night-toggle', 'heaterStratNight');
+
+    // Toggle trasy cyrkulacji CWU (Moduł 04) — 'eco' | 'tank'
+    (function() {
+      const btns = document.querySelectorAll('#pvsim-circroute-toggle .pvsim-toggle-btn');
+      btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          P.state.circRoute = btn.dataset.route;
+          btns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          P.update();
+        });
+      });
+    })();
 
     // Przełącznik kryterium optymalizacji (Moduł 08) — nie wywołuje P.update(),
     // bo optymalizator startuje tylko przyciskiem, a moduł 08 nie jest częścią `update()`.

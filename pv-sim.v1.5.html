@@ -330,6 +330,21 @@
       </div>
     </div>
 
+    <div class="pvsim-controls-row">
+      <div>
+        <div class="pvsim-label amber">Trasa cyrkulacji CWU</div>
+        <div class="pvsim-toggle" id="pvsim-circroute-toggle">
+          <button class="pvsim-toggle-btn amber" data-route="eco">
+            <span class="num">01</span>STARY WĘZEŁ
+          </button>
+          <button class="pvsim-toggle-btn amber" data-route="tank">
+            <span class="num">02</span>NASZ ZASOBNIK
+          </button>
+        </div>
+        <div class="pvsim-strat-desc" id="pvsim-circroute-desc"></div>
+      </div>
+    </div>
+
     <div class="pvsim-controls-group-title">Zasobnik</div>
     <div class="pvsim-controls-row">
       <div>
@@ -487,6 +502,8 @@
         <div class="primary"><span id="pvsim-bilans-kwh">0</span><span class="unit">kWh dostarczone do CWU</span></div>
         <div class="secondary"><span id="pvsim-bilans-residual">+ 0</span><span class="unit">kWh pozostaje w zasobniku</span></div>
         <div class="secondary"><span id="pvsim-bilans-strat">+ 0</span><span class="unit">kWh straty zasobnika</span></div>
+        <div class="secondary"><span id="pvsim-bilans-tap">w tym 0</span><span class="unit">kWh do starego węzła</span></div>
+        <div class="secondary"><span id="pvsim-bilans-circ">w tym 0</span><span class="unit">kWh na cyrkulację</span></div>
       </div>
     </div>
     <div class="pvsim-stat amber cat-elec">
@@ -581,6 +598,8 @@
         <div class="primary"><span id="pvsim-month-bilans-kwh">0</span><span class="unit">kWh dostarczone do CWU</span></div>
         <div class="secondary"><span id="pvsim-month-bilans-residual">+ 0</span><span class="unit">kWh pozostaje w zasobniku</span></div>
         <div class="secondary"><span id="pvsim-month-bilans-strat">+ 0</span><span class="unit">kWh straty zasobnika</span></div>
+        <div class="secondary"><span id="pvsim-month-bilans-tap">w tym 0</span><span class="unit">kWh do starego węzła</span></div>
+        <div class="secondary"><span id="pvsim-month-bilans-circ">w tym 0</span><span class="unit">kWh na cyrkulację</span></div>
       </div>
     </div>
     <div class="pvsim-stat sky cat-heat">
@@ -689,6 +708,8 @@
         <div class="primary"><span id="pvsim-year-bilans-kwh">0</span><span class="unit">kWh dostarczone do CWU</span></div>
         <div class="secondary"><span id="pvsim-year-bilans-residual">+ 0</span><span class="unit">kWh pozostaje w zasobniku</span></div>
         <div class="secondary"><span id="pvsim-year-bilans-strat">+ 0</span><span class="unit">kWh straty zasobnika</span></div>
+        <div class="secondary"><span id="pvsim-year-bilans-tap">w tym 0</span><span class="unit">kWh do starego węzła</span></div>
+        <div class="secondary"><span id="pvsim-year-bilans-circ">w tym 0</span><span class="unit">kWh na cyrkulację</span></div>
       </div>
     </div>
     <div class="pvsim-stat lime cat-heat">

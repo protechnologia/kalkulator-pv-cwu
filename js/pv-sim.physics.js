@@ -218,11 +218,17 @@ window.PVSIM = window.PVSIM || {};
       ? h >= dayStart && h < dayEnd
       : h >= dayStart || h < dayEnd;
 
+    // Trasa cyrkulacji: gdy 'tank', pętla drenuje zasobnik ciągłą mocą P_circ
+    // (24 h/dobę, tak jak liczone w simDHW). Stała kWh wyciągana na podkroku.
+    const P_circ_kW = (ps.circRoute === 'tank') ? simDHW.circulation.powerKW : 0;
+    const Q_circ_per = P_circ_kW * dt;
+
     let dailyHeaterOnHours = 0;
     let dailyHpOnHours = 0;
     let dailyQ_heater = 0;
     let dailyQ_hp     = 0;
     let dailyQ_saved  = 0;
+    let dailyQ_circ   = 0;
     let dailyQ_strat  = 0;
     let dailyQ_wasted = 0;
     let dailyElec_pv      = 0;   // tylko grzałka (jak dotąd)
@@ -243,7 +249,7 @@ window.PVSIM = window.PVSIM || {};
 
       const m_per = m_pobor / P.TANK_SUBSTEPS;
 
-      let Q_saved_h = 0, Q_strat_h = 0, Q_wasted_h = 0;
+      let Q_saved_h = 0, Q_circ_h = 0, Q_strat_h = 0, Q_wasted_h = 0;
       let Q_heater_actual_h = 0, Q_hp_actual_h = 0;
       let elec_pv_h = 0,     elec_grid_h = 0;       // grzałka
       let elec_hp_pv_h = 0,  elec_hp_grid_h = 0;    // pompa ciepła
@@ -256,6 +262,19 @@ window.PVSIM = window.PVSIM || {};
           T = T_in;
         } else if (m_per > 0) {
           T = (T * (m_zas - m_per) + T_in * m_per) / m_zas;
+        }
+
+        // 1b) Pobór cyrkulacji (tylko gdy circRoute === 'tank')
+        // Stała moc P_circ wyciągana z zasobnika; do Q_saved liczymy tylko
+        // tę część, którą zasobnik faktycznie miał ponad T_in (resztą cyrkulacja
+        // i tak musi się zaopatrzyć skądinąd — poza modelem).
+        if (Q_circ_per > 0) {
+          const Q_avail = Math.max(T - T_in, 0) * m_zas * cw;
+          const Q_taken = Math.min(Q_circ_per, Q_avail);
+          Q_saved_h += Q_taken;
+          Q_circ_h  += Q_taken;
+          T -= Q_taken / (m_zas * cw);
+          if (T < T_in) T = T_in;
         }
 
         // 2) Wyznaczenie mocy PC i grzałki dla tego podkroku wg strategii
@@ -390,6 +409,7 @@ window.PVSIM = window.PVSIM || {};
       dailyQ_heater     += Q_heater_actual_h;
       dailyQ_hp         += Q_hp_actual_h;
       dailyQ_saved      += Q_saved_h;
+      dailyQ_circ       += Q_circ_h;
       dailyQ_strat      += Q_strat_h;
       dailyQ_wasted     += Q_wasted_h;
       dailyElec_pv      += elec_pv_h;
@@ -401,11 +421,15 @@ window.PVSIM = window.PVSIM || {};
       dailyGridCost        += (elec_grid_h + elec_hp_grid_h) * gridPrice;
     }
 
-    // Pokrycie liczone względem Q_total (użyteczna + cyrkulacja) — to jest
-    // rachunek starego ECO, który zastępujemy. Cyrkulacja w obecnym modelu
-    // pozostaje wpięta do starego węzła ECO; przy przepięciu trasy do naszego
-    // zasobnika mianownik powinien wrócić do Q_useful (osobne TODO).
-    const Q_CWU_total = simDHW.daily.totalEnergy;
+    // Pokrycie:
+    //   circRoute='eco'  — pętla w starym węźle, mianownik = Q_total (użyteczna + cyrkulacja),
+    //                       tak liczył rachunek ECO, który zastępujemy.
+    //   circRoute='tank' — pętla na naszym zasobniku, mianownik = Q_useful (kran),
+    //                       bo straty pętli nie są "usługą" dla użytkownika.
+    //                       Wkład pętli do Q_saved jest już doliczony w kroku 1b pętli godzinowej.
+    const Q_CWU_total = (ps.circRoute === 'tank')
+      ? simDHW.daily.energy
+      : simDHW.daily.totalEnergy;
     const coveragePct = Q_CWU_total > 0 ? (dailyQ_saved / Q_CWU_total * 100) : 0;
     const priceKWh = ps.priceHeatGJ / P.KWH_PER_GJ;
     const savingPLN_d = dailyQ_saved * priceKWh;
@@ -423,6 +447,7 @@ window.PVSIM = window.PVSIM || {};
         Q_heater:    dailyQ_heater,
         Q_hp:        dailyQ_hp,
         Q_saved:     dailyQ_saved,
+        Q_circ:      dailyQ_circ,
         Q_strat:     dailyQ_strat,
         Q_wasted:    dailyQ_wasted,
         heaterHours: dailyHeaterOnHours,
@@ -445,6 +470,7 @@ window.PVSIM = window.PVSIM || {};
       },
       monthly: {
         Q_saved:   dailyQ_saved * days,
+        Q_circ:    dailyQ_circ * days,
         Q_hp:      dailyQ_hp * days,
         Q_heater:  dailyQ_heater * days,
         savingPLN: savingPLN_d * days,
@@ -553,7 +579,7 @@ window.PVSIM = window.PVSIM || {};
     const factors = P.dailyWeatherFactors(mi, days, ps);  // dobowe mnożniki PV
     let T = T_in;  // start zimny
     let lastDayResidual = 0;
-    let monthQ_saved = 0, monthQ_strat = 0;
+    let monthQ_saved = 0, monthQ_circ = 0, monthQ_strat = 0;
     let monthQ_hp = 0, monthQ_heater = 0;
     let monthElec_pv = 0, monthElec_grid = 0;
     let monthElec_hp_pv = 0, monthElec_hp_grid = 0;
@@ -562,8 +588,10 @@ window.PVSIM = window.PVSIM || {};
     // (z profilu DHW), więc % to po prostu Q_saved/Q_CWU dla każdej doby.
     // Pierwsza doba startuje zimna ("warmup") i pokrycie jest sztucznie
     // niskie, więc do min/max bierzemy dni 1..N-1 (gdy days >= 2).
-    // Mianownik = Q_total (użyteczna + cyrkulacja), por. komentarz w simulateTank.
-    const Q_CWU_day = simDHW.daily.totalEnergy;
+    // Mianownik zależy od trasy cyrkulacji (por. komentarz w simulateTank).
+    const Q_CWU_day = (psMonth.circRoute === 'tank')
+      ? simDHW.daily.energy
+      : simDHW.daily.totalEnergy;
     let coverMinPct = Infinity, coverMaxPct = -Infinity;
 
     for (let d = 0; d < days; d++) {
@@ -588,6 +616,7 @@ window.PVSIM = window.PVSIM || {};
         gridCost:  day.daily.gridCost
       });
       monthQ_saved     += day.daily.Q_saved;
+      monthQ_circ      += day.daily.Q_circ;
       monthQ_strat     += day.daily.Q_strat;
       monthQ_hp        += day.daily.Q_hp;
       monthQ_heater    += day.daily.Q_heater;
@@ -610,7 +639,7 @@ window.PVSIM = window.PVSIM || {};
 
     if (coverMinPct === Infinity) { coverMinPct = 0; coverMaxPct = 0; }
 
-    const Q_CWU_month = simDHW.daily.totalEnergy * days;
+    const Q_CWU_month = Q_CWU_day * days;
     const coveragePct = Q_CWU_month > 0 ? (monthQ_saved / Q_CWU_month * 100) : 0;
 
     return {
@@ -620,6 +649,7 @@ window.PVSIM = window.PVSIM || {};
       T_in,
       monthly: {
         Q_saved:     monthQ_saved,
+        Q_circ:      monthQ_circ,
         Q_strat:     monthQ_strat,
         Q_residual:  lastDayResidual,
         Q_hp:        monthQ_hp,
@@ -658,7 +688,7 @@ window.PVSIM = window.PVSIM || {};
     let elec_pv = 0, elec_grid = 0, gridCost = 0;
     let elec_hp_pv = 0, elec_hp_grid = 0;
     let Q_hp = 0, Q_heater = 0;
-    let savingPLN = 0, Q_saved = 0, Q_strat = 0, Q_CWU = 0;
+    let savingPLN = 0, Q_saved = 0, Q_circ = 0, Q_strat = 0, Q_CWU = 0;
     let heaterHours = 0, hpHours = 0, balancePLN = 0;
     let Q_residual_dec = 0;
 
@@ -669,7 +699,7 @@ window.PVSIM = window.PVSIM || {};
       const simDHW = P.simulateDHW(ps.residents, mi, ps.T_hot, ps);
       const simMonth = P.simulateTankMonth(simPV, simDHW, ps.heaterKW, ps.tankL, mi, ps);
       const mo = simMonth.monthly;
-      const cwu_m = simDHW.daily.totalEnergy * days;
+      const cwu_m = ((ps.circRoute === 'tank') ? simDHW.daily.energy : simDHW.daily.totalEnergy) * days;
 
       monthsData.push({
         monthIdx:    mi,
@@ -705,6 +735,7 @@ window.PVSIM = window.PVSIM || {};
       gridCost    += mo.gridCost;
       savingPLN   += mo.savingPLN;
       Q_saved     += mo.Q_saved;
+      Q_circ      += mo.Q_circ;
       Q_strat     += mo.Q_strat;
       heaterHours += mo.heaterHours;
       hpHours     += mo.hpHours;
@@ -729,6 +760,7 @@ window.PVSIM = window.PVSIM || {};
         gridCost,
         savingPLN,
         Q_saved,
+        Q_circ,
         Q_strat,
         Q_residual:  Q_residual_dec,
         heaterHours,

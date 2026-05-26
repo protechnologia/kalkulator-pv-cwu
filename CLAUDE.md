@@ -107,6 +107,12 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
   - `on-grid` — moc proporcjonalna: `heaterKW × clamp((heaterTargetC − T)/TANK_ONGRID_BAND, 0, 1)`;
     nadwyżkę PV wykorzystuje w pierwszej kolejności, resztę dobiera z sieci
 - Termostat: max 70°C (suwak `heaterTargetC` 0–70°C; powyżej 60°C — magazynowanie ciepła kosztem niższego COP PC)
+- **Trasa cyrkulacji CWU** (`P.state.circRoute`, toggle „STARY WĘZEŁ" / „NASZ ZASOBNIK"):
+  - `'eco'` (domyślne) — pętla cyrkulacji poza modelem zasobnika, `Q_circ` doliczane
+    tylko do `simDHW.totalEnergy`; mianownik pokrycia = energia całkowita (użyteczna + cyrkulacja).
+  - `'tank'` — `P_circ` (kW) ciągle drenuje ciepło z zasobnika (krok 1b w podpętli),
+    `Q_saved` obejmuje ciepło dostarczone do cyrkulacji (kran + pętla), mianownik
+    pokrycia spada do samej energii użytecznej (`simDHW.daily.energy`).
 - Straty: `UA(V) = UA_REF · (V/V_REF)^(2/3)`, klasa B/C wg PN-EN 12897
 - Wykresy: temperatura zasobnika (tło grzania w osobnym odcieniu dla strefy
   dziennej i nocnej), słupkowy wykres mocy elektrycznej PC + grzałki
@@ -260,6 +266,7 @@ P.state = {
   hpGears:      2,      // liczba biegów PC (1–5; równe stopnie mocy k/N · hpKW)
   hpOnlyBandC:  5,      // °C — pasmo „tylko PC" pod setpointem (on-grid)
   circLossPct: 0.60,    // straty cyrkulacji jako ułamek energii użytecznej CWU (suwak 0..1; kotwice 0.35 / 0.60 z P.CIRC_LOSS)
+  circRoute: 'eco',     // 'eco' | 'tank' — pętla cyrkulacji wpięta w stary węzeł ECO (domyślnie) lub w nasz zasobnik
   // Moduł 03 — taryfa energii elektrycznej (on-grid w przygotowaniu)
   gridPriceDay:   1.20,   // zł/kWh — strefa dzienna
   gridPriceNight: 1.20,   // zł/kWh — strefa nocna
@@ -340,25 +347,6 @@ Moduł 06 ma 12 słupków na osi X (jeden na miesiąc, etykiety = skróty miesi�
 **Zmiana zakresu suwaka** → atrybut `min`/`max` w HTML + ewentualnie wartość domyślna w `P.state`
 
 **Nowy kolor akcentu** → zdefiniuj zmienne w `tokens.css`, dodaj warianty `.pvsim-slider.nowy-kolor` w `components.css`
-
-## TODO
-
-**Przełącznik trasy cyrkulacji CWU** (stary węzeł ECO ↔ nasz zasobnik) —
-dodać do Modułu 04 wybór, czy pętla cyrkulacyjna pozostaje wpięta do
-istniejącego węzła cieplnego, czy przepinamy ją do naszego zasobnika.
-Przepięcie ma sens technologiczny (np. schładzanie wody wyjściowej, żeby
-nie przekraczała ~50°C), ale wnosi dodatkowy strumień ciepła z powrotu
-cyrkulacji do bilansu zasobnika — trzeba oszacować jego wielkość, prawdopodobnie
-korelując z `P.state.circLossPct` (kotwice 35%/60% w `P.CIRC_LOSS`).
-Skutek: rośnie zapotrzebowanie ciepła pokrywane przez parę
-PC+grzałka, zmienia się bilans i ekonomia.
-Powiązany problem: **mianownik `coveragePct`**. Obecnie pokrycie liczone jest
-względem energii całkowitej (użyteczna + cyrkulacja). Po przepięciu cyrkulacji
-do naszego zasobnika mianownikiem powinna być **stara energia użyteczna** —
-porównujemy to, co dostarczyliśmy użytkownikowi, z tym, co użytkownik realnie
-potrzebuje (ciepła woda u kranu), a nie z całkowitym zużyciem starego źródła
-(straty cyrkulacji nie są „usługą" dla użytkownika). Inaczej pokrycie sztucznie
-spadnie wraz z dodaniem strat cyrkulacji do bilansu zasobnika.
 
 ## Commity
 

@@ -152,6 +152,11 @@ window.PVSIM = window.PVSIM || {};
     hpGears:      2,    // liczba biegów PC; bieg k z N daje moc (k/N)·hpKW
     hpOnlyBandC:  5,    // °C — szerokość pasma "tylko PC" pod setpointem (strategia on-grid)
     circLossPct: 0.60,   // straty cyrkulacji jako ułamek energii użytecznej CWU (0..1)
+    // Trasa pętli cyrkulacyjnej CWU:
+    //   'eco'  — pętla wpięta w stary węzeł cieplny (poza zasobnikiem) — model dzisiejszy
+    //   'tank' — pętla przepięta do naszego zasobnika; P_circ ciągle drenuje ciepło z zasobnika,
+    //            mianownik pokrycia spada do energii użytecznej (kran), bilans rośnie
+    circRoute: 'eco',
     // Moduł 03 — taryfa energii elektrycznej z sieci
     gridPriceDay:   1.20,   // zł/kWh — strefa dzienna
     gridPriceNight: 1.20,   // zł/kWh — strefa nocna

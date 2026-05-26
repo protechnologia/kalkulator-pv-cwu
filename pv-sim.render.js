@@ -8,6 +8,10 @@
    P._smoothPath  — interpolacja krzywą Catmull-Rom, wygładza wykresy
                     SVG między próbkami; eksportowana, bo używają jej
                     pliki render.mXX.
+   P._niceMax     — „lepki" zakres osi: zaokrągla peak (z headroomem)
+                    w górę do {1, 2, 5} × 10ⁿ. Sąsiednie poziomy oddalone
+                    o 2–2.5×, więc skala stabilna w szerokim paśmie peaku.
+                    Krok osi = yMax / 5 (zawsze ładny: 0.02, 0.05, 0.1…).
    ========================================================= */
 window.PVSIM = window.PVSIM || {};
 (function(P) {
@@ -38,5 +42,25 @@ window.PVSIM = window.PVSIM || {};
     return d;
   }
   P._smoothPath = smoothPath;
+
+  // ===== „LEPKI" ZAKRES OSI — yMax z zestawu {1, 2, 5} × 10ⁿ =====
+  // Mały ruch suwakiem nie przeskakuje skali — dopiero peak przekraczający
+  // bieżący poziom skacze na następny.
+  //
+  // Argumenty:
+  //   peak     — maksymalna wartość danych do pokazania na osi (≥ 0)
+  //   headroom — mnożnik nad peakiem (np. 1.10 = 10% odstępu nad peakiem
+  //              do góry osi); 1.0 = bez odstępu
+  //
+  // Zwraca: yMax ∈ {1, 2, 5} × 10ⁿ, najmniejszy taki że yMax ≥ peak·headroom.
+  // Krok osi = yMax / 5 zawsze ładny (0.02, 0.05, 0.1, 0.2, 0.5, …).
+  P._niceMax = function(peak, headroom) {
+    const t = (peak || 0) * (headroom || 1) + 1e-12;
+    const exp = Math.floor(Math.log10(t));
+    const base = Math.pow(10, exp);
+    const m = t / base;
+    const mNice = m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10;
+    return mNice * base;
+  };
 
 })(window.PVSIM);

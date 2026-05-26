@@ -33,9 +33,10 @@ window.PVSIM = window.PVSIM || {};
 
   // ===== RENDER WYKRESU CWU =====
   // Jedna krzywa zużycia wody, dwie osie Y (m³/h i kW) niezależnie wyskalowane.
-  // Zasada: lewa oś zawsze 0..1.0 m³/h, prawa oś zawsze 0..60 kW.
+  // Skala dobierana dynamicznie z peaku danych — ładny krok dobierany dla osi
+  // lewej (m³/h), prawa (kW) wynika z proporcji kW = m³/h × kwhM3.
   // Relacja kW = m³/h × cw × ΔT zmienia się z miesiącem i T_hot, więc osie NIE są
-  // sztywno proporcjonalne — to świadoma decyzja, by skala była przewidywalna.
+  // sztywno proporcjonalne.
   P.renderDHWChart = function(simDHW) {
     const svg = document.getElementById('pvsim-dhw-chart');
     const W = 780, H = 300;
@@ -45,17 +46,29 @@ window.PVSIM = window.PVSIM || {};
 
     const xMax = 24;
 
-    // Prawa oś (kW) — dobieramy ładny krok, lewa (m³/h) wynika z proporcji
+    // Peak danych (m³/h): max z poboru wody + linia strat cyrkulacji (P_circ/kwhM3)
     const kwhM3 = simDHW.kwhM3;
-    const rawMaxR = P.Y_MAX_M3H * kwhM3;
-    const niceStepsR = [1, 2, 5, 10, 20, 50, 100];
-    const stepR = niceStepsR.find(s => rawMaxR / s <= 6) || 10;
-    const yMaxR = Math.ceil(rawMaxR / stepR + 1) * stepR;
-    const yMaxL = yMaxR / kwhM3;
-    const ticksR = Math.round(yMaxR / stepR);
+    const P_circ = simDHW.circulation.powerKW;
+    let peakL = 0;
+    for (const h of simDHW.hours) if (h.water > peakL) peakL = h.water;
+    const circL = kwhM3 > 0 ? P_circ / kwhM3 : 0;
+    if (circL > peakL) peakL = circL;
+
+    // „Lepki" zakres osi (P._niceMax) — peak zaokrąglany w górę do {1,2,5}·10ⁿ
+    // Lewa oś (m³/h) skalowana do peaku krzywej wody. Prawa oś (kW) skalowana
+    // NIEZALEŻNIE, do peaku linii mocy (P_użyt./P_cyrk.) — żeby te poziome
+    // linie nie wisiały u dołu wykresu, kiedy peak wody jest wąski i wysoki.
+    const yMaxL = P._niceMax(peakL, 1.10);
+    const stepL = yMaxL / 5;
+    const ticksL = 5;
+    const P_use_pre = simDHW.daily.energy / 24;
+    const yMaxR = P._niceMax(Math.max(P_circ, P_use_pre), 1.30);
+    const stepR = yMaxR / 5;
+    const ticksR = 5;
 
     const x = h => padL + (h / xMax) * cw;
     const y = v => padT + ch - (v / yMaxL) * ch;
+    const yR = v => padT + ch - (v / yMaxR) * ch;
 
     const pts = simDHW.hours.map(d => ({ x: x(d.hour + 0.5), y: y(d.water) }));
     pts.unshift({ x: x(0),  y: y(0) });
@@ -67,18 +80,28 @@ window.PVSIM = window.PVSIM || {};
     let gridLines = '';
     let yLabelsL = '';
     let yLabelsR = '';
-    for (let i = 0; i <= ticksR; i++) {
-      const vR = i * stepR;
-      const vL = vR / kwhM3;
+    const fmtL = stepL < 0.1 ? (v => v.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }))
+                             : P.fmt.pl2;
+    const fmtR = stepR >= 10 ? (v => Math.round(v).toString())
+              : stepR >= 1  ? P.fmt.pl1
+              :               P.fmt.pl2;
+    // Lewa oś + siatka — pozycje wynikają z ładnego kroku m³/h
+    for (let i = 0; i <= ticksL; i++) {
+      const vL = i * stepL;
       const yy = y(vL);
       gridLines += `<line x1="${padL}" y1="${yy.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yy.toFixed(2)}"
                           stroke="var(--pvsim-border)" stroke-width="1" ${i === 0 ? '' : 'stroke-dasharray="2,3"'}/>`;
       yLabelsL += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end"
-                         font-family="'IBM Plex Mono', monospace" font-size="10" fill="var(--pvsim-text-2)"
-                         font-variant-numeric="tabular-nums">${P.fmt.pl2(vL)}</text>`;
+                         font-family="'IBM Plex Mono', monospace" font-size="10" fill="#2dd4bf"
+                         font-variant-numeric="tabular-nums">${fmtL(vL)}</text>`;
+    }
+    // Prawa oś — własny zakres yMaxR, pozycje Y z yR()
+    for (let i = 0; i <= ticksR; i++) {
+      const vR = i * stepR;
+      const yy = yR(vR);
       yLabelsR += `<text x="${(W - padR + 8).toFixed(2)}" y="${(yy + 3.5).toFixed(2)}" text-anchor="start"
-                         font-family="'IBM Plex Mono', monospace" font-size="10" fill="var(--pvsim-text-2)"
-                         font-variant-numeric="tabular-nums">${Math.round(vR)}</text>`;
+                         font-family="'IBM Plex Mono', monospace" font-size="10" fill="#f59e0b"
+                         font-variant-numeric="tabular-nums">${fmtR(vR)}</text>`;
     }
 
     let xLabels = '', xGrid = '';
@@ -103,7 +126,7 @@ window.PVSIM = window.PVSIM || {};
       <line x1="${ppx.toFixed(2)}" y1="${(padT).toFixed(2)}" x2="${ppx.toFixed(2)}" y2="${ppy.toFixed(2)}"
             stroke="#ff7a1a" stroke-width="1" stroke-dasharray="2,3" opacity="0.4"/>
       <circle cx="${ppx.toFixed(2)}" cy="${ppy.toFixed(2)}" r="4" fill="var(--pvsim-bg-0)" stroke="#2dd4bf" stroke-width="2"/>
-      <text x="${(ppx + 8).toFixed(2)}" y="${(ppy - 6).toFixed(2)}"
+      <text x="${ppx.toFixed(2)}" y="${(ppy - 10).toFixed(2)}" text-anchor="middle"
             font-family="'IBM Plex Mono', monospace" font-size="10" font-weight="600" fill="#2dd4bf"
             font-variant-numeric="tabular-nums">peak ${P.fmt.pl2(peakHour.power)} kW · ${P.fmt.pl2(peakHour.water)} m³/h</text>
     ` : '';
@@ -115,15 +138,24 @@ window.PVSIM = window.PVSIM || {};
     `;
 
     // Linia strat cyrkulacji — stała moc P_circ na osi prawej (kW)
-    const P_circ = simDHW.circulation.powerKW;
-    const vL_circ = P_circ / simDHW.kwhM3;    // przeliczenie kW → m³/h (lewa oś)
-    const y_circ = y(Math.min(vL_circ, yMaxL));
+    const y_circ = yR(Math.min(P_circ, yMaxR));
     const circLine = P_circ > 0.001 ? `
       <line x1="${padL}" y1="${y_circ.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${y_circ.toFixed(2)}"
             stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.7"/>
       <text x="${(padL + 6).toFixed(2)}" y="${(y_circ - 5).toFixed(2)}"
             font-family="'IBM Plex Mono', monospace" font-size="9.5" fill="#f59e0b" opacity="0.85"
             font-variant-numeric="tabular-nums">P_cyrk. ${P.fmt.pl2(P_circ)} kW</text>
+    ` : '';
+
+    // Linia średniej mocy użytecznej — Q_useful / 24h (osie prawa, kW)
+    const P_use = P_use_pre;
+    const y_use = yR(Math.min(P_use, yMaxR));
+    const useLine = P_use > 0.001 ? `
+      <line x1="${padL}" y1="${y_use.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${y_use.toFixed(2)}"
+            stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.7"/>
+      <text x="${(padL + 6).toFixed(2)}" y="${(y_use - 5).toFixed(2)}"
+            font-family="'IBM Plex Mono', monospace" font-size="9.5" fill="#f59e0b" opacity="0.85"
+            font-variant-numeric="tabular-nums">P_użyt. ${P.fmt.pl2(P_use)} kW (śr.)</text>
     ` : '';
 
     svg.innerHTML = `
@@ -140,14 +172,15 @@ window.PVSIM = window.PVSIM || {};
       <path d="${areaPath}" fill="url(#pvsim-dhw-grad)"/>
       <path d="${linePath}" fill="none" stroke="#2dd4bf" stroke-width="2" stroke-linejoin="round"/>
       ${circLine}
+      ${useLine}
       ${peakMarker}
       ${yLabelsL}
       ${yLabelsR}
       ${xLabels}
       <text x="${padL - 30}" y="${padT - 10}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
-            fill="var(--pvsim-text-2)" letter-spacing="1.4">[m³/h]</text>
+            fill="#2dd4bf" letter-spacing="1.4">[m³/h]</text>
       <text x="${(W - padR + 4).toFixed(2)}" y="${padT - 10}" font-family="'IBM Plex Mono', monospace" font-size="9.5"
-            fill="var(--pvsim-text-2)" letter-spacing="1.4">[kW]</text>
+            fill="#f59e0b" letter-spacing="1.4">[kW]</text>
     `;
   };
 

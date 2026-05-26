@@ -552,6 +552,7 @@ window.PVSIM = window.PVSIM || {};
     const daysData = [];   // agregaty na dobę — wykres dobowy energii (Moduł 05)
     const factors = P.dailyWeatherFactors(mi, days, ps);  // dobowe mnożniki PV
     let T = T_in;  // start zimny
+    let lastDayResidual = 0;
     let monthQ_saved = 0, monthQ_strat = 0;
     let monthQ_hp = 0, monthQ_heater = 0;
     let monthElec_pv = 0, monthElec_grid = 0;
@@ -575,6 +576,7 @@ window.PVSIM = window.PVSIM || {};
         hours.push(Object.assign({}, h, { day: d, gh: d * 24 + h.hour }));
       });
       T = day.T_end;
+      lastDayResidual = day.daily.Q_residual;
       daysData.push({
         day:       d,
         elec_pv:        day.daily.elec_pv,
@@ -619,6 +621,7 @@ window.PVSIM = window.PVSIM || {};
       monthly: {
         Q_saved:     monthQ_saved,
         Q_strat:     monthQ_strat,
+        Q_residual:  lastDayResidual,
         Q_hp:        monthQ_hp,
         Q_heater:    monthQ_heater,
         coveragePct,
@@ -657,6 +660,7 @@ window.PVSIM = window.PVSIM || {};
     let Q_hp = 0, Q_heater = 0;
     let savingPLN = 0, Q_saved = 0, Q_strat = 0, Q_CWU = 0;
     let heaterHours = 0, hpHours = 0, balancePLN = 0;
+    let Q_residual_dec = 0;
 
     for (let mi = 0; mi < 12; mi++) {
       const days   = P.MONTHS[mi].days;
@@ -706,6 +710,7 @@ window.PVSIM = window.PVSIM || {};
       hpHours     += mo.hpHours;
       balancePLN  += mo.balancePLN;
       Q_CWU       += cwu_m;
+      Q_residual_dec = mo.Q_residual;  // ciepło zmagazynowane na koniec roku = koniec grudnia
     }
 
     return {
@@ -725,6 +730,7 @@ window.PVSIM = window.PVSIM || {};
         savingPLN,
         Q_saved,
         Q_strat,
+        Q_residual:  Q_residual_dec,
         heaterHours,
         hpHours,
         balancePLN,

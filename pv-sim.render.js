@@ -829,8 +829,9 @@ window.PVSIM = window.PVSIM || {};
   P.renderTankStats = function(simTank) {
     document.getElementById('pvsim-cover').textContent      = simTank.daily.coveragePct.toFixed(0);
     document.getElementById('pvsim-cover-kwh').textContent  = P.fmt.pl1(simTank.daily.Q_saved);
-    document.getElementById('pvsim-cover-residual').textContent = P.fmt.pl1(simTank.daily.Q_residual);
-    document.getElementById('pvsim-cover-strat').textContent = P.fmt.pl1(simTank.daily.Q_strat);
+    document.getElementById('pvsim-bilans-kwh').textContent      = P.fmt.pl1(simTank.daily.Q_saved);
+    document.getElementById('pvsim-bilans-residual').textContent = '+ ' + P.fmt.pl1(simTank.daily.Q_residual);
+    document.getElementById('pvsim-bilans-strat').textContent    = '+ ' + P.fmt.pl1(simTank.daily.Q_strat);
     document.getElementById('pvsim-heater-hrs').textContent = simTank.daily.heaterHours;
     document.getElementById('pvsim-heater-kwh').textContent = P.fmt.pl1(simTank.daily.Q_heater);
     const hpHrsEl = document.getElementById('pvsim-hp-hrs');
@@ -1165,7 +1166,9 @@ window.PVSIM = window.PVSIM || {};
 
     set(mo.coveragePct.toFixed(0), 'pvsim-month-cover');
     set(P.fmt.pl0(mo.Q_saved),     'pvsim-month-cover-kwh');
-    set(P.fmt.pl0(mo.Q_strat),     'pvsim-month-cover-strat');
+    set(P.fmt.pl0(mo.Q_saved),                  'pvsim-month-bilans-kwh');
+    set('+ ' + P.fmt.pl0(mo.Q_residual || 0),   'pvsim-month-bilans-residual');
+    set('+ ' + P.fmt.pl0(mo.Q_strat),           'pvsim-month-bilans-strat');
     set(mo.heaterHours,            'pvsim-month-heater-hrs');
     set(P.fmt.pl0(mo.Q_heater || 0), 'pvsim-month-heater-kwh');
     set(mo.hpHours || 0,           'pvsim-month-hp-hrs');
@@ -1416,7 +1419,9 @@ window.PVSIM = window.PVSIM || {};
 
     set(yr.coveragePct.toFixed(0), 'pvsim-year-cover');
     set(P.fmt.pl0(yr.Q_saved),     'pvsim-year-cover-kwh');
-    set(P.fmt.pl0(yr.Q_strat),     'pvsim-year-cover-strat');
+    set(P.fmt.pl0(yr.Q_saved),                  'pvsim-year-bilans-kwh');
+    set('+ ' + P.fmt.pl0(yr.Q_residual || 0),   'pvsim-year-bilans-residual');
+    set('+ ' + P.fmt.pl0(yr.Q_strat),           'pvsim-year-bilans-strat');
     set(P.fmt.pl0(yr.heaterHours), 'pvsim-year-heater-hrs');
     set(P.fmt.pl0(yr.Q_heater || 0), 'pvsim-year-heater-kwh');
     set(P.fmt.pl0(yr.hpHours || 0),  'pvsim-year-hp-hrs');

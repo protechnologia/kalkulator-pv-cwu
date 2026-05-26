@@ -11,83 +11,47 @@ Pobierz repozytorium i otwórz `pv-sim.v1.5.html` w przeglądarce.
 ## Funkcje
 
 ### Moduł 01 — PV (fotowoltaika)
-- Moc instalacji: 0–50 kWp (0 = PV wyłączone)
-- Dwa tryby symulacji: **avg** (dane PVGIS z uwzględnieniem zachmurzenia) i **clear** (bezchmurny dzień)
-- Suwak zmienności pogody dobowej — losowy, powtarzalny rozrzut produkcji
-  poszczególnych dób przy zachowanej średniej miesięcznej (wpływa na moduły 05–08)
-- Model słońca: deklinacja Coopera (1969), model clear-sky Hottela
-- Dwa wykresy: godzinowa moc reprezentatywnej doby oraz produkcja dobowa
-  przez cały miesiąc
-- Dane nasłonecznienia: PVGIS, Opole (φ = 50.67°N), nachylenie 30°, optymalne azymut
+Symuluje godzinową produkcję instalacji PV w wybranym miesiącu, na bazie danych
+PVGIS dla Opola. Pokazuje reprezentatywną dobę i rozrzut produkcji w obrębie
+miesiąca.
 
 ### Moduł 02 — CWU (ciepła woda użytkowa)
-- Liczba mieszkańców: 1–1000
-- Temperatura docelowa: 35–65°C
-- Profil godzinowy poboru wody wg Chmielewska (2025), badania 42 budynków w Polsce
-- Temperatura wody zimnej: model sinusoidalny (min ~6°C w lutym, max ~16°C w sierpniu)
-- Taryfa ciepła: domyślnie 130 zł/GJ (edytowalna z UI)
+Wylicza profil godzinowy zapotrzebowania na ciepłą wodę w budynku
+wielorodzinnym oraz koszt jego pokrycia z sieci ciepłowniczej. Punkt
+odniesienia dla pozostałych modułów — to z nim porównujemy oszczędności.
 
 ### Moduł 03 — Sieć (taryfa energii elektrycznej)
-- Konfigurowalna taryfa 2-strefowa: cena dzienna i nocna [zł/kWh]
-- Regulowane godziny granic strefy dziennej (start/koniec)
-- Wartości domyślne: dzień 1,20 zł/kWh, noc 1,20 zł/kWh
-- Ceny i godziny stref wykorzystuje Moduł 04 (strategie grzałki, koszt z sieci)
+Konfiguruje taryfę 2-strefową (cena dzienna/nocna i godziny stref). Używana
+przez Moduł 04 do wyceny energii dobranej z sieci i do rozdzielania strategii
+grzania na strefę dzienną i nocną.
 
 ### Moduł 04 — Zasobnik z pompą ciepła i grzałką elektryczną
-- Moc grzałki: 0–15 kW (0 = grzałka wyłączona)
-- Pojemność zasobnika: 200–5000 L
-- Temperatura docelowa zasobnika: 0–70°C — wspólny setpoint pary PC+grzałka
-  (oba urządzenia zatrzymują grzanie po osiągnięciu tej temperatury,
-  niezależny od temperatury CWU z Modułu 02)
-- Pompa ciepła powietrze→woda (drugie źródło ciepła, równolegle z grzałką):
-  moc elektryczna 0–15 kW (0 = PC wyłączona), 1–5 biegów (równe stopnie mocy),
-  pasmo „tylko PC" pod setpointem 0–20°C, sezonowy COP — letni (Kwi–Wrz)
-  i zimowy (Paź–Mar) w zakresie 2,0–5,0
-- W off-grid PC ma priorytet — wybiera największy bieg, dla którego moc
-  elektryczna mieści się w nadwyżce PV; grzałka dobiera resztę
-- W on-grid PC pracuje sama w pasmie pod setpointem (bieg proporcjonalny
-  do zapotrzebowania), poniżej pasma dochodzi grzałka
-- Model termodynamiczny 1-węzłowy (fully-mixed), 6 podkroków na godzinę
-- Trzy strategie pary PC + grzałka wybierane osobno dla strefy dziennej i nocnej:
-  **off**, **off-grid**, **on-grid**
-- Termostat: max 70°C (powyżej 60°C — magazynowanie ciepła kosztem niższego COP PC)
-- Straty ciepła klasy B/C wg PN-EN 12897
+Sercem aplikacji. Symuluje pracę zasobnika ogrzewanego równolegle pompą
+ciepła powietrze→woda i grzałką elektryczną, na podstawie produkcji PV
+(Moduł 01), zapotrzebowania CWU (Moduł 02) i taryfy (Moduł 03). Trzy
+strategie współpracy z siecią (off / off-grid / on-grid) wybierane osobno
+dla strefy dziennej i nocnej.
 
 ### Moduł 05 — Symulacja miesięczna
-- Ciągła symulacja zasobnika przez cały miesiąc — każda doba dziedziczy
-  temperaturę końcową poprzedniej, po kilku dobach układ wchodzi w stan ustalony
-- Dziedziczy parametry modułów 01–04 (bez własnych kontrolek)
-- Statystyki miesięczne: pokrycie CWU, grzałka i PC (h pracy, kWh ciepła),
-  zużycie prądu — źródło (PV vs sieć) i — urządzenie (grzałka vs PC),
-  koszt energii z sieci, ciepło zaoszczędzone, bilans miesięczny
+Rozwija symulację z Modułu 04 na cały miesiąc, z ciągłością temperatury
+zasobnika między dobami i sezonowym rozrzutem pogody. Pokazuje miesięczne
+pokrycie CWU, zużycie prądu i koszty.
 
 ### Moduł 06 — Symulacja roczna
-- Symulacja wszystkich 12 miesięcy z osobnymi wejściami PV i CWU
-- Dziedziczy parametry modułów 01–04 (bez własnych kontrolek)
-- Wykres słupkowy energii elektrycznej pary PC + grzałki (jeden słupek na miesiąc)
-- Statystyki roczne (te same kafelki co M05 w skali roku); skrót podsumowania
-  dostępny w stale widocznym sidebarze
+Liczy wszystkie 12 miesięcy z osobnymi wejściami PV i CWU. Daje
+podsumowanie roczne — pokrycie CWU, koszty, ciepło zaoszczędzone i bilans
+netto — dostępne też w stale widocznym sidebarze.
 
 ### Moduł 07 — Inwestycja
-- Kalkulator kosztu całej inwestycji (PV, grzałki, pompa ciepła, zasobnik,
-  automatyka + SCADA) i czasu jej zwrotu względem bilansu rocznego netto
-- Pięć suwaków cen jednostkowych (research rynkowy PL 2025)
+Liczy koszt całej inwestycji (PV, grzałki, pompa ciepła, zasobnik,
+automatyka + SCADA) i czas jej zwrotu na podstawie bilansu rocznego netto
+z Modułu 06. Ceny jednostkowe konfigurowalne.
 
 ### Moduł 08 — Optymalizacja (grid search)
-- Automatyczny dobór najlepszej konfiguracji PV, grzałki, PC i zasobnika
-- Użytkownik podaje maksymalny czas zwrotu, zakładany okres życia inwestycji
-  oraz kryterium optymalizacji (maks. zysk netto / min. czas zwrotu /
-  maks. pokrycie CWU)
-- Przeszukuje siatkę kombinacji (moc PV, grzałka, moc PC, próg, zasobnik,
-  temperatura grzania, strategie dzień/noc) i prezentuje top 10 wariantów
-  posortowanych wg wybranego kryterium (z bilansem netto jako tiebreakerem).
-  Wiersze o identycznym
-  wyniku ekonomicznym są łączone — kolumna # pokazuje zakres rang `1–3`,
-  a w komórkach różniących się parametrów (np. próg dla off/off) widać listę
-  `v1 / v2 / v3`. Każdy parametr można checkboxem wyłączyć z optymalizacji
-  (przypięty do bieżącej wartości suwaka). Pasek postępu pokazuje licznik
-  i ETA; trwającą optymalizację można zatrzymać
-- Wynik można jednym kliknięciem przenieść do kontrolek Modułu 04
+Automatycznie dobiera najlepszą konfigurację układu pod zadane kryterium
+(maks. zysk netto / min. czas zwrotu / maks. pokrycie CWU) przy zadanym
+maksymalnym czasie zwrotu. Top 10 wariantów można jednym kliknięciem
+przenieść do kontrolek Modułu 04.
 
 ## Struktura plików
 

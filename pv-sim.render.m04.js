@@ -1,8 +1,8 @@
 /* =========================================================
    PV.SIM — Renderowanie Modułu 04 (zasobnik: PC + grzałka)
 
-   Wydzielone z pv-sim.render.js — cztery funkcje operujące na simTank.
-   Współdzielony helper P._smoothPath() pochodzi z render.js.
+   Cztery funkcje operujące na simTank. Współdzielony helper
+   P._smoothPath() pochodzi z pv-sim.render.js.
 
    renderTankChart()      — wykres temperatury zasobnika (°C) z tłem grzania
                             (osobny odcień dla strefy dziennej i nocnej),

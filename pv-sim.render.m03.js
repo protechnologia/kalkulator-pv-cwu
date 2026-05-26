@@ -1,8 +1,6 @@
 /* =========================================================
    PV.SIM — Renderowanie Modułu 03 (taryfa sieciowa)
 
-   Wydzielone z pv-sim.render.js.
-
    renderGridChart() — wykres krokowy ceny energii elektrycznej
                        (zł/kWh) przez dobę; strefa dzienna (fiolet)
                        vs nocna (szary), oś Y z ładnymi krokami.

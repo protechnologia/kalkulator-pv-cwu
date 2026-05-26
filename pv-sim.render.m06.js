@@ -1,7 +1,5 @@
 /* =========================================================
-   PV.SIM — Renderowanie Modułu 06 (Symulacja roczna)
-
-   Wydzielone z pv-sim.render.js.
+   PV.SIM — Renderowanie Modułu 06 (symulacja roczna)
 
    renderYearChart()      — wykres słupkowy energii elektrycznej pary
                             PC + grzałka (jeden słupek na miesiąc,

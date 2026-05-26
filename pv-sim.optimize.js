@@ -12,7 +12,7 @@
      powyżej limitu maxPayback. Zwraca top 200 wg wybranego kryterium
      (`objective`: 'profit' — lifetimeProfit malejąco, default;
      'payback' — paybackYears rosnąco; 'coverage' — coveragePct malejąco;
-     w każdym wariancie lifetimeProfit jest tiebreakerem). Render.js
+     w każdym wariancie lifetimeProfit jest tiebreakerem). render.m08.js
      grupuje identyczne wyniki ekonomiczne i pokazuje top 10 grup.
 
      `enabled` — mapa flag per parametr (false ⇒ wymiar przypięty do

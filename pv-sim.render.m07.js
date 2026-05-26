@@ -1,8 +1,6 @@
 /* =========================================================
    PV.SIM — Renderowanie Modułu 07 (inwestycja)
 
-   Wydzielone z pv-sim.render.js.
-
    renderInvestStats() — karty: koszt inwestycji (PV, grzałki, PC,
                          zasobnik, SCADA) i liczba lat na zwrot;
                          wpisuje też wartości do sidebara

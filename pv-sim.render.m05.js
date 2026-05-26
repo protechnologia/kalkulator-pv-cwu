@@ -1,8 +1,6 @@
 /* =========================================================
    PV.SIM — Renderowanie Modułu 05 (symulacja miesięczna)
 
-   Wydzielone z pv-sim.render.js.
-
    renderMonthTankChart() — ciągła linia temperatury zasobnika przez
                             cały miesiąc (days × 24 h), kolor błękitny,
                             linie referencyjne T_kran / T_max / T_wodociąg,
@@ -16,7 +14,7 @@
                             z sieci, ciepło zaoszczędzone, bilans
                             miesięczny (oszczędność − koszt).
 
-   Zależy od P._smoothPath() (eksportowane z pv-sim.render.js).
+   Zależy od P._smoothPath() z pv-sim.render.js.
    ========================================================= */
 window.PVSIM = window.PVSIM || {};
 (function(P) {

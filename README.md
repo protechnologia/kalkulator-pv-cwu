@@ -218,7 +218,15 @@ pv-sim.components.css — wykresy SVG, karty statystyk, warianty kolorów, sideb
 pv-sim.config.js      — stałe, MONTHS[], state{}, OPT_GRID, funkcje pomocnicze
 pv-sim.physics.js     — simulateDay/DHW/Tank/TankMonth/TankYear, computeInvestment
 pv-sim.optimize.js    — optimize() (grid search, Moduł 08)
-pv-sim.render.js      — renderowanie wykresów SVG i kart statystyk
+pv-sim.render.js      — wspólne helpery warstwy renderowania (P.fmt, P._smoothPath)
+pv-sim.render.m01.js  — renderowanie Modułu 01 (PV)
+pv-sim.render.m02.js  — renderowanie Modułu 02 (CWU)
+pv-sim.render.m03.js  — renderowanie Modułu 03 (sieć)
+pv-sim.render.m04.js  — renderowanie Modułu 04 (zasobnik)
+pv-sim.render.m05.js  — renderowanie Modułu 05 (symulacja miesięczna)
+pv-sim.render.m06.js  — renderowanie Modułu 06 (symulacja roczna)
+pv-sim.render.m07.js  — renderowanie Modułu 07 (inwestycja)
+pv-sim.render.m08.js  — renderowanie Modułu 08 (optymalizacja)
 pv-sim.app.js         — P.update(), init(), obsługa UI
 ```
 

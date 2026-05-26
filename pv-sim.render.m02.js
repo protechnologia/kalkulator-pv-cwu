@@ -1,8 +1,6 @@
 /* =========================================================
    PV.SIM — Renderowanie Modułu 02 (CWU)
 
-   Wydzielone z pv-sim.render.js.
-
    renderDHWChart() — wykres zużycia wody (m³/h) i mocy grzewczej (kW),
                       dwie osie Y (lewa m³/h, prawa kW) niezależnie wyskalowane,
                       turkusowa krzywa z gradientem, marker peak,

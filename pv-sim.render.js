@@ -1,39 +1,13 @@
-﻿/* =========================================================
-   PV.SIM — Renderowanie wykresów i statystyk
+/* =========================================================
+   PV.SIM — Wspólne helpery warstwy renderowania
 
-   Odpowiada za całą warstwę prezentacji — nie wykonuje obliczeń,
-   tylko przetwarza wyniki symulacji na elementy DOM i SVG.
+   Funkcje per-moduł żyją w pv-sim.render.mXX.js.
 
-   P.fmt — formatery liczb w polskiej lokalizacji (pl-PL),
-     eksportowane na namespace, bo używa ich też app.js
-
-   Prywatna smoothPath() — interpolacja krzywą Catmull-Rom,
-     wygładza wykresy SVG między próbkami godzinowymi.
-
-   Moduł 01 — PV: wydzielone do pv-sim.render.m01.js
-     renderChart(), renderStats(), renderPVMonthChart()
-
-   Moduł 02 — CWU: wydzielone do pv-sim.render.m02.js
-     renderDHWChart(), renderDHWStats()
-
-   Moduł 03 — Sieć: wydzielone do pv-sim.render.m03.js
-     renderGridChart()
-
-   Moduł 04 — Zasobnik (PC + grzałka): wydzielone do pv-sim.render.m04.js
-     renderTankChart(), renderTankElecChart(),
-     renderHeatSplitChart(), renderTankStats()
-
-   Moduł 05 — Symulacja miesięczna: wydzielone do pv-sim.render.m05.js
-     renderMonthTankChart(), renderMonthElecChart(), renderMonthStats()
-
-   Moduł 06 — Symulacja roczna: wydzielone do pv-sim.render.m06.js
-     renderYearChart(), renderYearCoverChart(), renderYearStats()
-
-   Moduł 07 — Inwestycja: wydzielone do pv-sim.render.m07.js
-     renderInvestStats()
-
-   Moduł 08 — Optymalizacja: wydzielone do pv-sim.render.m08.js
-     renderOptimTable()
+   P.fmt          — formatery liczb w polskiej lokalizacji (pl-PL),
+                    używane też przez app.js
+   P._smoothPath  — interpolacja krzywą Catmull-Rom, wygładza wykresy
+                    SVG między próbkami; eksportowana, bo używają jej
+                    pliki render.mXX.
    ========================================================= */
 window.PVSIM = window.PVSIM || {};
 (function(P) {
@@ -64,17 +38,5 @@ window.PVSIM = window.PVSIM || {};
     return d;
   }
   P._smoothPath = smoothPath;
-
-  // ===== Moduł 01 (PV) — wydzielony do pv-sim.render.m01.js =====
-  // renderChart, renderStats, renderPVMonthChart — patrz pv-sim.render.m01.js
-
-  // ===== Moduł 02 (CWU) — wydzielony do pv-sim.render.m02.js =====
-  // renderDHWChart, renderDHWStats — patrz pv-sim.render.m02.js
-
-  // ===== Moduł 05 (Symulacja miesięczna) — wydzielony do pv-sim.render.m05.js =====
-  // renderMonthTankChart, renderMonthElecChart, renderMonthStats — patrz pv-sim.render.m05.js
-
-  // ===== Moduł 06 (Symulacja roczna) — wydzielony do pv-sim.render.m06.js =====
-  // renderYearChart, renderYearCoverChart, renderYearStats — patrz pv-sim.render.m06.js
 
 })(window.PVSIM);

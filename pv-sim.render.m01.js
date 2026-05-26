@@ -1,8 +1,6 @@
 /* =========================================================
    PV.SIM — Renderowanie Modułu 01 (PV)
 
-   Wydzielone z pv-sim.render.js.
-
    renderChart()        — wykres mocy chwilowej (kW) reprezentatywnej
                           doby, kolor pomarańczowy, marker P_max
                           w południe, gradientowe wypełnienie obszaru.
@@ -14,7 +12,7 @@
                           średniej dobowej; ujawnia zmienność pogody
                           generowaną przez P.dailyWeatherFactors().
 
-   Zależy od P._smoothPath() (eksportowane z pv-sim.render.js).
+   Zależy od P._smoothPath() z pv-sim.render.js.
    ========================================================= */
 window.PVSIM = window.PVSIM || {};
 (function(P) {

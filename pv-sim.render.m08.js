@@ -1,8 +1,6 @@
 /* =========================================================
    PV.SIM — Renderowanie Modułu 08 (optymalizacja)
 
-   Wydzielone z pv-sim.render.js.
-
    renderOptimTable() — tabela top 10 wariantów grid searcha
                         (z grupowaniem wierszy o identycznym wyniku
                         ekonomicznym — kolumna # pokazuje zakres

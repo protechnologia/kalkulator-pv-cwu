@@ -181,16 +181,20 @@ window.PVSIM = window.PVSIM || {};
     document.getElementById('pvsim-dhw-water-m').textContent      = P.fmt.pl0(simDHW.monthly.water);
     document.getElementById('pvsim-dhw-energy-d').textContent     = P.fmt.pl0(simDHW.daily.totalEnergy);
     document.getElementById('pvsim-dhw-energy-m').textContent     = P.fmt.pl0(simDHW.monthly.totalEnergy);
-    let yearlyEnergy = 0, yearlyCost = 0, yearlyWater = 0;
+    let yearlyEnergy = 0, yearlyCost = 0, yearlyWater = 0, yearlyCirc = 0;
     for (let mi = 0; mi < 12; mi++) {
       const s = P.simulateDHW(P.state.residents, mi, P.state.T_hot);
       yearlyEnergy += s.monthly.totalEnergy;
       yearlyCost   += s.monthly.totalCost;
       yearlyWater  += s.monthly.water;
+      yearlyCirc   += s.circulation.energy * P.MONTHS[mi].days;
     }
+    const monthlyCirc = circ.energy * P.MONTHS[P.state.monthIdx].days;
     document.getElementById('pvsim-dhw-water-y').textContent      = P.fmt.pl0(yearlyWater);
     document.getElementById('pvsim-dhw-energy-y').textContent     = P.fmt.pl0(yearlyEnergy);
     document.getElementById('pvsim-dhw-circ-d').textContent       = P.fmt.pl0(circ.energy);
+    document.getElementById('pvsim-dhw-circ-m').textContent       = P.fmt.pl0(monthlyCirc);
+    document.getElementById('pvsim-dhw-circ-y').textContent       = P.fmt.pl0(yearlyCirc);
     document.getElementById('pvsim-dhw-circ-pct-tot').textContent = circPctTot;
     document.getElementById('pvsim-dhw-cost-d').textContent   = P.fmt.pl2(simDHW.daily.totalCost);
     document.getElementById('pvsim-dhw-cost-m').textContent   = P.fmt.pl0(simDHW.monthly.totalCost);

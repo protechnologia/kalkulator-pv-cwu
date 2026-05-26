@@ -38,9 +38,10 @@ zasobnika między dobami i sezonowym rozrzutem pogody. Pokazuje miesięczne
 pokrycie CWU, zużycie prądu i koszty.
 
 ### Moduł 06 — Symulacja roczna
-Liczy wszystkie 12 miesięcy z osobnymi wejściami PV i CWU. Daje
-podsumowanie roczne — pokrycie CWU, koszty, ciepło zaoszczędzone i bilans
-netto — dostępne też w stale widocznym sidebarze.
+Liczy wszystkie 12 miesięcy z osobnymi wejściami PV i CWU, uwzględniając
+sezonową zmienność temperatury wody zimnej (a więc i zapotrzebowania na
+ciepło). Daje podsumowanie roczne — pokrycie CWU, koszty, ciepło
+zaoszczędzone i bilans netto — dostępne też w stale widocznym sidebarze.
 
 ### Moduł 07 — Inwestycja
 Liczy koszt całej inwestycji (PV, grzałki, pompa ciepła, zasobnik,

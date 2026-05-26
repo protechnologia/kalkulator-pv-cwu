@@ -20,13 +20,14 @@ pv-sim.physics.js     — simulateDay(), simulateDHW(), simulateTank(), simulate
 pv-sim.optimize.js    — P.optimize() (grid search, Moduł 08)
 pv-sim.render.js      — fmt, smoothPath(), renderChart/Stats dla modułów 01–03 i 05–08
 pv-sim.render.m04.js  — renderTankChart, renderTankElecChart, renderHeatSplitChart, renderTankStats (Moduł 04)
+pv-sim.render.m07.js  — renderInvestStats (Moduł 07)
 pv-sim.app.js         — P.update(), init(), listenery suwaków i przycisków
 ```
 
 ### Kolejność ładowania (obowiązkowa)
 
 CSS: `tokens` → `layout` → `components`
-JS: `config` → `physics` → `optimize` → `render` → `render.m04` → `app`
+JS: `config` → `physics` → `optimize` → `render` → `render.m04` → `render.m07` → `app`
 
 ## Architektura JS
 

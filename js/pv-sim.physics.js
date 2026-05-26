@@ -421,15 +421,13 @@ window.PVSIM = window.PVSIM || {};
       dailyGridCost        += (elec_grid_h + elec_hp_grid_h) * gridPrice;
     }
 
-    // Pokrycie:
-    //   circRoute='eco'  — pętla w starym węźle, mianownik = Q_total (użyteczna + cyrkulacja),
-    //                       tak liczył rachunek ECO, który zastępujemy.
-    //   circRoute='tank' — pętla na naszym zasobniku, mianownik = Q_useful (kran),
-    //                       bo straty pętli nie są "usługą" dla użytkownika.
-    //                       Wkład pętli do Q_saved jest już doliczony w kroku 1b pętli godzinowej.
-    const Q_CWU_total = (ps.circRoute === 'tank')
-      ? simDHW.daily.energy
-      : simDHW.daily.totalEnergy;
+    // Pokrycie: stosunek energii dostarczonej przez nasz układ do energii,
+    // której budynek potrzebuje na CWU (użyteczna + straty pętli) — mianownik
+    // jest stały niezależnie od trasy cyrkulacji, bo to fizyczna potrzeba budynku.
+    // Trasa zmienia tylko licznik:
+    //   circRoute='eco'  — Q_saved obejmuje sam kran (pętla wisi na starym węźle),
+    //   circRoute='tank' — Q_saved obejmuje kran + pętlę (krok 1b w podpętli godzinowej).
+    const Q_CWU_total = simDHW.daily.totalEnergy;
     const coveragePct = Q_CWU_total > 0 ? (dailyQ_saved / Q_CWU_total * 100) : 0;
     const priceKWh = ps.priceHeatGJ / P.KWH_PER_GJ;
     const savingPLN_d = dailyQ_saved * priceKWh;
@@ -588,10 +586,9 @@ window.PVSIM = window.PVSIM || {};
     // (z profilu DHW), więc % to po prostu Q_saved/Q_CWU dla każdej doby.
     // Pierwsza doba startuje zimna ("warmup") i pokrycie jest sztucznie
     // niskie, więc do min/max bierzemy dni 1..N-1 (gdy days >= 2).
-    // Mianownik zależy od trasy cyrkulacji (por. komentarz w simulateTank).
-    const Q_CWU_day = (psMonth.circRoute === 'tank')
-      ? simDHW.daily.energy
-      : simDHW.daily.totalEnergy;
+    // Mianownik = pełna energia CWU budynku (użyteczna + cyrkulacja),
+    // niezależny od trasy cyrkulacji (por. komentarz w simulateTank).
+    const Q_CWU_day = simDHW.daily.totalEnergy;
     let coverMinPct = Infinity, coverMaxPct = -Infinity;
 
     for (let d = 0; d < days; d++) {
@@ -699,7 +696,7 @@ window.PVSIM = window.PVSIM || {};
       const simDHW = P.simulateDHW(ps.residents, mi, ps.T_hot, ps);
       const simMonth = P.simulateTankMonth(simPV, simDHW, ps.heaterKW, ps.tankL, mi, ps);
       const mo = simMonth.monthly;
-      const cwu_m = ((ps.circRoute === 'tank') ? simDHW.daily.energy : simDHW.daily.totalEnergy) * days;
+      const cwu_m = simDHW.daily.totalEnergy * days;
 
       monthsData.push({
         monthIdx:    mi,

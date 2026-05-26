@@ -85,14 +85,19 @@ window.PVSIM = window.PVSIM || {};
   // togglea „Trasa cyrkulacji CWU" (Moduł 04).
   const CIRCROUTE_DESC = {
     'eco':
-      '<strong>Cyrkulację ogarnia stary węzeł.</strong> Pętla cyrkulacyjna pozostaje wpięta do istniejącego węzła cieplnego, ' +
-      'nasz zasobnik jej nie obsługuje. W bilansie pokrycia uwzględniamy ją jednak po stronie mianownika — ' +
-      'stary węzeł musi dostarczyć więcej energii (użyteczna + straty pętli), więc pokrycie liczymy względem energii całkowitej CWU.',
+      '<strong>Cyrkulację podgrzewa stary węzeł.</strong> Nasz zasobnik jest wpięty na przyłączu zimnej wody, przed starym węzłem — ' +
+      'podgrzewa cały strumień wody zasilający węzeł, który dogrzewa go do T_hot i obsługuje pętlę cyrkulacyjną. ' +
+      'Każdy kWh ciepła, który dostarczymy (Q_saved), zmniejsza zapotrzebowanie starego węzła — ' +
+      'a węzeł potrzebuje energii zarówno na kran, jak i na cyrkulację. Stąd mianownik pokrycia to pełna energia CWU budynku ' +
+      '(użyteczna + straty pętli). ' +
+      '<em>Ograniczenie:</em> ciepło trafia do węzła tylko strumieniem rozbiorów, więc maksymalnie możemy dostarczyć tyle, ' +
+      'ile zmieści się w wodzie kranowej podgrzanej od T_cold do T_hot (Q_saved ≤ Q_useful).',
     'tank':
-      '<strong>Cyrkulację bierze nasz zasobnik.</strong> Uproszczony model pętli umie tylko wysysać energię ze zbiornika ' +
-      '(stałą mocą P_circ, aż do poziomu wody wodociągowej — niżej nie schłodzi). ' +
-      'Stary węzeł nie musi już podgrzewać cyrkulacji, więc pokrycie liczymy względem samej energii użytecznej CWU (kran), ' +
-      'a ciepło dostarczone do pętli wlicza się do Q_saved zasobnika.'
+      '<strong>Cyrkulację bierze nasz zasobnik.</strong> Pętla powrotna jest przepięta do naszego zasobnika zamiast do starego węzła. ' +
+      'Uproszczony model pętli umie tylko wysysać energię ze zbiornika (stałą mocą P_circ, aż do poziomu wody wodociągowej — niżej nie schłodzi). ' +
+      'Ciepło dostarczone do pętli wlicza się do Q_saved zasobnika, więc nasz układ pokrywa kran + cyrkulację. ' +
+      'Mianownik pokrycia pozostaje ten sam — pełna energia CWU budynku — bo fizyczna potrzeba nie zależy od trasy. ' +
+      '<em>Brak limitu rozbiorów:</em> pętla wysysa ciepło ciągle, niezależnie od poboru kranu, więc Q_saved nie jest już ograniczone strumieniem rozbiorów i może realnie sięgnąć Q_total.'
   };
 
   // ===== AKTUALIZACJA =====

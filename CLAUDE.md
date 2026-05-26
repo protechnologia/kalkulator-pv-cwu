@@ -108,11 +108,11 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
     nadwyżkę PV wykorzystuje w pierwszej kolejności, resztę dobiera z sieci
 - Termostat: max 70°C (suwak `heaterTargetC` 0–70°C; powyżej 60°C — magazynowanie ciepła kosztem niższego COP PC)
 - **Trasa cyrkulacji CWU** (`P.state.circRoute`, toggle „STARY WĘZEŁ" / „NASZ ZASOBNIK"):
-  - `'eco'` (domyślne) — pętla cyrkulacji poza modelem zasobnika, `Q_circ` doliczane
-    tylko do `simDHW.totalEnergy`; mianownik pokrycia = energia całkowita (użyteczna + cyrkulacja).
+  - `'eco'` (domyślne) — pętla cyrkulacji poza modelem zasobnika, `Q_saved` = sam kran.
   - `'tank'` — `P_circ` (kW) ciągle drenuje ciepło z zasobnika (krok 1b w podpętli),
-    `Q_saved` obejmuje ciepło dostarczone do cyrkulacji (kran + pętla), mianownik
-    pokrycia spada do samej energii użytecznej (`simDHW.daily.energy`).
+    `Q_saved` obejmuje ciepło dostarczone do cyrkulacji (kran + pętla).
+  - Mianownik pokrycia **niezależny od trasy** — zawsze `simDHW.totalEnergy`
+    (użyteczna + cyrkulacja), bo fizyczna potrzeba CWU budynku jest stała.
 - Straty: `UA(V) = UA_REF · (V/V_REF)^(2/3)`, klasa B/C wg PN-EN 12897
 - Wykresy: temperatura zasobnika (tło grzania w osobnym odcieniu dla strefy
   dziennej i nocnej), słupkowy wykres mocy elektrycznej PC + grzałki

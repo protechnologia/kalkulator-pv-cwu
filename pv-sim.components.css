@@ -198,7 +198,8 @@
   align-items: baseline;
   gap: 6px;
 }
-.pvsim-stat-value .secondary {
+.pvsim-stat-value .secondary,
+.pvsim-stat-value .tertiary {
   font-size: 13px;
   font-weight: 500;
   color: var(--pvsim-text-1);
@@ -208,11 +209,13 @@
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.005em;
 }
-.pvsim-stat-value .secondary .unit {
+.pvsim-stat-value .secondary .unit,
+.pvsim-stat-value .tertiary .unit {
   font-size: 10px;
   color: var(--pvsim-text-2);
 }
-.pvsim-stat-value .secondary::before {
+.pvsim-stat-value .secondary::before,
+.pvsim-stat-value .tertiary::before {
   content: '↳';
   color: var(--pvsim-text-2);
   margin-right: 3px;

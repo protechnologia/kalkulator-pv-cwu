@@ -351,11 +351,6 @@ spadnie wraz z dodaniem strat cyrkulacji do bilansu zasobnika.
 guziki wymuszają wybór między dwoma punktami, suwak pozwala oddać realny stan
 budynku między nimi.
 
-**Kafelek „ENERGIA (całkowita)" Modułu 02** — obok wartości dobowej/miesięcznej
-dodać przeliczenie roczne (suma 12 miesięcy z uwzględnieniem sezonowości
-`T_cold` i liczby dni w miesiącu), żeby od razu widzieć skalę zapotrzebowania
-CWU w skali roku bez konieczności przełączania miesięcy.
-
 **Stałe straty cyrkulacji w skali roku** — obecnie straty cyrkulacji liczone
 są jako procent miesięcznej energii użytecznej, a ta zależy od `T_cold`
 (sezonowo zmienna), więc straty mocno wahają się z miesiąca na miesiąc.

@@ -727,6 +727,20 @@ window.PVSIM = window.PVSIM || {};
     themeBtns.forEach(b => b.addEventListener('click', () => applyTheme(b.dataset.theme)));
 
     updateSlider();  // pierwsza inicjalizacja + render
+
+    // Firefox: pierwszy focus na input[type=range] wywołuje scroll-into-view.
+    // Konsumujemy go programowo — pozwalamy Firefoxowi zrobić skok,
+    // natychmiast cofamy scroll i blurrujemy.
+    requestAnimationFrame(() => {
+      const sliders = document.querySelectorAll('.pvsim-slider');
+      if (!sliders.length) return;
+      const sx = window.scrollX, sy = window.scrollY;
+      sliders.forEach(sl => {
+        try { sl.focus(); } catch (e) {}
+        sl.blur();
+      });
+      window.scrollTo(sx, sy);
+    });
   }
 
   if (document.readyState === 'loading') {

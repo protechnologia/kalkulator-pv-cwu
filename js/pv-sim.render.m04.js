@@ -178,28 +178,29 @@ window.PVSIM = window.PVSIM || {};
     const y = v => padT + ch - (v / yMax) * ch;
     const bw = cw / 24;
 
-    // Stos dwupoziomowy — dół: energia z PV (bursztyn), góra: z sieci (fiolet).
-    // Suma PC + grzałka łączona po stronie źródła (rozbicie urządzeń jest na osobnym wykresie cieplnym).
+    // 4-stos (od dołu): PC·PV (#f59e0b), grz·PV (#fcd34d), PC·sieć (#a78bfa),
+    // grz·sieć (#c4b5fd). Ciemniejszy odcień = PC, jaśniejszy = grzałka;
+    // bursztyn = PV, fiolet = sieć.
+    const SEG = [
+      { key: 'elec_hp_pv',   color: '#f59e0b' },
+      { key: 'elec_pv',      color: '#fcd34d' },
+      { key: 'elec_hp_grid', color: '#a78bfa' },
+      { key: 'elec_grid',    color: '#c4b5fd' },
+    ];
     let bars = '';
     for (let h = 0; h < 24; h++) {
       const d = simTank.hours[h];
-      const ePv   = (d.elec_pv    || 0) + (d.elec_hp_pv   || 0);
-      const eGrid = (d.elec_grid  || 0) + (d.elec_hp_grid || 0);
-      if (ePv > 0) {
-        const segH = (ePv / yMax) * ch;
+      let acc = 0;
+      for (const s of SEG) {
+        const v = d[s.key] || 0;
+        if (v <= 0) continue;
+        const segH = (v / yMax) * ch;
         if (segH > 0.1) {
-          bars += `<rect x="${x(h).toFixed(2)}" y="${y(ePv).toFixed(2)}"
+          bars += `<rect x="${x(h).toFixed(2)}" y="${y(acc + v).toFixed(2)}"
                          width="${(bw - 1).toFixed(2)}" height="${segH.toFixed(2)}"
-                         fill="#f59e0b" opacity="0.85"/>`;
+                         fill="${s.color}" opacity="0.9"/>`;
         }
-      }
-      if (eGrid > 0) {
-        const segH = (eGrid / yMax) * ch;
-        if (segH > 0.1) {
-          bars += `<rect x="${x(h).toFixed(2)}" y="${y(ePv + eGrid).toFixed(2)}"
-                         width="${(bw - 1).toFixed(2)}" height="${segH.toFixed(2)}"
-                         fill="#a78bfa" opacity="0.85"/>`;
-        }
+        acc += v;
       }
     }
 
@@ -243,13 +244,17 @@ window.PVSIM = window.PVSIM || {};
     ` : '';
     const nominal = nomHeater + nomHp;
 
-    // Legenda — dwa znaczniki: źródło energii (PV / sieć)
-    const lx = W - padR - 150;
+    // Legenda 4-elementowa: PC·PV, grz·PV, PC·sieć, grz·sieć
+    const lx = W - padR - 320;
     const legend = `
-      <rect x="${lx}" y="${padT + 2}" width="10" height="10" fill="#f59e0b" opacity="0.85"/>
-      <text x="${lx + 15}" y="${padT + 11}" fill="#a1a1aa">z PV</text>
-      <rect x="${lx + 60}" y="${padT + 2}" width="10" height="10" fill="#a78bfa" opacity="0.85"/>
-      <text x="${lx + 75}" y="${padT + 11}" fill="#a1a1aa">z sieci</text>
+      <rect x="${lx}"       y="${padT + 2}" width="10" height="10" fill="#f59e0b" opacity="0.9"/>
+      <text x="${lx + 14}"  y="${padT + 11}" fill="#a1a1aa">PC·PV</text>
+      <rect x="${lx + 70}"  y="${padT + 2}" width="10" height="10" fill="#fcd34d" opacity="0.9"/>
+      <text x="${lx + 84}"  y="${padT + 11}" fill="#a1a1aa">grz·PV</text>
+      <rect x="${lx + 145}" y="${padT + 2}" width="10" height="10" fill="#a78bfa" opacity="0.9"/>
+      <text x="${lx + 159}" y="${padT + 11}" fill="#a1a1aa">PC·sieć</text>
+      <rect x="${lx + 225}" y="${padT + 2}" width="10" height="10" fill="#c4b5fd" opacity="0.9"/>
+      <text x="${lx + 239}" y="${padT + 11}" fill="#a1a1aa">grz·sieć</text>
     `;
 
     svg.innerHTML = `

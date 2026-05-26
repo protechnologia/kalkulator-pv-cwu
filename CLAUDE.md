@@ -130,8 +130,8 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 - `P.simulateTankMonth()` wywołuje `P.simulateTank()` raz na dobę z temperaturą
   startową = `T_end` poprzedniej doby (opcjonalny 5. parametr `T_init`).
 - Wykresy: temperatura zasobnika (ciągła linia, cały miesiąc) oraz słupkowy
-  wykres dobowego bilansu energii elektrycznej grzałki (jeden słupek na dobę,
-  PV vs sieć).
+  wykres dobowego bilansu energii elektrycznej pary PC + grzałki
+  (jeden słupek na dobę, 4-stos: PC·PV, grz·PV, PC·sieć, grz·sieć).
 - Statystyki miesięczne: pokrycie CWU, grzałka (h pracy + kWh ciepła), PC
   (h pracy + kWh ciepła), zużycie prądu — źródło (PV vs sieć) i — urządzenie
   (grzałka vs PC), koszt energii z sieci, ciepło zaoszczędzone oraz bilans
@@ -147,7 +147,8 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 - `P.simulateTankMonth()` przyjmuje opcjonalny 5. parametr `monthIdx`
   (domyślnie `P.state.monthIdx`), dzięki czemu można policzyć dowolny miesiąc.
 - Wykresy: słupkowy wykres energii elektrycznej pary PC + grzałki
-  (jeden słupek na miesiąc, PV vs sieć) — `P.renderYearChart()` — oraz
+  (jeden słupek na miesiąc, 4-stos: PC·PV, grz·PV, PC·sieć, grz·sieć)
+  — `P.renderYearChart()` — oraz
   słupkowy wykres miesięcznego pokrycia CWU (pokryte z układu vs brak,
   z etykietą % nad każdym słupkiem) — `P.renderYearCoverChart()`.
 - Statystyki roczne (te same kafelki co M05 w skali roku): pokrycie CWU,
@@ -380,16 +381,6 @@ energię użyteczną, zaaplikować procent strat raz, a uzyskaną wartość rozd
 równomiernie na doby (np. `Q_circ_per_day = Q_useful_year · pctCirc / 365`).
 Skutek: bardziej realistyczny profil zapotrzebowania ciepła, brak sztucznych
 sezonowych skoków strat cyrkulacji.
-
-**Dwa odcienie na słupkach PV/sieć — rozróżnienie PC vs grzałka** — na wykresach
-energii elektrycznej, które obecnie pokazują tylko podział PV vs sieć (M05
-dobowy, M06 miesięczny), dodać drugi odcień w obrębie każdego segmentu, żeby
-od razu było widać czy energia poszła do PC czy do grzałki. Np. PV ciemny =
-PV·PC, PV jasny = PV·grzałka; sieć ciemna = sieć·PC, sieć jasna = sieć·grzałka.
-Wymaga 4-stack zamiast obecnego 2-stack (M04 już ma 4-stack — wzorzec do
-naśladowania). Wartości `Q_pc_pv`, `Q_pc_grid`, `Q_heater_pv`, `Q_heater_grid`
-są dostępne na poziomie doby z `simulateTank()`, więc dane już istnieją —
-trzeba je tylko propagować w górę przez `simulateTankMonth/Year` i wyrenderować.
 
 ## Commity
 

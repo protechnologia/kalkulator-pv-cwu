@@ -18,8 +18,8 @@ window.PVSIM = window.PVSIM || {};
   'use strict';
 
   // ===== RENDER WYKRESU ENERGII ELEKTRYCZNEJ — SYMULACJA ROCZNA (Moduł 06) =====
-  // Słupki miesięczne: jeden słupek na miesiąc, dół = energia z PV,
-  // góra = energia z sieci. 12 słupków, oś X — skróty miesięcy.
+  // Słupki miesięczne: jeden słupek na miesiąc, 4-stos
+  // (PC·PV, grz·PV, PC·sieć, grz·sieć). 12 słupków, oś X — skróty miesięcy.
   P.renderYearChart = function(simYear) {
     const svg = document.getElementById('pvsim-year-chart');
     if (!svg) return;
@@ -30,9 +30,9 @@ window.PVSIM = window.PVSIM || {};
 
     const md = simYear.monthsData;
 
-    const pvOf   = d => d.elec_pair_pv   != null ? d.elec_pair_pv   : d.elec_pv;
-    const gridOf = d => d.elec_pair_grid != null ? d.elec_pair_grid : d.elec_grid;
-    const rawMax = Math.max(...md.map(d => pvOf(d) + gridOf(d)), 0.001);
+    const totalOf = d => (d.elec_hp_pv || 0) + (d.elec_pv || 0)
+                       + (d.elec_hp_grid || 0) + (d.elec_grid || 0);
+    const rawMax = Math.max(...md.map(totalOf), 0.001);
     const niceSteps = [10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000];
     const step = niceSteps.find(s => rawMax / s <= 6) || 5000;
     const yMax = Math.ceil(rawMax / step + 0.001) * step;
@@ -43,22 +43,27 @@ window.PVSIM = window.PVSIM || {};
     const bw = slot * 0.62;
     const bx = slot * 0.19;   // wcięcie słupka w slocie miesiąca
 
+    // 4-stos (od dołu): PC·PV, grz·PV, PC·sieć, grz·sieć
+    const SEG = [
+      { key: 'elec_hp_pv',   color: '#f59e0b' },
+      { key: 'elec_pv',      color: '#fcd34d' },
+      { key: 'elec_hp_grid', color: '#a78bfa' },
+      { key: 'elec_grid',    color: '#c4b5fd' },
+    ];
     let bars = '';
     md.forEach((d, i) => {
-      const ePv   = pvOf(d);
-      const eGrid = gridOf(d);
-      const pvH   = (ePv   / yMax) * ch;
-      const gridH = (eGrid / yMax) * ch;
       const x0 = x(i) + bx;
-      if (pvH > 0.05) {
-        bars += `<rect x="${x0.toFixed(2)}" y="${y(ePv).toFixed(2)}"
-                       width="${bw.toFixed(2)}" height="${pvH.toFixed(2)}"
-                       fill="#f59e0b" opacity="0.8"/>`;
-      }
-      if (gridH > 0.05) {
-        bars += `<rect x="${x0.toFixed(2)}" y="${y(ePv + eGrid).toFixed(2)}"
-                       width="${bw.toFixed(2)}" height="${gridH.toFixed(2)}"
-                       fill="#a78bfa" opacity="0.75"/>`;
+      let acc = 0;
+      for (const s of SEG) {
+        const v = d[s.key] || 0;
+        if (v <= 0) continue;
+        const segH = (v / yMax) * ch;
+        if (segH > 0.05) {
+          bars += `<rect x="${x0.toFixed(2)}" y="${y(acc + v).toFixed(2)}"
+                         width="${bw.toFixed(2)}" height="${segH.toFixed(2)}"
+                         fill="${s.color}" opacity="0.9"/>`;
+        }
+        acc += v;
       }
     });
 
@@ -82,12 +87,16 @@ window.PVSIM = window.PVSIM || {};
       <line x1="${padL}" y1="${(padT + ch).toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${(padT + ch).toFixed(2)}" stroke="var(--pvsim-border-strong)" stroke-width="1"/>
     `;
 
-    const lx = W - padR - 150;
+    const lx = W - padR - 320;
     const legend = `
-      <rect x="${lx}" y="${padT + 2}" width="10" height="10" fill="#f59e0b" opacity="0.8"/>
-      <text x="${lx + 15}" y="${padT + 11}" fill="#a1a1aa">z PV</text>
-      <rect x="${lx + 60}" y="${padT + 2}" width="10" height="10" fill="#a78bfa" opacity="0.75"/>
-      <text x="${lx + 75}" y="${padT + 11}" fill="#a1a1aa">z sieci</text>
+      <rect x="${lx}"       y="${padT + 2}" width="10" height="10" fill="#f59e0b" opacity="0.9"/>
+      <text x="${lx + 14}"  y="${padT + 11}" fill="#a1a1aa">PC·PV</text>
+      <rect x="${lx + 70}"  y="${padT + 2}" width="10" height="10" fill="#fcd34d" opacity="0.9"/>
+      <text x="${lx + 84}"  y="${padT + 11}" fill="#a1a1aa">grz·PV</text>
+      <rect x="${lx + 145}" y="${padT + 2}" width="10" height="10" fill="#a78bfa" opacity="0.9"/>
+      <text x="${lx + 159}" y="${padT + 11}" fill="#a1a1aa">PC·sieć</text>
+      <rect x="${lx + 225}" y="${padT + 2}" width="10" height="10" fill="#c4b5fd" opacity="0.9"/>
+      <text x="${lx + 239}" y="${padT + 11}" fill="#a1a1aa">grz·sieć</text>
     `;
 
     svg.innerHTML = `

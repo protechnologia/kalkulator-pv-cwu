@@ -6,7 +6,7 @@
    - parametry CWU: zużycie wody na osobę, ciepło właściwe wody,
      model temperatury wody zimnej (sinusoida z opóźnieniem fazowym),
      taryfę ciepła ECO Opole (P.PRICE_PER_GJ — edytowalna z UI),
-     współczynniki strat cyrkulacji CIRC_LOSS (stary/nowy budynek)
+     kotwice strat cyrkulacji CIRC_LOSS (stary/nowy budynek — znaczniki suwaka)
    - godzinowy profil zużycia CWU znormalizowany do 1.0
      (źródło: Chmielewska 2025, Energies 18(17), 42 budynki w PL)
    - parametry zasobnika: termostat, straty UA, liczba podkroków,
@@ -89,8 +89,10 @@ window.PVSIM = window.PVSIM || {};
 
   // ===== CYRKULACJA CWU =====
   // Straty ciepła w pętli cyrkulacyjnej jako % energii użytecznej CWU.
-  // Nowy budynek (izolacja nowsza, krótsze piony): ~35%
-  // Stary budynek (brak izolacji rur, długie piony): ~60%
+  // Realna wartość jest ciągła (suwak `circLossPct` w P.state), a poniższe
+  // dwa punkty referencyjne służą tylko jako kotwice/znaczniki na suwaku:
+  //   nowy budynek (izolacja nowsza, krótsze piony): ~35%
+  //   stary budynek (brak izolacji rur, długie piony): ~60%
   // Źródło rzędów wielkości: POBE, Feist & Schnieders (2009), Badescu & Staicovici (2006)
   P.CIRC_LOSS = { new: 0.35, old: 0.60 };
 
@@ -149,7 +151,7 @@ window.PVSIM = window.PVSIM || {};
     hpCOPWinter:  2.5,  // COP zimowy — używany dla miesięcy Paź–Mar
     hpGears:      2,    // liczba biegów PC; bieg k z N daje moc (k/N)·hpKW
     hpOnlyBandC:  5,    // °C — szerokość pasma "tylko PC" pod setpointem (strategia on-grid)
-    buildingType: 'old', // 'new' | 'old' — typ budynku (straty cyrkulacji)
+    circLossPct: 0.60,   // straty cyrkulacji jako ułamek energii użytecznej CWU (0..1)
     // Moduł 03 — taryfa energii elektrycznej z sieci
     gridPriceDay:   1.20,   // zł/kWh — strefa dzienna
     gridPriceNight: 1.20,   // zł/kWh — strefa nocna

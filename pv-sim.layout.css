@@ -166,6 +166,34 @@
   box-shadow: 0 0 0 1px var(--pvsim-orange);
 }
 
+/* Znaczniki referencyjne na suwaku (np. 35% / 60% strat cyrkulacji).
+   Rodzic z klasą .pvsim-slider-wrap-ticks ma dolny padding na etykiety. */
+.pvsim-slider-wrap-ticks { padding-bottom: 18px; }
+.pvsim-slider-tick {
+  position: absolute;
+  top: calc((100% - 18px) / 2);
+  width: 2px;
+  height: 12px;
+  margin-top: -6px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background: var(--pvsim-text-2);
+  opacity: 0.85;
+}
+.pvsim-slider-tick.teal { background: var(--pvsim-teal); }
+.pvsim-slider-tick::after {
+  content: attr(data-label);
+  position: absolute;
+  top: 13px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'IBM Plex Mono', 'Consolas', monospace;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--pvsim-text-2);
+  white-space: nowrap;
+}
+
 .pvsim-value-box {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 22px;

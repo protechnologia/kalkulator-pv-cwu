@@ -428,8 +428,8 @@ window.PVSIM = window.PVSIM || {};
     document.getElementById('pvsim-dhw-cost-m').textContent   = P.fmt.pl0(simDHW.monthly.totalCost);
     document.getElementById('pvsim-dhw-cost-y').textContent   = P.fmt.pl0(yearlyCost);
 
-    const buildingLabel = P.state.buildingType === 'old' ? 'stary bud.' : 'nowy bud.';
-    const ctx = `— ${P.state.residents} osób · ${P.MONTHS[P.state.monthIdx].name} · ΔT ${simDHW.T_in.toFixed(1)}→${simDHW.T_hot}°C · ${buildingLabel}`;
+    const circLabel = `cyrk. ${Math.round(P.state.circLossPct * 100)}%`;
+    const ctx = `— ${P.state.residents} osób · ${P.MONTHS[P.state.monthIdx].name} · ΔT ${simDHW.T_in.toFixed(1)}→${simDHW.T_hot}°C · ${circLabel}`;
     document.getElementById('pvsim-dhw-ctx').textContent = ctx;
   };
 

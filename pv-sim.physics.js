@@ -13,9 +13,10 @@
    P.simulateDHW(residents, monthIdx, T_hot)
      Godzinowe zapotrzebowanie na ciepłą wodę użytkową dla N mieszkańców.
      Rozkłada dobową objętość wg znormalizowanego profilu godzinowego,
-     oblicza energię użyteczną oraz straty cyrkulacji (P.CIRC_LOSS wg
-     P.state.buildingType: stary budynek 60%, nowy 35%) i koszt całkowity
-     przy aktualnej taryfie ECO.
+     oblicza energię użyteczną oraz straty cyrkulacji (procent energii
+     użytecznej wg suwaka P.state.circLossPct — kotwice w P.CIRC_LOSS:
+     stary budynek ~60%, nowy ~35%) i koszt całkowity przy aktualnej
+     taryfie ECO.
 
    P.simulateTank(simPV, simDHW, heaterKW, tankL, T_init)
      Model zasobnika 1-węzłowego (fully-mixed) z 6 podkrokami na godzinę.
@@ -122,7 +123,8 @@ window.PVSIM = window.PVSIM || {};
   // ===== SYMULACJA CWU =====
   // Godzinowy profil + statystyki dobowe i miesięczne dla N mieszkańców.
   // Straty cyrkulacji: stała moc P_circ rozprowadzona równomiernie przez 24h,
-  // obliczona jako procent Q_użytecznej zależny od typu budynku (P.CIRC_LOSS).
+  // obliczona jako procent Q_użytecznej wg P.state.circLossPct (suwak,
+  // kotwice 35%/60% z P.CIRC_LOSS).
   P.simulateDHW = function(residents, monthIdx, T_hot, params) {
     const ps = params || P.state;
     const priceKWh = ps.priceHeatGJ / P.KWH_PER_GJ;  // zł/kWh ciepła sieciowego
@@ -133,7 +135,7 @@ window.PVSIM = window.PVSIM || {};
     const dailyM3 = (residents * P.DHW_L_PER_PERSON) / 1000;
 
     const Q_useful = dailyM3 * kwhM3;
-    const circRatio = P.CIRC_LOSS[ps.buildingType] || P.CIRC_LOSS.old;
+    const circRatio = ps.circLossPct;
     const Q_circ = Q_useful * circRatio;       // kWh/dobę strat cyrkulacji
     const P_circ = Q_circ / 24;               // kW — stała moc strat przez całą dobę
 
@@ -399,7 +401,11 @@ window.PVSIM = window.PVSIM || {};
       dailyGridCost        += (elec_grid_h + elec_hp_grid_h) * gridPrice;
     }
 
-    const Q_CWU_total = simDHW.daily.energy;
+    // Pokrycie liczone względem Q_total (użyteczna + cyrkulacja) — to jest
+    // rachunek starego ECO, który zastępujemy. Cyrkulacja w obecnym modelu
+    // pozostaje wpięta do starego węzła ECO; przy przepięciu trasy do naszego
+    // zasobnika mianownik powinien wrócić do Q_useful (osobne TODO).
+    const Q_CWU_total = simDHW.daily.totalEnergy;
     const coveragePct = Q_CWU_total > 0 ? (dailyQ_saved / Q_CWU_total * 100) : 0;
     const priceKWh = ps.priceHeatGJ / P.KWH_PER_GJ;
     const savingPLN_d = dailyQ_saved * priceKWh;
@@ -555,7 +561,8 @@ window.PVSIM = window.PVSIM || {};
     // (z profilu DHW), więc % to po prostu Q_saved/Q_CWU dla każdej doby.
     // Pierwsza doba startuje zimna ("warmup") i pokrycie jest sztucznie
     // niskie, więc do min/max bierzemy dni 1..N-1 (gdy days >= 2).
-    const Q_CWU_day = simDHW.daily.energy;
+    // Mianownik = Q_total (użyteczna + cyrkulacja), por. komentarz w simulateTank.
+    const Q_CWU_day = simDHW.daily.totalEnergy;
     let coverMinPct = Infinity, coverMaxPct = -Infinity;
 
     for (let d = 0; d < days; d++) {
@@ -601,7 +608,7 @@ window.PVSIM = window.PVSIM || {};
 
     if (coverMinPct === Infinity) { coverMinPct = 0; coverMaxPct = 0; }
 
-    const Q_CWU_month = simDHW.daily.energy * days;
+    const Q_CWU_month = simDHW.daily.totalEnergy * days;
     const coveragePct = Q_CWU_month > 0 ? (monthQ_saved / Q_CWU_month * 100) : 0;
 
     return {
@@ -658,7 +665,7 @@ window.PVSIM = window.PVSIM || {};
       const simDHW = P.simulateDHW(ps.residents, mi, ps.T_hot, ps);
       const simMonth = P.simulateTankMonth(simPV, simDHW, ps.heaterKW, ps.tankL, mi, ps);
       const mo = simMonth.monthly;
-      const cwu_m = simDHW.daily.energy * days;
+      const cwu_m = simDHW.daily.totalEnergy * days;
 
       monthsData.push({
         monthIdx:    mi,

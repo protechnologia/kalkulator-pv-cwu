@@ -15,7 +15,8 @@
      - suwak liczby mieszkańców (moduł 02 CWU)
      - suwak temperatury docelowej CWU (moduł 02)
      - pole ceny energii cieplnej w zł/GJ (moduł 02)
-     - przełącznik typu budynku (stary/nowy — współczynnik strat cyrkulacji)
+     - suwak strat cyrkulacji CWU (% energii użytecznej; znaczniki 35%/60%
+       z P.CIRC_LOSS jako kotwice „nowy" / „stary budynek")
      - pola cen energii elektrycznej dzień/noc w zł/kWh (moduł 03)
      - suwaki początku i końca strefy dziennej (moduł 03)
      - suwak mocy grzałki (moduł 04, 0 = wyłączona)
@@ -138,6 +139,7 @@ window.PVSIM = window.PVSIM || {};
     const HYDRATE_INPUTS = [
       ['pvsim-power',            'kWp'],
       ['pvsim-pv-variability',   'pvVariability',    v => Math.round(v * 100)],
+      ['pvsim-circ-loss',        'circLossPct',      v => Math.round(v * 100)],
       ['pvsim-price-gj',         'priceHeatGJ'],
       ['pvsim-residents',        'residents'],
       ['pvsim-thot',             'T_hot'],
@@ -170,7 +172,6 @@ window.PVSIM = window.PVSIM || {};
     });
     const HYDRATE_TOGGLES = [
       ['pvsim-mode-toggle',          'mode',     'pvMode'],
-      ['pvsim-building-toggle',      'building', 'buildingType'],
       ['pvsim-strat-day-toggle',     'strat',    'heaterStratDay'],
       ['pvsim-strat-night-toggle',   'strat',    'heaterStratNight'],
       ['pvsim-opt-objective-toggle', 'obj',      'optObjective'],
@@ -235,16 +236,33 @@ window.PVSIM = window.PVSIM || {};
       grid.appendChild(btn);
     });
 
-    // Toggle typu budynku (Moduł 02 / CWU)
-    const buildingBtns = document.querySelectorAll('#pvsim-building-toggle .pvsim-toggle-btn');
-    buildingBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        P.state.buildingType = btn.dataset.building;
-        buildingBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        P.update();
-      });
-    });
+    // Suwak strat cyrkulacji CWU (Moduł 02). Znaczniki na suwaku odpowiadają
+    // kotwicom z P.CIRC_LOSS: stary budynek ~60%, nowy ~35%.
+    const sliderC = document.getElementById('pvsim-circ-loss');
+    const sliderCVal = document.getElementById('pvsim-circ-loss-val');
+    function updateCircLoss() {
+      const pctVal = parseInt(sliderC.value, 10);
+      P.state.circLossPct = pctVal / 100;
+      sliderCVal.textContent = pctVal;
+      const min = parseFloat(sliderC.min), max = parseFloat(sliderC.max);
+      sliderC.style.setProperty('--pvsim-fill', ((pctVal - min) / (max - min) * 100) + '%');
+      P.requestUpdate();
+    }
+    sliderC.addEventListener('input', updateCircLoss);
+    updateCircLoss();
+    // Pozycje znaczników z P.CIRC_LOSS — jedno źródło prawdy dla kotwic
+    const tickNew = document.getElementById('pvsim-circ-tick-new');
+    const tickOld = document.getElementById('pvsim-circ-tick-old');
+    if (tickNew) {
+      const p = Math.round(P.CIRC_LOSS.new * 100);
+      tickNew.style.left = p + '%';
+      tickNew.setAttribute('data-label', 'NOWY ' + p + '%');
+    }
+    if (tickOld) {
+      const p = Math.round(P.CIRC_LOSS.old * 100);
+      tickOld.style.left = p + '%';
+      tickOld.setAttribute('data-label', 'STARY ' + p + '%');
+    }
 
     // Pole ceny energii cieplnej (Moduł 02 / CWU)
     const inputPrice = document.getElementById('pvsim-price-gj');

@@ -250,7 +250,7 @@ P.state = {
   hpCOPWinter:  2.5,    // COP zimowy (Paź–Mar)
   hpGears:      2,      // liczba biegów PC (1–5; równe stopnie mocy k/N · hpKW)
   hpOnlyBandC:  5,      // °C — pasmo „tylko PC" pod setpointem (on-grid)
-  buildingType: 'old',  // 'old' | 'new' — straty cyrkulacji (60% / 35%)
+  circLossPct: 0.60,    // straty cyrkulacji jako ułamek energii użytecznej CWU (suwak 0..1; kotwice 0.35 / 0.60 z P.CIRC_LOSS)
   // Moduł 03 — taryfa energii elektrycznej (on-grid w przygotowaniu)
   gridPriceDay:   1.20,   // zł/kWh — strefa dzienna
   gridPriceNight: 1.20,   // zł/kWh — strefa nocna
@@ -352,8 +352,8 @@ istniejącego węzła cieplnego, czy przepinamy ją do naszego zasobnika.
 Przepięcie ma sens technologiczny (np. schładzanie wody wyjściowej, żeby
 nie przekraczała ~50°C), ale wnosi dodatkowy strumień ciepła z powrotu
 cyrkulacji do bilansu zasobnika — trzeba oszacować jego wielkość, prawdopodobnie
-korelując z przełącznikiem `buildingType` (old: ~60% strat, new: ~35%, zgodnie
-z `P.CIRC_LOSS`). Skutek: rośnie zapotrzebowanie ciepła pokrywane przez parę
+korelując z `P.state.circLossPct` (kotwice 35%/60% w `P.CIRC_LOSS`).
+Skutek: rośnie zapotrzebowanie ciepła pokrywane przez parę
 PC+grzałka, zmienia się bilans i ekonomia.
 Powiązany problem: **mianownik `coveragePct`**. Obecnie pokrycie liczone jest
 względem energii całkowitej (użyteczna + cyrkulacja). Po przepięciu cyrkulacji
@@ -362,11 +362,6 @@ porównujemy to, co dostarczyliśmy użytkownikowi, z tym, co użytkownik realni
 potrzebuje (ciepła woda u kranu), a nie z całkowitym zużyciem starego źródła
 (straty cyrkulacji nie są „usługą" dla użytkownika). Inaczej pokrycie sztucznie
 spadnie wraz z dodaniem strat cyrkulacji do bilansu zasobnika.
-
-**Suwak strat cyrkulacji** — zamienić obecny przełącznik `buildingType`
-(`old`/`new` ⇒ 60%/35% z `P.CIRC_LOSS`) na ciągły suwak procentowy. Dyskretne
-guziki wymuszają wybór między dwoma punktami, suwak pozwala oddać realny stan
-budynku między nimi.
 
 **Stałe straty cyrkulacji w skali roku** — obecnie straty cyrkulacji liczone
 są jako procent miesięcznej energii użytecznej, a ta zależy od `T_cold`
@@ -377,27 +372,6 @@ energię użyteczną, zaaplikować procent strat raz, a uzyskaną wartość rozd
 równomiernie na doby (np. `Q_circ_per_day = Q_useful_year · pctCirc / 365`).
 Skutek: bardziej realistyczny profil zapotrzebowania ciepła, brak sztucznych
 sezonowych skoków strat cyrkulacji.
-
-**Mianownik `coveragePct` = `Q_total` (nie `Q_useful`)** — obecnie pokrycie
-CWU liczone jest jako `Q_saved / Q_useful` ([pv-sim.physics.js:402–403](pv-sim.physics.js#L402)
-i analogicznie w `simulateTankMonth`/`simulateTankYear`), gdzie `simDHW.daily.energy`
-zwraca samą energię użyteczną bez strat cyrkulacji. Zmienić na `Q_saved / Q_total`
-(gdzie `Q_total = Q_useful + Q_circ`), żeby pokrycie odpowiadało na pytanie
-„jaki procent rachunku starego ECO (z cyrkulacją) zastąpiliśmy". Dotyczy
-wszystkich miejsc liczących `coveragePct`: M04 (`simulateTank`), M05
-(`simulateTankMonth`, w tym etykiety % nad słupkami `pvsim-month-cover-chart`),
-M06 (`simulateTankYear` + roczny wykres pokrycia).
-**Powiązanie z przełącznikiem trasy cyrkulacji:** mianownik zależy od trybu —
-gdy cyrkulacja **pozostaje na starym węźle ECO** (obecny stan), pokrycie
-liczymy od `Q_total` (zastępujemy część rachunku obejmującego cyrkulację);
-gdy cyrkulacja **przepięta do naszego zasobnika**, pokrycie liczymy od
-`Q_useful` (cyrkulacja jest u nas jako strata zasobnika, nie usługa, więc
-nie powinna być w mianowniku). Logika wyboru mianownika musi reagować na
-przełącznik z osobnego TODO „Przełącznik trasy cyrkulacji CWU".
-Przy okazji przejrzeć **inne kafelki** (M04/M05/M06: „dostarczone do CWU",
-„pozostaje w zasobniku", „ciepło zaoszczędzone", „bilans") — sprawdzić,
-czy żadna z prezentowanych wartości nie używa milcząco `Q_useful` jako
-referencji, gdy powinna `Q_total`.
 
 **Dwa odcienie na słupkach PV/sieć — rozróżnienie PC vs grzałka** — na wykresach
 energii elektrycznej, które obecnie pokazują tylko podział PV vs sieć (M05

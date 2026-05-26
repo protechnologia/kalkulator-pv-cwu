@@ -161,14 +161,14 @@
         </div>
       </div>
       <div>
-        <div class="pvsim-label teal">Typ budynku &nbsp;/ straty cyrkulacji</div>
-        <div class="pvsim-toggle" id="pvsim-building-toggle">
-          <button class="pvsim-toggle-btn teal" data-building="old">
-            <span class="num">01</span>STARY BUDYNEK &nbsp;<span class="num">38% STRAT</span>
-          </button>
-          <button class="pvsim-toggle-btn teal" data-building="new">
-            <span class="num">02</span>NOWY BUDYNEK &nbsp;<span class="num">26% STRAT</span>
-          </button>
+        <div class="pvsim-label teal">Straty cyrkulacji CWU &nbsp;[ % ]</div>
+        <div class="pvsim-power-row">
+          <div class="pvsim-slider-wrap pvsim-slider-wrap-ticks">
+            <input type="range" min="0" max="100" step="1" class="pvsim-slider teal" id="pvsim-circ-loss">
+            <span class="pvsim-slider-tick teal" id="pvsim-circ-tick-new"  data-label="NOWY 35%"></span>
+            <span class="pvsim-slider-tick teal" id="pvsim-circ-tick-old"  data-label="STARY 60%"></span>
+          </div>
+          <div class="pvsim-value-box teal"><span id="pvsim-circ-loss-val">60</span><span class="unit">%</span></div>
         </div>
       </div>
     </div>

@@ -47,6 +47,68 @@
   text-transform: uppercase;
 }
 
+/* Pinezka — zamiast etykiety osi; klik przykleja sekcję wykresu do
+   prawego dolnego rogu (position:fixed) i wstawia w jej miejsce
+   placeholder o tej samej wysokości. Wiele pinów = stos w pionie
+   (bottom wyliczany w app.js). */
+.pvsim-chart-pin {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--pvsim-border);
+  color: var(--pvsim-text-2);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.pvsim-chart-pin:hover {
+  color: var(--pvsim-text-0);
+  border-color: var(--pvsim-text-2);
+}
+.pvsim-chart-section.pinned .pvsim-chart-pin {
+  background: color-mix(in srgb, var(--pvsim-orange) 18%, transparent);
+  color: var(--pvsim-orange);
+  border-color: var(--pvsim-orange);
+}
+.pvsim-chart-pin-placeholder {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent 0 8px,
+    color-mix(in srgb, var(--pvsim-border) 50%, transparent) 8px 9px
+  );
+  border: 1px dashed var(--pvsim-border);
+  margin: 0;
+}
+.pvsim-chart-section.pinned {
+  position: fixed;
+  right: 16px;
+  width: 345px;
+  z-index: 50;
+  padding: 10px 12px;
+  background: var(--pvsim-bg-0);
+  border: 1px solid var(--pvsim-border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+.pvsim-chart-section.pinned .pvsim-chart-header {
+  margin-bottom: 6px;
+}
+.pvsim-chart-section.pinned .pvsim-chart-title {
+  font-size: 10px;
+}
+.pvsim-chart-section.pinned .pvsim-chart-pin {
+  font-size: 10px;
+  padding: 2px 6px;
+}
+.pvsim-chart-section.pinned .pvsim-chart-wrap {
+  padding: 8px 4px 2px 2px;
+}
+.pvsim-chart-section.pinned .pvsim-chart text {
+  font-size: 8px;
+}
+
 .pvsim-chart-wrap {
   background: var(--pvsim-bg-1);
   border: 1px solid var(--pvsim-border);

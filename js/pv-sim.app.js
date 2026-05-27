@@ -36,6 +36,9 @@
        start/stop optymalizacji (moduł 08)
      - przycisk pokaż/ukryj sidebar z podsumowaniem rocznym
        (start: widoczny dla okna ≥1100 px, ukryty poniżej)
+     - pinezki wykresów (setupChartPins) — klik 📌 przykleja sekcję
+       wykresu do prawego dolnego rogu (position:fixed), z placeholderem
+       w oryginalnym miejscu; wiele pinów układa się w pionowy stos
    Każda kontrolka przy zmianie synchronizuje P.state, odświeża etykietę,
    ustawia CSS --pvsim-fill (WebKit track fill) i wywołuje P.requestUpdate()
    (suwaki — debouncing rAF) lub P.update() (kliki — synchronicznie).
@@ -763,6 +766,8 @@ window.PVSIM = window.PVSIM || {};
     applyTheme(savedTheme);
     themeBtns.forEach(b => b.addEventListener('click', () => applyTheme(b.dataset.theme)));
 
+    setupChartPins();
+
     updateSlider();  // pierwsza inicjalizacja + render
 
     // Firefox: pierwszy focus na input[type=range] wywołuje scroll-into-view.
@@ -778,6 +783,71 @@ window.PVSIM = window.PVSIM || {};
       });
       window.scrollTo(sx, sy);
     });
+  }
+
+  // Pinezki wykresów — klik przykleja sekcję wykresu do prawego dolnego
+  // rogu okna (position:fixed) i wstawia w oryginalnym miejscu placeholder
+  // o tej samej wysokości (brak skoku layoutu). Wiele pinów układa się
+  // w stos w pionie. SVG zostaje w DOM-ie, więc kolejne P.update()
+  // renderują do tego samego elementu.
+  function setupChartPins() {
+    const pinned = [];
+    const sidebar = document.querySelector('.pvsim-sidebar');
+    document.querySelectorAll('.pvsim-chart-section').forEach(section => {
+      const btn = section.querySelector('.pvsim-chart-pin');
+      if (!btn) return;
+      btn.addEventListener('click', () => togglePin(section, btn));
+    });
+    // Relayout przy pokazaniu/ukryciu sidebara — żeby przypięte wykresy
+    // nie były nim przykrywane (pchamy je w lewo o szerokość sidebara).
+    if (sidebar) {
+      new MutationObserver(() => relayout()).observe(sidebar, {
+        attributes: true, attributeFilter: ['class']
+      });
+    }
+
+    function togglePin(section, btn) {
+      if (section.classList.contains('pinned')) unpin(section, btn);
+      else pin(section, btn);
+      relayout();
+    }
+    function pin(section, btn) {
+      const rect = section.getBoundingClientRect();
+      const placeholder = document.createElement('div');
+      placeholder.className = 'pvsim-chart-pin-placeholder';
+      placeholder.style.height = rect.height + 'px';
+      section.parentNode.insertBefore(placeholder, section);
+      section._pinPlaceholder = placeholder;
+      section.classList.add('pinned');
+      btn.setAttribute('aria-pressed', 'true');
+      btn.title = 'Odepnij wykres';
+      pinned.push(section);
+    }
+    function unpin(section, btn) {
+      section.classList.remove('pinned');
+      section.style.bottom = '';
+      if (section._pinPlaceholder) {
+        section._pinPlaceholder.remove();
+        section._pinPlaceholder = null;
+      }
+      btn.setAttribute('aria-pressed', 'false');
+      btn.title = 'Przypnij wykres do rogu ekranu';
+      const i = pinned.indexOf(section);
+      if (i >= 0) pinned.splice(i, 1);
+    }
+    function relayout() {
+      let bottom = 16;
+      const gap = 12;
+      const sbVisible = sidebar && !sidebar.classList.contains('hidden');
+      const sbW = sbVisible ? sidebar.getBoundingClientRect().width : 0;
+      const right = (sbVisible ? sbW + 16 : 0) + 16;
+      pinned.forEach(s => {
+        s.style.right = right + 'px';
+        s.style.bottom = bottom + 'px';
+        bottom += s.getBoundingClientRect().height + gap;
+      });
+    }
+    window.addEventListener('resize', relayout);
   }
 
   if (document.readyState === 'loading') {

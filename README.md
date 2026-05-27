@@ -181,11 +181,18 @@ a strategia wybierana jest osobno dla każdej strefy:
   grzałka throttluje do reszty nadwyżki. Próg włączenia `heaterThreshold ×
   heaterKW` zapobiega cyklicznym startom przy słabej PV. Po osiągnięciu
   setpointu — stop, nadwyżka PV zapisana jako `Q_wasted`.
-- **on-grid** — pełna moc proporcjonalna do brakującej temperatury, nadwyżka
-  PV używana w pierwszej kolejności, resztę dobiera sieć (po cenie strefy).
-  W pasmie `[T_set − hpOnlyBand, T_set)` pracuje **tylko PC** (bieg dobrany
-  proporcjonalnie do zapotrzebowania); poniżej pasma PC bierze top bieg,
-  a grzałka modulowana wg `(T_set − T) / BAND` dobiera resztę.
+- **on-grid** — kaskadowa modulacja dwustopniowa: przy rozładowanym zasobniku
+  PC + grzałka jadą na maks, a w miarę zbliżania się do setpointu najpierw
+  wycofuje się grzałka, potem moduluje PC. Nadwyżka PV używana w pierwszej
+  kolejności, resztę dobiera sieć (po cenie strefy). Strefy (dla domyślnych
+  `T_set = 50 °C`, `BAND = 5 °C`, `hpOnlyBand = 5 °C`):
+
+  | Zakres T zasobnika | Pompa ciepła | Grzałka |
+  |---|---|---|
+  | `T < 40 °C` (głęboko rozładowany) | top bieg | 100 % mocy |
+  | `40 °C ≤ T < 45 °C` (pasmo grzałki, szer. `BAND`) | top bieg | modulowana liniowo `frac = (45 − T)/5`, od 100 % do 0 % |
+  | `45 °C ≤ T < 50 °C` (pasmo „tylko PC", szer. `hpOnlyBand`) | bieg modulowany `k = ceil((T_set − T)/hpOnlyBand · N)` | OFF |
+  | `T ≥ 50 °C` (setpoint) | OFF | OFF |
 
 ### Straty cyrkulacji CWU
 Pętla cyrkulacji utrzymuje ciepłą wodę w rurach, żeby kran odkręcony o 3:00

@@ -6,7 +6,7 @@ Działa bezpośrednio z systemu plików (`file://`) — bez serwera, bez instala
 
 ## Uruchamianie
 
-Pobierz repozytorium i otwórz `pv-sim.v1.7.html` w przeglądarce.
+Pobierz repozytorium i otwórz `pv-sim.v1.8.html` w przeglądarce.
 
 ## Funkcje
 
@@ -265,7 +265,7 @@ więc układ wchodzi w stan ustalony po kilku pierwszych dobach.
 ## Struktura plików
 
 ```
-pv-sim.v1.7.html      — jedyna strona HTML
+pv-sim.v1.8.html      — jedyna strona HTML
 css/pv-sim.tokens.css     — zmienne CSS (kolory, tła, akcenty)
 css/pv-sim.layout.css     — nagłówek, suwaki, siatka miesięcy, stopka, responsive
 css/pv-sim.components.css — wykresy SVG, karty statystyk, warianty kolorów, sidebar

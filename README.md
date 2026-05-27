@@ -29,8 +29,8 @@ grzania na strefę dzienną i nocną.
 Sercem aplikacji. Symuluje pracę zasobnika ogrzewanego równolegle pompą
 ciepła powietrze→woda i grzałką elektryczną, na podstawie produkcji PV
 (Moduł 01), zapotrzebowania CWU (Moduł 02) i taryfy (Moduł 03). Trzy
-strategie współpracy z siecią (off / off-grid / on-grid) wybierane osobno
-dla strefy dziennej i nocnej.
+strategie współpracy z siecią (off / off-grid / on-grid (zawsze) / on-grid
+(gdy taniej)) wybierane osobno dla strefy dziennej i nocnej.
 
 ### Moduł 05 — Symulacja miesięczna
 Rozwija symulację z Modułu 04 na cały miesiąc, z ciągłością temperatury
@@ -181,7 +181,7 @@ a strategia wybierana jest osobno dla każdej strefy:
   grzałka throttluje do reszty nadwyżki. Próg włączenia `heaterThreshold ×
   heaterKW` zapobiega cyklicznym startom przy słabej PV. Po osiągnięciu
   setpointu — stop, nadwyżka PV zapisana jako `Q_wasted`.
-- **on-grid** — kaskadowa modulacja dwustopniowa: przy rozładowanym zasobniku
+- **on-grid (zawsze)** (`'on-grid'`) — kaskadowa modulacja dwustopniowa: przy rozładowanym zasobniku
   PC + grzałka jadą na maks, a w miarę zbliżania się do setpointu najpierw
   wycofuje się grzałka, potem moduluje PC. Nadwyżka PV używana w pierwszej
   kolejności, resztę dobiera sieć (po cenie strefy). Strefy (dla domyślnych
@@ -193,6 +193,16 @@ a strategia wybierana jest osobno dla każdej strefy:
   | `40 °C ≤ T < 45 °C` (pasmo grzałki, szer. `BAND`) | top bieg | modulowana liniowo `frac = (45 − T)/5`, od 100 % do 0 % |
   | `45 °C ≤ T < 50 °C` (pasmo „tylko PC", szer. `hpOnlyBand`) | bieg modulowany `k = ceil((T_set − T)/hpOnlyBand · N)` | OFF |
   | `T ≥ 50 °C` (setpoint) | OFF | OFF |
+
+- **on-grid (gdy taniej)** (`'on-grid-eco'`) — identyczna kaskada jak wyżej,
+  ale przed włączeniem każdego urządzenia liczymy koszt jego kWh ciepła:
+  `cost_PC = (1 − udział PV) · cena strefy / COP`,
+  `cost_grz = (1 − udział PV) · cena strefy`. Jeśli wychodzi taniej niż
+  `priceHeatGJ / KWH_PER_GJ` — grzejemy; jeśli drożej — urządzenie nie
+  startuje i CWU w tej godzinie obsługuje stary węzeł. PC ma priorytet PV
+  (jej udział PV = `min(P_hp_el, P_PV)/P_hp_el`); grzałka liczy swój
+  udział z resztą `P_PV − P_hp_el`. Decyzja podejmowana osobno na każde
+  urządzenie, w każdym podkroku.
 
 ### Straty cyrkulacji CWU
 Pętla cyrkulacji utrzymuje ciepłą wodę w rurach, żeby kran odkręcony o 3:00

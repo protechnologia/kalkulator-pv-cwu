@@ -21,7 +21,7 @@ window.PVSIM = window.PVSIM || {};
     const box = document.getElementById('pvsim-optim-table');
     if (!box) return;
 
-    const stratLabel = { 'off': 'wył.', 'off-grid': 'off-grid', 'on-grid': 'on-grid' };
+    const stratLabel = { 'off': 'wył.', 'off-grid': 'off-grid', 'on-grid': 'on-grid (zawsze)', 'on-grid-eco': 'on-grid (gdy taniej)' };
     const COL_COUNT = 14;
 
     let body;

@@ -138,9 +138,11 @@ window.PVSIM = window.PVSIM || {};
     heaterKW: 3.0,      // moc grzałki [kW]
     heaterThreshold: 0.1, // próg włączenia: PV >= threshold * heaterKW
     // Strategia grzałki, osobno dla strefy dziennej i nocnej taryfy elektrycznej:
-    //   'off'      — grzałka wyłączona w danej strefie
-    //   'off-grid' — moc modulowana do nadwyżki PV (power diverter)
-    //   'on-grid'  — moc modulowana proporcjonalnie do T_hot (pobór z PV + sieci)
+    //   'off'          — grzałka wyłączona w danej strefie
+    //   'off-grid'     — moc modulowana do nadwyżki PV (power diverter)
+    //   'on-grid'      — moc modulowana proporcjonalnie do T_hot (pobór z PV + sieci, zawsze gdy T < T_set)
+    //   'on-grid-eco'  — j.w., ale grzeje PC/grzałką tylko, gdy kWh ciepła z prądu (mix PV+sieć w bieżącej
+    //                    strefie taryfy) wychodzi taniej niż kWh ciepła sieciowego (per urządzenie)
     heaterStratDay:   'off-grid',
     heaterStratNight: 'off-grid',
     tankL: 500,         // pojemność zasobnika [l]
@@ -183,7 +185,7 @@ window.PVSIM = window.PVSIM || {};
     tankL:         [300, 500, 1000, 2000, 3500, 5000],
     heaterTargetC: [50, 60, 70],
     hpKW:          [0, 3, 5, 8, 10, 12, 15],
-    strat:         ['off', 'off-grid', 'on-grid']
+    strat:         ['off', 'off-grid', 'on-grid', 'on-grid-eco']
   };
 
 })(window.PVSIM);

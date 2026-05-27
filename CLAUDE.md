@@ -109,17 +109,24 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
   `hpKW = 0` ⇒ PC wyłączona.
 - W strategii `off-grid` PC ma priorytet: wybiera największy bieg, dla którego
   `(k/N)·hpKW ≤ nadwyżka PV`; grzałka dobiera resztę PV jak dotąd.
-- W strategii `on-grid`: gdy `T ∈ [T_set − hpOnlyBandC, T_set)` — pracuje tylko PC,
+- W strategiach `on-grid` / `on-grid-eco`: gdy `T ∈ [T_set − hpOnlyBandC, T_set)` — pracuje tylko PC,
   bieg proporcjonalny do zapotrzebowania `k = ceil(req·N)`. Poniżej pasma PC bierze
   top bieg + dołącza grzałka modulowana wg `TANK_ONGRID_BAND`.
 - Model: 1-węzłowy (fully-mixed), 6 podkroków na godzinę
-- Trzy strategie grzałki:
-  - `off` — grzałka wyłączona w danej strefie
+- Cztery strategie pary PC+grzałka (osobno dla strefy dziennej i nocnej):
+  - `off` — wyłączone w danej strefie
   - `off-grid` (power diverter) — moc throttlowana do nadwyżki PV,
     włącza się gdy `P_PV ≥ próg`, gdzie `próg = heaterThreshold × heaterKW`; energia z PV.
     Grzeje tylko do setpointu `heaterTargetC` — nadwyżka PV ponad to trafia do `Q_wasted`
-  - `on-grid` — moc proporcjonalna: `heaterKW × clamp((heaterTargetC − T)/TANK_ONGRID_BAND, 0, 1)`;
-    nadwyżkę PV wykorzystuje w pierwszej kolejności, resztę dobiera z sieci
+  - `on-grid (zawsze)` (`'on-grid'`) — moc proporcjonalna: `heaterKW × clamp((heaterTargetC − T)/TANK_ONGRID_BAND, 0, 1)`;
+    nadwyżkę PV wykorzystuje w pierwszej kolejności, resztę dobiera z sieci. Grzeje zawsze, gdy `T < T_set`
+  - `on-grid (gdy taniej)` (`'on-grid-eco'`) — j.w., ale przed włączeniem PC/grzałki
+    porównuje koszt kWh ciepła z prądu (mix PV+sieć w bieżącej strefie taryfy)
+    z ceną kWh ciepła sieciowego (`priceHeatGJ / KWH_PER_GJ`). Per urządzenie:
+    `cost_PC/kWh_th = (1 − udział PV) · cena strefy / COP`,
+    `cost_grz/kWh_th = (1 − udział PV) · cena strefy`. Jeśli drożej niż ciepło
+    sieciowe — dane urządzenie nie startuje (CWU zostaje na starym węźle).
+    PC ma priorytet PV, grzałka liczy swój `udział PV` z resztą `P_PV − P_hp_el`
 - Termostat: max 70°C (suwak `heaterTargetC` 0–70°C; powyżej 60°C — magazynowanie ciepła kosztem niższego COP PC)
 - **Trasa cyrkulacji CWU** (`P.state.circRoute`, toggle „STARY WĘZEŁ" / „NASZ ZASOBNIK"):
   - `'eco'` (domyślne) — pętla cyrkulacji poza modelem zasobnika, `Q_saved` = sam kran.
@@ -291,7 +298,7 @@ P.state = {
   T_hot: 50,            // temperatura CWU [°C]
   heaterKW: 3.0,        // moc grzałki [kW]
   heaterThreshold: 0.1, // próg włączenia: PV >= threshold * heaterKW
-  heaterStratDay:   'off-grid', // strategia w strefie dziennej: 'off'|'off-grid'|'on-grid'
+  heaterStratDay:   'off-grid', // strategia w strefie dziennej: 'off'|'off-grid'|'on-grid'|'on-grid-eco'
   heaterStratNight: 'off-grid', // strategia w strefie nocnej
   tankL: 500,           // pojemność zasobnika [L]
   heaterTargetC: 50,    // temperatura docelowa zasobnika [°C] — wspólny setpoint pary PC+grzałka, niezależny od T_hot

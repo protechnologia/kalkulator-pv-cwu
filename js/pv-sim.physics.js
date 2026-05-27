@@ -255,6 +255,9 @@ window.PVSIM = window.PVSIM || {};
       const day     = isDay(h);
       const strat   = day ? ps.heaterStratDay : ps.heaterStratNight;
       const gridPrice = day ? ps.gridPriceDay : ps.gridPriceNight;
+      // Cena ciepła sieciowego sprowadzona do zł / kWh termiczny —
+      // używana w on-grid-eco jako próg opłacalności pary PC+grzałka.
+      const priceHeatKWhTh = ps.priceHeatGJ / P.KWH_PER_GJ;
 
       const m_per = m_pobor / P.TANK_SUBSTEPS;
 
@@ -313,33 +316,48 @@ window.PVSIM = window.PVSIM || {};
             Q_heater_per   = P_h * dt;
             heater_pvShare = 1;
           }
-        } else if (strat === 'on-grid') {
+        } else if (strat === 'on-grid' || strat === 'on-grid-eco') {
           if (T < T_set) {
+            // Faza 1 — wybór mocy (identyczna jak w on-grid):
+            let P_hp_el = 0;
+            let P_h_kW  = 0;
             if (hpKW > 0 && T >= T_set - hpBand) {
               // Pasmo "tylko PC" — bieg proporcjonalny do zapotrzebowania
               const req = hpBand > 0 ? (T_set - T) / hpBand : 1;
               const k = Math.max(1, Math.min(hpGears, Math.ceil(req * hpGears)));
-              const P_hp_el = k * hpStep;
-              Q_hp_per   = P_hp_el * hpCOP * dt;
-              hp_pvShare = P_hp_el > 0 ? Math.min(P_hp_el, P_PV) / P_hp_el : 0;
+              P_hp_el = k * hpStep;
             } else {
-              // Poniżej pasma "tylko PC" (lub PC wyłączona) → PC top bieg + grzałka proporcjonalnie
-              let P_hp_el = 0;
-              if (hpKW > 0) {
-                P_hp_el = hpKW;  // top bieg
-                Q_hp_per   = P_hp_el * hpCOP * dt;
-                hp_pvShare = P_hp_el > 0 ? Math.min(P_hp_el, P_PV) / P_hp_el : 0;
-              }
+              // Poniżej pasma "tylko PC" → PC top bieg + grzałka proporcjonalnie
+              if (hpKW > 0) P_hp_el = hpKW;
               if (heaterKW > 0) {
-                // Grzałka modulowana od dolnej krawędzi pasma "tylko PC" w dół
-                const T_eff   = T_set - (hpKW > 0 ? hpBand : 0);
-                const frac    = Math.max(0, Math.min(1, (T_eff - T) / band));
-                const P_h_kW  = heaterKW * frac;
-                if (P_h_kW > 0 && P_h_kW >= threshold) {
-                  Q_heater_per = P_h_kW * dt;
-                  const P_PV_left = Math.max(P_PV - P_hp_el, 0);
-                  heater_pvShare = Math.min(P_h_kW, P_PV_left) / P_h_kW;
-                }
+                const T_eff = T_set - (hpKW > 0 ? hpBand : 0);
+                const frac  = Math.max(0, Math.min(1, (T_eff - T) / band));
+                const P_h   = heaterKW * frac;
+                if (P_h >= threshold) P_h_kW = P_h;
+              }
+            }
+
+            // Faza 2 — aktywacja PC (z opcjonalną bramką opłacalności).
+            // PC ma priorytet na PV; cost/kWh_th = (1-pvShare)·gridPrice/COP.
+            if (P_hp_el > 0) {
+              const pvShare = Math.min(P_hp_el, P_PV) / P_hp_el;
+              const costKWhTh = (1 - pvShare) * gridPrice / hpCOP;
+              if (strat === 'on-grid' || costKWhTh < priceHeatKWhTh) {
+                Q_hp_per   = P_hp_el * hpCOP * dt;
+                hp_pvShare = pvShare;
+              } else {
+                P_hp_el = 0;  // PC skasowana — pr. z miksu droższy niż ciepło sieciowe
+              }
+            }
+
+            // Faza 3 — aktywacja grzałki (z opcjonalną bramką opłacalności).
+            if (P_h_kW > 0) {
+              const P_PV_left = Math.max(P_PV - P_hp_el, 0);
+              const pvShare = Math.min(P_h_kW, P_PV_left) / P_h_kW;
+              const costKWhTh = (1 - pvShare) * gridPrice;  // grzałka: 1 kWh el = 1 kWh th
+              if (strat === 'on-grid' || costKWhTh < priceHeatKWhTh) {
+                Q_heater_per   = P_h_kW * dt;
+                heater_pvShare = pvShare;
               }
             }
           }

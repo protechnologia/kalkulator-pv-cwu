@@ -431,7 +431,7 @@ window.PVSIM = window.PVSIM || {};
     if (gcHt) gcHt.textContent = P.fmt.pl2(simTank.daily.gridCost_heater || 0);
     if (gcHp) gcHp.textContent = P.fmt.pl2(simTank.daily.gridCost_hp || 0);
 
-    const stratLabel = { 'off': 'wył.', 'off-grid': 'off-grid', 'on-grid': 'on-grid' };
+    const stratLabel = { 'off': 'wył.', 'off-grid': 'off-grid', 'on-grid': 'on-grid (zawsze)', 'on-grid-eco': 'on-grid (gdy taniej)' };
     const ctx = `— grzałka ${P.fmt.pl1(P.state.heaterKW)} kW · zasobnik ${P.state.tankL} l`
       + ` · dzień: ${stratLabel[P.state.heaterStratDay]} · noc: ${stratLabel[P.state.heaterStratNight]}`;
     document.getElementById('pvsim-tank-ctx').textContent = ctx;

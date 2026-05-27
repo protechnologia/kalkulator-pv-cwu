@@ -70,11 +70,20 @@ window.PVSIM = window.PVSIM || {};
       'Grzanie zatrzymuje się po osiągnięciu temperatury docelowej zasobnika — nadwyżka PV ponad ten setpoint jest tracona. ' +
       'Najtańszy tryb w eksploatacji, ale w pochmurne dni lub po dużym poborze CWU zasobnik może zostać niedogrzany.',
     'on-grid':
-      '<strong>Z dopłatą z sieci.</strong> Układ grzeje zawsze, gdy temperatura zasobnika jest poniżej setpointu. ' +
+      '<strong>Z dopłatą z sieci — zawsze grzej.</strong> Układ grzeje zawsze, gdy temperatura zasobnika jest poniżej setpointu, ' +
+      'nawet jeśli prąd z sieci akurat wychodzi drożej od ciepła sieciowego. ' +
       'W wąskim paśmie tuż pod setpointem pracuje sama pompa ciepła, dobierając bieg proporcjonalnie do bieżącego zapotrzebowania, ' +
       'a grzałka pozostaje wyłączona. Poniżej tego pasa pompa ciepła przechodzi na najwyższy bieg, ' +
       'a grzałka dołącza jako dopalacz, modulując moc do dogrzewania. ' +
-      'Nadwyżka PV jest wykorzystywana w pierwszej kolejności, a brakującą energię układ pobiera z sieci po cenie aktualnej strefy taryfy.'
+      'Nadwyżka PV jest wykorzystywana w pierwszej kolejności, a brakującą energię układ pobiera z sieci po cenie aktualnej strefy taryfy.',
+    'on-grid-eco':
+      '<strong>Z dopłatą z sieci — tylko gdy taniej niż ciepło sieciowe.</strong> ' +
+      'Taka sama logika sterowania jak w trybie „zawsze grzej", ale z dodatkową bramką opłacalności sprawdzaną osobno dla PC i dla grzałki w każdym podkroku. ' +
+      'Dla każdego urządzenia liczony jest koszt 1 kWh ciepła z miksu PV + sieć ' +
+      '(<em>cost/kWh<sub>th</sub> = (1 − udział PV) · cena strefy / COP</em> dla PC; ' +
+      '<em>= (1 − udział PV) · cena strefy</em> dla grzałki) i porównywany z ceną ciepła sieciowego po przeliczeniu na zł/kWh. ' +
+      'Jeśli dane urządzenie wyszłoby drożej niż stary węzeł — zostaje wyłączone w tym podkroku i ciepło bierzemy z sieci ciepłowniczej. ' +
+      'PC z reguły mieści się w opłacalności znacznie szerzej niż grzałka (bo dzieli koszt przez COP).'
   };
 
   function renderStratDesc() {

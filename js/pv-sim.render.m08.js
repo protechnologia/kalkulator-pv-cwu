@@ -22,7 +22,7 @@ window.PVSIM = window.PVSIM || {};
     if (!box) return;
 
     const stratLabel = { 'off': 'wył.', 'off-grid': 'off-grid', 'on-grid': 'on-grid (zawsze)', 'on-grid-eco': 'on-grid (gdy taniej)' };
-    const COL_COUNT = 14;
+    const COL_COUNT = 13;
 
     let body;
     if (!results || results.length === 0) {
@@ -70,7 +70,6 @@ window.PVSIM = window.PVSIM || {};
           <td>${cell(g.members, r => r.kWp, P.fmt.pl1)}</td>
           <td>${cell(g.members, r => r.heaterKW, P.fmt.pl1)}</td>
           <td>${cell(g.members, r => r.hpKW != null ? r.hpKW : 0, P.fmt.pl1)}</td>
-          <td>${cell(g.members, r => r.heaterThreshold, v => Math.round(v * 100))}</td>
           <td>${cell(g.members, r => r.tankL, v => v)}</td>
           <td>${cell(g.members, r => r.heaterTargetC, v => v)}</td>
           <td>${cell(g.members, r => r.stratDay, v => stratLabel[v])}</td>
@@ -93,7 +92,6 @@ window.PVSIM = window.PVSIM || {};
             <th>PV [kWp]</th>
             <th>Grzałka [kW]</th>
             <th>PC [kW]</th>
-            <th>Próg [%]</th>
             <th>Zasobnik [l]</th>
             <th>Temp. grz. [°C]</th>
             <th>Strat. dzień</th>

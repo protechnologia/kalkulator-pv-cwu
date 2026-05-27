@@ -25,9 +25,6 @@
      onProgress(frac, done, total) raportuje postęp. Zwraca Promise
      z obiektem { results, cancelled, done, total }.
 
-     Pruning: heaterThreshold pomijany tylko gdy obie strategie = 'off'
-     (wtedy żadne grzanie nie działa, próg jest bez znaczenia).
-
      Funkcja nie mutuje P.state — buduje lokalny obiekt `params` per kombinacja
      (snapshot wartości z momentu startu + nadpisanie pól siatki) i przekazuje
      go jawnie do P.simulateTankYear(params) / P.computeInvestment(simYear, params).
@@ -62,7 +59,6 @@ window.PVSIM = window.PVSIM || {};
       kWp:           en.kWp           !== false,
       heaterKW:      en.heaterKW      !== false,
       hpKW:          en.hpKW          !== false,
-      threshold:     en.threshold     !== false,
       tankL:         en.tankL         !== false,
       heaterTargetC: en.heaterTargetC !== false,
       strat:         en.strat         !== false
@@ -73,29 +69,23 @@ window.PVSIM = window.PVSIM || {};
     const gridKWp        = e.kWp           ? g.kWp           : [baseSnapshot.kWp];
     const gridHeaterKW   = e.heaterKW      ? g.heaterKW      : [baseSnapshot.heaterKW];
     const gridHpKW       = e.hpKW          ? g.hpKW          : [baseSnapshot.hpKW];
-    const gridThreshold  = e.threshold     ? g.threshold     : [baseSnapshot.heaterThreshold];
     const gridTankL      = e.tankL         ? g.tankL         : [baseSnapshot.tankL];
     const gridTargetC    = e.heaterTargetC ? g.heaterTargetC : [baseSnapshot.heaterTargetC];
     const gridStratDay   = e.strat         ? g.strat         : [baseSnapshot.heaterStratDay];
     const gridStratNight = e.strat         ? g.strat         : [baseSnapshot.heaterStratNight];
 
-    // Lista wszystkich kombinacji do przeliczenia (z pruningiem progu).
+    // Lista wszystkich kombinacji do przeliczenia. heaterThreshold nie jest
+    // wymiarem siatki — używamy stałej wartości z baseSnapshot dla wszystkich
+    // kombinacji (próg włączenia ustawia user suwakiem w Module 04).
     const combos = [];
     for (const stratDay of gridStratDay) {
       for (const stratNight of gridStratNight) {
-        // Próg ma znaczenie zarówno dla off-grid (PC + grzałka), jak i on-grid
-        // (histereza grzałki przy małej modulacji proporcjonalnej). Pomijamy
-        // tylko gdy obie strefy = 'off' — wtedy żadne grzanie nie działa.
-        const usesHeating = stratDay !== 'off' || stratNight !== 'off';
-        const thresholds = usesHeating ? gridThreshold : [gridThreshold[0]];
         for (const kWp of gridKWp) {
           for (const heaterKW of gridHeaterKW) {
             for (const hpKW of gridHpKW) {
               for (const tankL of gridTankL) {
                 for (const heaterTargetC of gridTargetC) {
-                  for (const threshold of thresholds) {
-                    combos.push({ kWp, heaterKW, hpKW, threshold, tankL, heaterTargetC, stratDay, stratNight });
-                  }
+                  combos.push({ kWp, heaterKW, hpKW, tankL, heaterTargetC, stratDay, stratNight });
                 }
               }
             }
@@ -120,7 +110,6 @@ window.PVSIM = window.PVSIM || {};
             kWp:              c.kWp,
             heaterKW:         c.heaterKW,
             hpKW:             c.hpKW,
-            heaterThreshold:  c.threshold,
             tankL:            c.tankL,
             heaterTargetC:    c.heaterTargetC,
             heaterStratDay:   c.stratDay,
@@ -139,7 +128,6 @@ window.PVSIM = window.PVSIM || {};
             kWp:            c.kWp,
             heaterKW:       c.heaterKW,
             hpKW:           c.hpKW,
-            heaterThreshold: c.threshold,
             tankL:          c.tankL,
             heaterTargetC:  c.heaterTargetC,
             stratDay:       c.stratDay,

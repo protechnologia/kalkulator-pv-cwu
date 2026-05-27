@@ -555,7 +555,6 @@ window.PVSIM = window.PVSIM || {};
       setSlider('pvsim-power', r.kWp);
       setSlider('pvsim-heater', r.heaterKW);
       if (r.hpKW !== undefined) setSlider('pvsim-hp', r.hpKW);
-      setSlider('pvsim-heater-threshold', Math.round(r.heaterThreshold * 100));
       setSlider('pvsim-tank', r.tankL);
       setSlider('pvsim-heater-target', r.heaterTargetC);
       clickStrat('pvsim-strat-day-toggle',   r.stratDay);
@@ -571,28 +570,15 @@ window.PVSIM = window.PVSIM || {};
       ['kWp',           'Moc PV',       'kWp'],
       ['heaterKW',      'Moc grzałki',  'kW'],
       ['hpKW',          'Moc PC',       'kW'],
-      ['threshold',     'Próg włącz.',  ''],
       ['tankL',         'Zasobnik',     'L'],
       ['heaterTargetC', 'T docelowa',   '°C'],
       ['strat',         'Strategie',    '']
     ];
-    const optEnabled = { kWp:true, heaterKW:true, hpKW:true, threshold:true, tankL:true, heaterTargetC:true, strat:true };
+    const optEnabled = { kWp:true, heaterKW:true, hpKW:true, tankL:true, heaterTargetC:true, strat:true };
 
     function renderOptParams() {
       const G = P.OPT_GRID;
-      const thrLen   = optEnabled.threshold ? G.threshold.length : 1;
-      // Para 'off'/'off' przybija próg do 1 (nic nie grzeje). Liczymy ile par
-      // w aktualnej siatce strategii NIE jest off/off — te dostają pełny zestaw progów.
-      let stratPairs, offOffPairs;
-      if (optEnabled.strat) {
-        const n = G.strat.length;
-        stratPairs = n * n;
-        offOffPairs = 1; // dokładnie jedna para off/off
-      } else {
-        stratPairs = 1;
-        offOffPairs = (P.state.heaterStratDay === 'off' && P.state.heaterStratNight === 'off') ? 1 : 0;
-      }
-      const stratThr = (stratPairs - offOffPairs) * thrLen + offOffPairs;
+      const stratPairs = optEnabled.strat ? G.strat.length * G.strat.length : 1;
       const lens = {
         kWp:           optEnabled.kWp           ? G.kWp.length           : 1,
         heaterKW:      optEnabled.heaterKW      ? G.heaterKW.length      : 1,
@@ -600,19 +586,17 @@ window.PVSIM = window.PVSIM || {};
         tankL:         optEnabled.tankL         ? G.tankL.length         : 1,
         heaterTargetC: optEnabled.heaterTargetC ? G.heaterTargetC.length : 1
       };
-      const total = lens.kWp * lens.heaterKW * lens.hpKW * lens.tankL * lens.heaterTargetC * stratThr;
+      const total = lens.kWp * lens.heaterKW * lens.hpKW * lens.tankL * lens.heaterTargetC * stratPairs;
       const rows = paramLabels.map(([k, name, unit]) => {
         const vals = G[k];
         if (!vals) return '';
         const on = optEnabled[k];
-        const fmtVal = (v) => k === 'threshold' ? `${Math.round(v * 100)}%` : v;
-        const unitSuffix = (k === 'threshold' || !unit) ? '' : ' ' + unit;
-        const valsTxt = on ? (vals.map(fmtVal).join(' · ') + unitSuffix) : `stałe: ${fmtVal(currentParamVal(k))}${unitSuffix}`;
+        const unitSuffix = unit ? ' ' + unit : '';
+        const valsTxt = on ? (vals.join(' · ') + unitSuffix) : `stałe: ${currentParamVal(k)}${unitSuffix}`;
         let countTxt;
-        if (!on)                    countTxt = '× 1';
-        else if (k === 'strat')     countTxt = `${vals.length}² par`;
-        else if (k === 'threshold') countTxt = `× ${vals.length} *`;
-        else                        countTxt = `× ${vals.length}`;
+        if (!on)                countTxt = '× 1';
+        else if (k === 'strat') countTxt = `${vals.length}² par`;
+        else                    countTxt = `× ${vals.length}`;
         return `<tr>`
              + `<td class="name"><label><input type="checkbox" data-opt="${k}" ${on?'checked':''}> ${name}</label></td>`
              + `<td class="vals">${valsTxt}</td>`
@@ -622,7 +606,6 @@ window.PVSIM = window.PVSIM || {};
       optParams.innerHTML = `<tbody>${rows}</tbody>`
         + `<tfoot>`
         + `<tr class="total"><td colspan="2">Razem kombinacji</td><td><b>${P.fmt.pl0(total)}</b></td></tr>`
-        + (optEnabled.threshold ? `<tr class="total note"><td colspan="3">* próg pomijany tylko gdy obie strefy = off</td></tr>` : '')
         + `</tfoot>`;
     }
     function currentParamVal(k) {
@@ -631,7 +614,6 @@ window.PVSIM = window.PVSIM || {};
         case 'kWp': return s.kWp;
         case 'heaterKW': return s.heaterKW;
         case 'hpKW': return s.hpKW;
-        case 'threshold': return s.heaterThreshold;
         case 'tankL': return s.tankL;
         case 'heaterTargetC': return s.heaterTargetC;
         case 'strat': return `${s.heaterStratDay}/${s.heaterStratNight}`;

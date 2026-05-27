@@ -219,10 +219,11 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 - `P.OPT_GRID` (`config.js`) definiuje przeszukiwaną siatkę: `kWp` (moc PV,
   `[0, 5, 10, 15, 20, 30, 40, 50]`), `heaterKW`
   (`[0, 2, 5, 10, 15]`), `hpKW` (moc PC, `[0, 3, 5, 8, 10, 12, 15]`),
-  `threshold`, `tankL`, `heaterTargetC` (temperatura docelowa zasobnika) oraz
-  `strat` (`off`/`off-grid`/`on-grid` dla strefy dziennej i nocnej). COP-y
-  i liczba biegów PC nie są wymiarem siatki — czytane są z aktualnego
-  `P.state`. Każdy wymiar można checkboxem wyłączyć — wtedy parametr jest
+  `tankL`, `heaterTargetC` (temperatura docelowa zasobnika) oraz
+  `strat` (`off`/`off-grid`/`on-grid`/`on-grid-eco` dla strefy dziennej
+  i nocnej). COP-y, liczba biegów PC oraz `heaterThreshold` nie są wymiarem
+  siatki — czytane są z aktualnego `P.state` (próg włączenia ustawia user
+  suwakiem w Module 04). Każdy wymiar można checkboxem wyłączyć — wtedy parametr jest
   przypięty do bieżącej wartości `P.state` (zamiast iterowania siatki).
 - `P.optimize(maxPayback, lifetime, onProgress, enabled, cancelToken, objective)`
   (`optimize.js`) — asynchroniczna funkcja zwracająca `Promise`. Przeszukuje
@@ -231,9 +232,7 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
   `P.simulateTankYear()` i `P.computeInvestment()`. `enabled` to mapa
   flag per parametr — wymiar z `false` używa tylko aktualnej wartości
   `P.state`. `cancelToken = { cancelled: bool }` pozwala przerwać między
-  porcjami. Pruning: gdy obie strategie = `off`, próg iterowany jest tylko
-  raz (próg nieużywany przy całkowicie wyłączonym grzaniu pary PC+grzałka).
-  Twardy filtr odrzuca warianty z `paybackYears > maxPayback` lub
+  porcjami. Twardy filtr odrzuca warianty z `paybackYears > maxPayback` lub
   `balancePLN ≤ 0`. `objective` wybiera komparator: `'profit'` —
   `lifetimeProfit = bilans roczny × okres życia − koszt inwestycji` malejąco
   (domyślne), `'payback'` — `paybackYears` rosnąco, `'coverage'` —

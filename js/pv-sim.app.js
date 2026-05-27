@@ -36,8 +36,8 @@
        start/stop optymalizacji (moduł 08)
      - przycisk pokaż/ukryj sidebar z podsumowaniem rocznym
        (start: widoczny dla okna ≥1100 px, ukryty poniżej)
-     - pinezki wykresów (setupChartPins) — klik 📌 przykleja sekcję
-       wykresu do prawego dolnego rogu (position:fixed), z placeholderem
+     - pinezki (setupPins) — klik 📌 przykleja sekcję wykresu lub blok
+       statystyk do prawego dolnego rogu (position:fixed), z placeholderem
        w oryginalnym miejscu; wiele pinów układa się w pionowy stos
    Każda kontrolka przy zmianie synchronizuje P.state, odświeża etykietę,
    ustawia CSS --pvsim-fill (WebKit track fill) i wywołuje P.requestUpdate()
@@ -766,7 +766,7 @@ window.PVSIM = window.PVSIM || {};
     applyTheme(savedTheme);
     themeBtns.forEach(b => b.addEventListener('click', () => applyTheme(b.dataset.theme)));
 
-    setupChartPins();
+    setupPins();
 
     updateSlider();  // pierwsza inicjalizacja + render
 
@@ -785,16 +785,16 @@ window.PVSIM = window.PVSIM || {};
     });
   }
 
-  // Pinezki wykresów — klik przykleja sekcję wykresu do prawego dolnego
-  // rogu okna (position:fixed) i wstawia w oryginalnym miejscu placeholder
-  // o tej samej wysokości (brak skoku layoutu). Wiele pinów układa się
-  // w stos w pionie. SVG zostaje w DOM-ie, więc kolejne P.update()
-  // renderują do tego samego elementu.
-  function setupChartPins() {
+  // Pinezki — klik przykleja sekcję wykresu lub pojedynczy kafelek statystyk
+  // do prawego dolnego rogu okna (position:fixed) i wstawia w oryginalnym
+  // miejscu placeholder o tej samej wysokości (brak skoku layoutu). Wiele
+  // pinów układa się w stos w pionie. Elementy zostają w DOM-ie, więc kolejne
+  // P.update() renderują do tych samych węzłów (wykresy, kafelki).
+  function setupPins() {
     const pinned = [];
     const sidebar = document.querySelector('.pvsim-sidebar');
-    document.querySelectorAll('.pvsim-chart-section').forEach(section => {
-      const btn = section.querySelector('.pvsim-chart-pin');
+    document.querySelectorAll('.pvsim-chart-section, .pvsim-stat').forEach(section => {
+      const btn = section.querySelector(':scope > .pvsim-pin, :scope .pvsim-chart-header > .pvsim-pin');
       if (!btn) return;
       btn.addEventListener('click', () => togglePin(section, btn));
     });
@@ -826,6 +826,7 @@ window.PVSIM = window.PVSIM || {};
     function unpin(section, btn) {
       section.classList.remove('pinned');
       section.style.bottom = '';
+      section.style.right = '';
       if (section._pinPlaceholder) {
         section._pinPlaceholder.remove();
         section._pinPlaceholder = null;

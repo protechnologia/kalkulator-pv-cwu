@@ -258,15 +258,18 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
   od szerokości okna: ≥ 1100 px → widoczny, mniej → ukryty. Ukrycie = klasa
   `.hidden` na `<aside>`.
 
-### Pinezki wykresów
-- W każdej sekcji `.pvsim-chart-section` w prawej części nagłówka jest przycisk
-  `.pvsim-chart-pin` z emoji 📌 (wpisany w HTML). `setupChartPins()` w `app.js`
-  podpina obsługę kliknięć.
-- Klik pinezki dodaje na sekcji klasę `.pinned` (`position: fixed`, `width: 460px`,
-  prawy dolny róg, `z-index: 50`) i wstawia w oryginalnym miejscu pasiasty
-  placeholder (`.pvsim-chart-pin-placeholder`) o tej samej wysokości — brak
-  skoku layoutu. SVG zostaje w DOM-ie, więc `P.update()` renderuje do tego
-  samego elementu.
+### Pinezki
+- Każda sekcja `.pvsim-chart-section` (w nagłówku) oraz każdy pojedynczy
+  kafelek statystyk `.pvsim-stat` (w prawym górnym rogu kafelka,
+  `position: absolute`) ma przycisk `.pvsim-pin` z emoji 📌 wpisany w HTML.
+  `setupPins()` w `app.js` podpina obsługę kliknięć. Kafelek statystyk
+  dodatkowo dostaje modyfikator `.pvsim-pin-stat` do kotwiczenia pinezki
+  (mała, półprzezroczysta, pełna nieprzezroczystość przy hoverze kafelka).
+- Klik pinezki dodaje klasę `.pinned` (`position: fixed`, prawy dolny róg,
+  `z-index: 50`; szerokość 345 px dla wykresu, 220 px dla kafelka) i wstawia
+  w oryginalnym miejscu pasiasty placeholder (`.pvsim-pin-placeholder`)
+  o tej samej wysokości — brak skoku layoutu. Węzły DOM zostają na miejscu,
+  więc `P.update()` renderuje do tych samych elementów.
 - Wiele pinów = pionowy stos w rogu; `bottom` każdej przypiętej sekcji liczony
   jest dynamicznie z wysokości elementów poniżej (gap 12 px, dolny margines 16 px).
   `right` liczony jest z aktualnej szerokości prawego sidebara (jeśli widoczny —

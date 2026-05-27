@@ -86,7 +86,7 @@
         Moc godzinowa generowana z PV
         <span class="ctx" id="pvsim-chart-ctx">— Maj</span>
       </div>
-      <button type="button" class="pvsim-chart-pin" title="Przypnij wykres do rogu ekranu" aria-pressed="false">📌</button>
+      <button type="button" class="pvsim-pin" title="Przypnij wykres do rogu ekranu" aria-pressed="false">📌</button>
     </div>
     <div class="pvsim-chart-wrap">
       <svg class="pvsim-chart" id="pvsim-chart" viewBox="0 0 780 300" preserveAspectRatio="none"></svg>
@@ -100,7 +100,7 @@
         Produkcja dobowa PV w miesiącu
         <span class="ctx" id="pvsim-pv-month-ctx">— Maj</span>
       </div>
-      <button type="button" class="pvsim-chart-pin" title="Przypnij wykres do rogu ekranu" aria-pressed="false">📌</button>
+      <button type="button" class="pvsim-pin" title="Przypnij wykres do rogu ekranu" aria-pressed="false">📌</button>
     </div>
     <div class="pvsim-chart-wrap">
       <svg class="pvsim-chart" id="pvsim-pv-month-chart" viewBox="0 0 780 300" preserveAspectRatio="none"></svg>
@@ -110,14 +110,17 @@
   <!-- STATS -->
   <div class="pvsim-stats">
     <div class="pvsim-stat orange cat-elec">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">PRODUKCJA DOBOWA</div>
       <div class="pvsim-stat-value"><span id="pvsim-daily">0,00</span><span class="unit">kWh</span></div>
     </div>
     <div class="pvsim-stat orange cat-elec">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">PRODUKCJA MIESIĘCZNA</div>
       <div class="pvsim-stat-value"><span id="pvsim-monthly">0</span><span class="unit">kWh</span></div>
     </div>
     <div class="pvsim-stat teal cat-elec">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">MOC SZCZYTOWA</div>
       <div class="pvsim-stat-value"><span id="pvsim-peak">0,00</span><span class="unit">kW</span></div>
     </div>
@@ -181,7 +184,7 @@
         Zużycie CWU i moc grzania &mdash; profil dobowy
         <span class="ctx" id="pvsim-dhw-ctx" style="color:var(--pvsim-teal);">— 50 osób</span>
       </div>
-      <button type="button" class="pvsim-chart-pin" title="Przypnij wykres do rogu ekranu" aria-pressed="false">📌</button>
+      <button type="button" class="pvsim-pin" title="Przypnij wykres do rogu ekranu" aria-pressed="false">📌</button>
     </div>
     <div class="pvsim-chart-wrap">
       <svg class="pvsim-chart" id="pvsim-dhw-chart" viewBox="0 0 780 300" preserveAspectRatio="none"></svg>
@@ -191,6 +194,7 @@
   <!-- STATY CWU -->
   <div class="pvsim-stats four">
     <div class="pvsim-stat teal cat-heat">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">ZUŻYCIE WODY</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-dhw-water-d">0,00</span><span class="unit">m³ / dobę</span></div>
@@ -199,6 +203,7 @@
       </div>
     </div>
     <div class="pvsim-stat teal cat-heat">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">ENERGIA (całkowita)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-dhw-energy-d">0</span><span class="unit">kWh / dobę</span></div>
@@ -207,6 +212,7 @@
       </div>
     </div>
     <div class="pvsim-stat teal cat-heat">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">STRATY CYRKULACJI</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-dhw-circ-d">0</span><span class="unit">kWh / dobę</span></div>
@@ -216,6 +222,7 @@
       </div>
     </div>
     <div class="pvsim-stat teal cat-money">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">KOSZT CIEPŁA SIECIOWEGO</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-dhw-cost-d">0,00</span><span class="unit">zł / dobę</span></div>
@@ -278,7 +285,7 @@
         Cena energii elektrycznej z sieci
         <span class="ctx" id="pvsim-grid-ctx"></span>
       </div>
-      <button type="button" class="pvsim-chart-pin" title="Przypnij wykres do rogu ekranu" aria-pressed="false">📌</button>
+      <button type="button" class="pvsim-pin" title="Przypnij wykres do rogu ekranu" aria-pressed="false">📌</button>
     </div>
     <div class="pvsim-chart-wrap">
       <svg class="pvsim-chart" id="pvsim-grid-chart" viewBox="0 0 780 300" preserveAspectRatio="none"></svg>
@@ -452,7 +459,7 @@
         Temperatura zasobnika &mdash; cykl dobowy
         <span class="ctx" id="pvsim-tank-ctx" style="color:var(--pvsim-amber);">— start zimny 15°C</span>
       </div>
-      <button type="button" class="pvsim-chart-pin" title="Przypnij wykres do rogu ekranu" aria-pressed="false">📌</button>
+      <button type="button" class="pvsim-pin" title="Przypnij wykres do rogu ekranu" aria-pressed="false">📌</button>
     </div>
     <div class="pvsim-chart-wrap">
       <svg class="pvsim-chart" id="pvsim-tank-chart" viewBox="0 0 780 350" preserveAspectRatio="none"></svg>
@@ -466,7 +473,7 @@
         Źródło energii elektrycznej
         <span class="ctx" id="pvsim-tank-elec-ctx" style="color:var(--pvsim-amber);"></span>
       </div>
-      <button type="button" class="pvsim-chart-pin" title="Przypnij wykres do rogu ekranu" aria-pressed="false">📌</button>
+      <button type="button" class="pvsim-pin" title="Przypnij wykres do rogu ekranu" aria-pressed="false">📌</button>
     </div>
     <div class="pvsim-chart-wrap">
       <svg class="pvsim-chart" id="pvsim-tank-elec-chart" viewBox="0 0 780 300" preserveAspectRatio="none"></svg>
@@ -480,7 +487,7 @@
         Źródło energii cieplnej
         <span class="ctx" id="pvsim-tank-split-ctx" style="color:var(--pvsim-amber);"></span>
       </div>
-      <button type="button" class="pvsim-chart-pin" title="Przypnij wykres do rogu ekranu" aria-pressed="false">📌</button>
+      <button type="button" class="pvsim-pin" title="Przypnij wykres do rogu ekranu" aria-pressed="false">📌</button>
     </div>
     <div class="pvsim-chart-wrap">
       <svg class="pvsim-chart" id="pvsim-tank-split-chart" viewBox="0 0 780 300" preserveAspectRatio="none"></svg>
@@ -490,6 +497,7 @@
   <!-- STATY MODUŁU 04 -->
   <div class="pvsim-stats">
     <div class="pvsim-stat amber cat-heat">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">Pokrycie CWU</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-cover">0</span><span class="unit">%</span></div>
@@ -497,6 +505,7 @@
       </div>
     </div>
     <div class="pvsim-stat amber cat-heat">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">Bilans energii</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-bilans-kwh">0</span><span class="unit">kWh dostarczone do CWU</span></div>
@@ -507,6 +516,7 @@
       </div>
     </div>
     <div class="pvsim-stat amber cat-elec">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">Grzałka</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-heater-hrs">0</span><span class="unit">h / dobę</span></div>
@@ -514,6 +524,7 @@
       </div>
     </div>
     <div class="pvsim-stat amber cat-elec">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">PC</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-hp-hrs">0</span><span class="unit">h / dobę</span></div>
@@ -521,6 +532,7 @@
       </div>
     </div>
     <div class="pvsim-stat amber cat-elec">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">Zużycie prądu — źródło</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-elec-total">0,0</span><span class="unit">kWh / dobę</span></div>
@@ -529,6 +541,7 @@
       </div>
     </div>
     <div class="pvsim-stat amber cat-elec">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">Zużycie prądu — urządzenie</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-elec-dev-total">0,0</span><span class="unit">kWh / dobę</span></div>
@@ -537,6 +550,7 @@
       </div>
     </div>
     <div class="pvsim-stat amber cat-money">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">Koszt energii z sieci</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-grid-cost-d">0,00</span><span class="unit">zł / dobę</span></div>
@@ -562,7 +576,7 @@
         Temperatura zasobnika &mdash; cały miesiąc
         <span class="ctx" id="pvsim-month-tank-ctx" style="color:var(--pvsim-sky);"></span>
       </div>
-      <button type="button" class="pvsim-chart-pin" title="Przypnij wykres do rogu ekranu" aria-pressed="false">📌</button>
+      <button type="button" class="pvsim-pin" title="Przypnij wykres do rogu ekranu" aria-pressed="false">📌</button>
     </div>
     <div class="pvsim-chart-wrap">
       <svg class="pvsim-chart" id="pvsim-month-tank-chart" viewBox="0 0 780 300" preserveAspectRatio="none"></svg>
@@ -576,7 +590,7 @@
         Energia elektryczna PC + grzałki &mdash; bilans dobowy
         <span class="ctx" id="pvsim-month-elec-ctx" style="color:var(--pvsim-sky);"></span>
       </div>
-      <button type="button" class="pvsim-chart-pin" title="Przypnij wykres do rogu ekranu" aria-pressed="false">📌</button>
+      <button type="button" class="pvsim-pin" title="Przypnij wykres do rogu ekranu" aria-pressed="false">📌</button>
     </div>
     <div class="pvsim-chart-wrap">
       <svg class="pvsim-chart" id="pvsim-month-elec-chart" viewBox="0 0 780 300" preserveAspectRatio="none"></svg>
@@ -586,6 +600,7 @@
   <!-- STATY MODUŁU 05 -->
   <div class="pvsim-stats">
     <div class="pvsim-stat sky cat-heat">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">Pokrycie CWU (miesiąc)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-month-cover">0</span><span class="unit">%</span></div>
@@ -593,6 +608,7 @@
       </div>
     </div>
     <div class="pvsim-stat sky cat-heat">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">Bilans energii (miesiąc)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-month-bilans-kwh">0</span><span class="unit">kWh dostarczone do CWU</span></div>
@@ -603,6 +619,7 @@
       </div>
     </div>
     <div class="pvsim-stat sky cat-heat">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">Grzałka (miesiąc)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-month-heater-hrs">0</span><span class="unit">h / mc</span></div>
@@ -610,6 +627,7 @@
       </div>
     </div>
     <div class="pvsim-stat sky cat-heat">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">PC (miesiąc)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-month-hp-hrs">0</span><span class="unit">h / mc</span></div>
@@ -617,6 +635,7 @@
       </div>
     </div>
     <div class="pvsim-stat sky cat-elec">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">Zużycie prądu &mdash; źródło (miesiąc)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-month-elec-total">0</span><span class="unit">kWh / mc</span></div>
@@ -625,6 +644,7 @@
       </div>
     </div>
     <div class="pvsim-stat sky cat-elec">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">Zużycie prądu &mdash; urządzenie (miesiąc)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-month-elec-dev-total">0</span><span class="unit">kWh / mc</span></div>
@@ -633,12 +653,14 @@
       </div>
     </div>
     <div class="pvsim-stat sky cat-money">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">Koszt energii z sieci (miesiąc)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-month-grid-cost">0,00</span><span class="unit">zł / mc</span></div>
       </div>
     </div>
     <div class="pvsim-stat sky cat-money">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">Ciepło zaoszczędzone (miesiąc)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-month-saving">0,00</span><span class="unit">zł / mc</span></div>
@@ -647,6 +669,7 @@
       </div>
     </div>
     <div class="pvsim-stat sky cat-money">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">Bilans miesięczny</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-month-balance">0,00</span><span class="unit">zł / mc</span></div>
@@ -672,7 +695,7 @@
         Energia elektryczna PC + grzałki &mdash; bilans miesięczny
         <span class="ctx" id="pvsim-year-chart-ctx" style="color:var(--pvsim-lime);"></span>
       </div>
-      <button type="button" class="pvsim-chart-pin" title="Przypnij wykres do rogu ekranu" aria-pressed="false">📌</button>
+      <button type="button" class="pvsim-pin" title="Przypnij wykres do rogu ekranu" aria-pressed="false">📌</button>
     </div>
     <div class="pvsim-chart-wrap">
       <svg class="pvsim-chart" id="pvsim-year-chart" viewBox="0 0 780 300" preserveAspectRatio="none"></svg>
@@ -686,7 +709,7 @@
         Pokrycie CWU &mdash; miesięcznie
         <span class="ctx" id="pvsim-year-cover-chart-ctx" style="color:var(--pvsim-lime);"></span>
       </div>
-      <button type="button" class="pvsim-chart-pin" title="Przypnij wykres do rogu ekranu" aria-pressed="false">📌</button>
+      <button type="button" class="pvsim-pin" title="Przypnij wykres do rogu ekranu" aria-pressed="false">📌</button>
     </div>
     <div class="pvsim-chart-wrap">
       <svg class="pvsim-chart" id="pvsim-year-cover-chart" viewBox="0 0 780 300" preserveAspectRatio="none"></svg>
@@ -696,6 +719,7 @@
   <!-- STATY MODUŁU 06 -->
   <div class="pvsim-stats">
     <div class="pvsim-stat lime cat-heat">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">Pokrycie CWU (rok)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-year-cover">0</span><span class="unit">%</span></div>
@@ -703,6 +727,7 @@
       </div>
     </div>
     <div class="pvsim-stat lime cat-heat">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">Bilans energii (rok)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-year-bilans-kwh">0</span><span class="unit">kWh dostarczone do CWU</span></div>
@@ -713,6 +738,7 @@
       </div>
     </div>
     <div class="pvsim-stat lime cat-heat">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">Grzałka (rok)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-year-heater-hrs">0</span><span class="unit">h / rok</span></div>
@@ -720,6 +746,7 @@
       </div>
     </div>
     <div class="pvsim-stat lime cat-heat">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">PC (rok)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-year-hp-hrs">0</span><span class="unit">h / rok</span></div>
@@ -727,6 +754,7 @@
       </div>
     </div>
     <div class="pvsim-stat lime cat-elec">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">Zużycie prądu &mdash; źródło (rok)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-year-elec-total">0</span><span class="unit">kWh / rok</span></div>
@@ -735,6 +763,7 @@
       </div>
     </div>
     <div class="pvsim-stat lime cat-elec">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">Zużycie prądu &mdash; urządzenie (rok)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-year-elec-dev-total">0</span><span class="unit">kWh / rok</span></div>
@@ -743,12 +772,14 @@
       </div>
     </div>
     <div class="pvsim-stat lime cat-money">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">Koszt energii z sieci (rok)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-year-grid-cost">0,00</span><span class="unit">zł / rok</span></div>
       </div>
     </div>
     <div class="pvsim-stat lime cat-money">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">Ciepło zaoszczędzone (rok)</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-year-saving">0,00</span><span class="unit">zł / rok</span></div>
@@ -757,6 +788,7 @@
       </div>
     </div>
     <div class="pvsim-stat lime cat-money">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">Bilans roczny</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-year-balance">0,00</span><span class="unit">zł / rok</span></div>
@@ -829,6 +861,7 @@
   <!-- STATY MODUŁU 07 -->
   <div class="pvsim-stats two">
     <div class="pvsim-stat rose cat-money">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">Koszt inwestycji</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-inv-total">0</span><span class="unit">zł</span></div>
@@ -840,6 +873,7 @@
       </div>
     </div>
     <div class="pvsim-stat rose cat-money">
+      <button type="button" class="pvsim-pin pvsim-pin-stat" title="Przypnij kafelek do rogu ekranu" aria-pressed="false">📌</button>
       <div class="pvsim-stat-label">Zwrot inwestycji</div>
       <div class="pvsim-stat-value dual">
         <div class="primary"><span id="pvsim-inv-payback">0</span><span class="unit">lat</span></div>
@@ -916,7 +950,7 @@
       <div class="pvsim-chart-title">
         Top 10 &mdash; według wybranego kryterium (z maksymalnym czasem zwrotu)
       </div>
-      <button type="button" class="pvsim-chart-pin" title="Przypnij wykres do rogu ekranu" aria-pressed="false">📌</button>
+      <button type="button" class="pvsim-pin" title="Przypnij wykres do rogu ekranu" aria-pressed="false">📌</button>
     </div>
     <div id="pvsim-optim-table">
       <p class="pvsim-optim-empty">Ustaw limity i kliknij „Optymalizuj” &mdash;

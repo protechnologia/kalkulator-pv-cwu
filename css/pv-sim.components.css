@@ -47,11 +47,11 @@
   text-transform: uppercase;
 }
 
-/* Pinezka — zamiast etykiety osi; klik przykleja sekcję wykresu do
-   prawego dolnego rogu (position:fixed) i wstawia w jej miejsce
-   placeholder o tej samej wysokości. Wiele pinów = stos w pionie
-   (bottom wyliczany w app.js). */
-.pvsim-chart-pin {
+/* Pinezka — klik przykleja sekcję (wykres lub blok statystyk) do prawego
+   dolnego rogu (position:fixed). W oryginalnym miejscu zostaje pasiasty
+   placeholder o tej samej wysokości. Wiele pinów = pionowy stos
+   (bottom + right wyliczane w app.js). */
+.pvsim-pin {
   appearance: none;
   background: transparent;
   border: 1px solid var(--pvsim-border);
@@ -64,16 +64,17 @@
   border-radius: 3px;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
-.pvsim-chart-pin:hover {
+.pvsim-pin:hover {
   color: var(--pvsim-text-0);
   border-color: var(--pvsim-text-2);
 }
-.pvsim-chart-section.pinned .pvsim-chart-pin {
+.pinned > .pvsim-pin,
+.pinned .pvsim-chart-header .pvsim-pin {
   background: color-mix(in srgb, var(--pvsim-orange) 18%, transparent);
   color: var(--pvsim-orange);
   border-color: var(--pvsim-orange);
 }
-.pvsim-chart-pin-placeholder {
+.pvsim-pin-placeholder {
   background: repeating-linear-gradient(
     45deg,
     transparent 0 8px,
@@ -82,32 +83,55 @@
   border: 1px dashed var(--pvsim-border);
   margin: 0;
 }
-.pvsim-chart-section.pinned {
+
+/* Pinezka dla pojedynczego kafelka — siedzi w prawym górnym rogu. */
+.pvsim-stat { position: relative; }
+.pvsim-pin-stat {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
+  font-size: 10px;
+  padding: 2px 5px;
+  opacity: 0.4;
+  transition: opacity 0.15s, background 0.15s, color 0.15s, border-color 0.15s;
+}
+.pvsim-stat:hover .pvsim-pin-stat,
+.pvsim-stat.pinned .pvsim-pin-stat { opacity: 1; }
+
+/* Stan przypięty — wspólny dla wykresów i kafelków */
+.pvsim-chart-section.pinned,
+.pvsim-stat.pinned {
   position: fixed;
   right: 16px;
-  width: 345px;
   z-index: 50;
-  padding: 10px 12px;
   background: var(--pvsim-bg-0);
   border: 1px solid var(--pvsim-border);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
-.pvsim-chart-section.pinned .pvsim-chart-header {
-  margin-bottom: 6px;
+.pvsim-chart-section.pinned {
+  width: 345px;
+  padding: 10px 12px;
 }
-.pvsim-chart-section.pinned .pvsim-chart-title {
-  font-size: 10px;
-}
-.pvsim-chart-section.pinned .pvsim-chart-pin {
+.pvsim-chart-section.pinned .pvsim-chart-header { margin-bottom: 6px; }
+.pvsim-chart-section.pinned .pvsim-chart-title { font-size: 10px; }
+.pvsim-chart-section.pinned .pvsim-pin {
   font-size: 10px;
   padding: 2px 6px;
 }
-.pvsim-chart-section.pinned .pvsim-chart-wrap {
-  padding: 8px 4px 2px 2px;
-}
-.pvsim-chart-section.pinned .pvsim-chart text {
-  font-size: 8px;
-}
+.pvsim-chart-section.pinned .pvsim-chart-wrap { padding: 8px 4px 2px 2px; }
+.pvsim-chart-section.pinned .pvsim-chart text { font-size: 8px; }
+
+.pvsim-stat.pinned { width: 220px; padding: 10px 12px; }
+.pvsim-stat.pinned .pvsim-stat-label { font-size: 7.5px; margin-bottom: 7px; }
+.pvsim-stat.pinned .pvsim-stat-value { font-size: 20px; }
+.pvsim-stat.pinned .pvsim-stat-value .unit { font-size: 10px; }
+.pvsim-stat.pinned .pvsim-stat-value .primary { font-size: 16px; }
+.pvsim-stat.pinned .pvsim-stat-value .primary .unit { font-size: 9.5px; }
+.pvsim-stat.pinned .pvsim-stat-value .secondary,
+.pvsim-stat.pinned .pvsim-stat-value .tertiary { font-size: 9.5px; }
+.pvsim-stat.pinned .pvsim-stat-value .secondary .unit,
+.pvsim-stat.pinned .pvsim-stat-value .tertiary .unit { font-size: 8px; }
 
 .pvsim-chart-wrap {
   background: var(--pvsim-bg-1);

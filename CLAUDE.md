@@ -137,8 +137,13 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 - Straty: `UA(V) = UA_REF · (V/V_REF)^(2/3)`, klasa B/C wg PN-EN 12897
 - Wykresy: temperatura zasobnika (tło grzania w osobnym odcieniu dla strefy
   dziennej i nocnej), słupkowy wykres mocy elektrycznej PC + grzałki
-  (4-stos: PC·PV, grz·PV, PC·sieć, grz·sieć) oraz słupkowy wykres podziału
+  (4-stos: PC·PV, grz·PV, PC·sieć, grz·sieć), słupkowy wykres podziału
   mocy cieplnej (PC vs grzałka, kwh ciepła dostarczonego do zasobnika)
+  oraz wykres „Teoretyczna cena ciepła" — godzinowy marginalny koszt
+  kWh ciepła z trzech źródeł: PC `(1−pvShare_PC)·cena_strefy / COP_sezonu`, grzałka
+  `(1−pvShare_grz)·cena_strefy`, ciepło sieciowe `priceHeatGJ / KWH_PER_GJ`
+  (linia stała); pvShare liczony przy pełnej mocy urządzenia (PC ma
+  priorytet PV, grzałka bierze resztę)
 - Statystyki: pokrycie CWU, bilans energii (Q_saved z rozbiciem
   `w tym X do starego węzła / w tym Y na cyrkulację` — drugi człon
   niezerowy tylko w trybie `tank`), godziny pracy grzałki i PC,

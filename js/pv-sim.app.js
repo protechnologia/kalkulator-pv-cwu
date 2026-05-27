@@ -128,6 +128,7 @@ window.PVSIM = window.PVSIM || {};
     P.renderTankChart(simTank);
     P.renderTankElecChart(simTank);
     P.renderHeatSplitChart(simTank);
+    P.renderTankCostChart(simTank);
     P.renderTankStats(simTank);
 
     // Moduł 05 zawsze korzysta z doby przeciętnej PV (PVGIS), niezależnie od pvMode

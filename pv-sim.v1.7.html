@@ -500,6 +500,20 @@
     </div>
   </div>
 
+  <!-- WYKRES KOSZTU kWh CIEPŁA — PC vs grzałka vs sieć -->
+  <div class="pvsim-chart-section">
+    <div class="pvsim-chart-header">
+      <div class="pvsim-chart-title">
+        Teoretyczna cena ciepła
+        <span class="ctx" id="pvsim-tank-cost-ctx" style="color:var(--pvsim-amber);"></span>
+      </div>
+      <button type="button" class="pvsim-pin" title="Przypnij wykres do rogu ekranu" aria-pressed="false">📌</button>
+    </div>
+    <div class="pvsim-chart-wrap">
+      <svg class="pvsim-chart" id="pvsim-tank-cost-chart" viewBox="0 0 780 300" preserveAspectRatio="none"></svg>
+    </div>
+  </div>
+
   <!-- STATY MODUŁU 04 -->
   <div class="pvsim-stats">
     <div class="pvsim-stat amber cat-heat">

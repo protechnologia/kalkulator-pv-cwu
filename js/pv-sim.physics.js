@@ -31,7 +31,12 @@
      proporcjonalny do zapotrzebowania), poniżej pasma dochodzi grzałka.
      hpKW = 0 ⇒ PC wyłączona; heaterKW = 0 ⇒ grzałka wyłączona.
      Strategie: 'off', 'off-grid' (power diverter — moc do nadwyżki PV, grzeje
-     tylko do setpointu), 'on-grid' (moc proporcjonalna, pobór z PV + sieci).
+     tylko do setpointu), 'on-grid' (moc proporcjonalna, pobór z PV + sieci),
+     'on-grid-eco' (jak on-grid, ale per urządzenie startuje tylko gdy
+     (1−pvShare)·cena_strefy/COP_lub_1 < priceHeatGJ/KWH_PER_GJ — inaczej
+     CWU obsługuje stary węzeł). Godzinowe pole P_PV w hours[] (kW)
+     udostępnia produkcję PV dla wykresów Modułu 04 (m.in. teoretyczna cena
+     ciepła z trzech źródeł).
      Trasa cyrkulacji params.circRoute: 'eco' (pętla na starym węźle, P_circ
      nie obciąża zasobnika) albo 'tank' (pętla na naszym zasobniku — krok 1b
      w podpętli godzinowej drenuje zbiornik stałą mocą P_circ_kW aż do T_in,
@@ -414,6 +419,7 @@ window.PVSIM = window.PVSIM || {};
         heaterOn, hpOn,
         day,
         strategy: strat,
+        P_PV,
         P_heater_eff: Q_heater_actual_h,
         Q_heater:     Q_heater_actual_h,
         Q_hp:         Q_hp_actual_h,

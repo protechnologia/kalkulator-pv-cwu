@@ -28,7 +28,7 @@ grzania na strefę dzienną i nocną.
 ### Moduł 04 — Zasobnik z pompą ciepła i grzałką elektryczną
 Sercem aplikacji. Symuluje pracę zasobnika ogrzewanego równolegle pompą
 ciepła powietrze→woda i grzałką elektryczną, na podstawie produkcji PV
-(Moduł 01), zapotrzebowania CWU (Moduł 02) i taryfy (Moduł 03). Trzy
+(Moduł 01), zapotrzebowania CWU (Moduł 02) i taryfy (Moduł 03). Cztery
 strategie współpracy z siecią (off / off-grid / on-grid (zawsze) / on-grid
 (gdy taniej)) wybierane osobno dla strefy dziennej i nocnej.
 

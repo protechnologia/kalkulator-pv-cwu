@@ -13,6 +13,12 @@
    renderHeatSplitChart() — wykres słupkowy podziału mocy cieplnej
                             (PC vs grzałka, kWh ciepła dostarczonego do
                             zasobnika)
+   renderTankCostChart()  — wykres „Teoretyczna cena ciepła" (UI),
+                            godzinowy marginalny koszt kWh ciepła w trzech
+                            wariantach: PC, grzałka, ciepło sieciowe
+                            (linia stała). PC i grzałka uwzględniają
+                            udział PV: cost = (1−pvShare)·gridPrice/COP
+                            (PC) lub ·1 (grzałka)
    renderTankStats()      — karty: pokrycie CWU, bilans energii
                             (Q_saved z rozbiciem `w tym X do starego węzła
                             / w tym Y na cyrkulację` — drugi człon niezerowy
@@ -391,6 +397,137 @@ window.PVSIM = window.PVSIM || {};
       const copEff = elecPair > 0.001 ? (qTot / elecPair) : 0;
       ctxEl.textContent = `— PC ${pctHp.toFixed(0)}% · grzałka ${pctHt.toFixed(0)}%`
         + ` · efektywny COP układu ${P.fmt.pl2(copEff)}`;
+    }
+  };
+
+  // ===== RENDER WYKRESU KOSZTU kWh CIEPŁA (Moduł 04) =====
+  // Trzy linie schodkowe (krok co 1h) — koszt marginalny kWh ciepła w danej
+  // godzinie, gdyby ciepło pochodziło wyłącznie z:
+  //   • PC      — (1 − pvShare_PC)·cena_strefy / COP_sezonu  (cyan)
+  //   • grzałki — (1 − pvShare_grz)·cena_strefy              (bursztyn)
+  //   • sieci   — priceHeatGJ / KWH_PER_GJ  (stała, teal)
+  // pvShare liczony przy założeniu pełnej mocy urządzenia (PC bierze PV pierwsze,
+  // grzałka resztę), zgodnie z bramką progową w strategii on-grid-eco.
+  P.renderTankCostChart = function(simTank) {
+    const svg = document.getElementById('pvsim-tank-cost-chart');
+    if (!svg) return;
+    const W = 780, H = 300;
+    const padL = 50, padR = 18, padT = 22, padB = 36;
+    const cw = W - padL - padR;
+    const ch = H - padT - padB;
+
+    const ps = P.state;
+    const heaterKW = ps.heaterKW;
+    const hpKW = ps.hpKW;
+    const mi = ps.monthIdx;
+    const hpCOP = (mi >= 3 && mi <= 8) ? ps.hpCOPSummer : ps.hpCOPWinter;
+    const costNet = ps.priceHeatGJ / P.KWH_PER_GJ;
+
+    const dayStart = ps.gridDayStart, dayEnd = ps.gridDayEnd;
+    const isDay = h => dayStart < dayEnd
+      ? (h >= dayStart && h < dayEnd)
+      : (h >= dayStart || h < dayEnd);
+
+    // Per-godzinę: pvShare przy pełnej mocy. PC ma priorytet, grzałka bierze resztę.
+    const costPC = new Array(24);
+    const costHt = new Array(24);
+    for (let h = 0; h < 24; h++) {
+      const d = simTank.hours[h];
+      const P_PV = d.P_PV || 0;
+      const gp   = isDay(h) ? ps.gridPriceDay : ps.gridPriceNight;
+      const pvSharePC = hpKW > 0.001 ? Math.min(P_PV, hpKW) / hpKW : 0;
+      const pvLeft    = Math.max(P_PV - hpKW, 0);
+      const pvShareHt = heaterKW > 0.001 ? Math.min(pvLeft, heaterKW) / heaterKW : 0;
+      costPC[h] = hpKW > 0.001 ? (1 - pvSharePC) * gp / hpCOP : null;
+      costHt[h] = heaterKW > 0.001 ? (1 - pvShareHt) * gp : null;
+    }
+
+    const allVals = [costNet];
+    for (let h = 0; h < 24; h++) {
+      if (costPC[h] != null) allVals.push(costPC[h]);
+      if (costHt[h] != null) allVals.push(costHt[h]);
+    }
+    const rawMax = Math.max(...allVals, 0.001);
+    const niceSteps = [0.05, 0.1, 0.2, 0.25, 0.5, 1, 2];
+    const step = niceSteps.find(s => rawMax / s <= 6) || 2;
+    const yMax = Math.ceil(rawMax / step + 0.001) * step;
+
+    const x = h => padL + (h / 24) * cw;
+    const y = v => padT + ch - (v / yMax) * ch;
+
+    // Linia schodkowa: dla każdej godziny rysujemy poziomy odcinek na wartości v[h]
+    // od x(h) do x(h+1), połączony pionowymi krawędziami między godzinami.
+    const stepPath = (vals) => {
+      let d = '', open = false;
+      for (let h = 0; h < 24; h++) {
+        const v = vals[h];
+        if (v == null) { open = false; continue; }
+        const x1 = x(h), x2 = x(h + 1), yy = y(v);
+        if (!open) {
+          d += `M ${x1.toFixed(2)} ${yy.toFixed(2)} L ${x2.toFixed(2)} ${yy.toFixed(2)}`;
+          open = true;
+        } else {
+          d += ` L ${x1.toFixed(2)} ${yy.toFixed(2)} L ${x2.toFixed(2)} ${yy.toFixed(2)}`;
+        }
+      }
+      return d;
+    };
+
+    const pathPC = hpKW > 0.001 ? stepPath(costPC) : '';
+    const pathHt = heaterKW > 0.001 ? stepPath(costHt) : '';
+
+    const ticks = Math.round(yMax / step);
+    let gridLines = '', yLabels = '';
+    for (let i = 0; i <= ticks; i++) {
+      const v = i * step;
+      const yy = y(v);
+      gridLines += `<line x1="${padL}" y1="${yy.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yy.toFixed(2)}"
+                          stroke="var(--pvsim-border)" stroke-width="1" ${i === 0 ? '' : 'stroke-dasharray="2,3"'}/>`;
+      yLabels += `<text x="${padL - 8}" y="${(yy + 3.5).toFixed(2)}" text-anchor="end">${P.fmt.pl2(v)}</text>`;
+    }
+
+    let xLabels = '', xGrid = '';
+    for (let h = 0; h <= 24; h += 3) {
+      const xx = x(h);
+      xGrid += `<line x1="${xx.toFixed(2)}" y1="${padT}" x2="${xx.toFixed(2)}" y2="${(padT + ch).toFixed(2)}"
+                      stroke="var(--pvsim-border)" stroke-width="1" stroke-dasharray="1,4"/>`;
+      xLabels += `<text x="${xx.toFixed(2)}" y="${(padT + ch + 18).toFixed(2)}" text-anchor="middle">${String(h % 24).padStart(2, '0')}:00</text>`;
+    }
+
+    const axes = `
+      <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${(padT + ch).toFixed(2)}" stroke="var(--pvsim-border-strong)" stroke-width="1"/>
+      <line x1="${padL}" y1="${(padT + ch).toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${(padT + ch).toFixed(2)}" stroke="var(--pvsim-border-strong)" stroke-width="1"/>
+    `;
+
+    const yNet = y(costNet);
+    const netLine = `
+      <line x1="${padL}" y1="${yNet.toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${yNet.toFixed(2)}"
+            stroke="#2dd4bf" stroke-width="2" stroke-dasharray="6,4" opacity="0.9"/>
+      <text x="${(W - padR - 4).toFixed(2)}" y="${(yNet - 4).toFixed(2)}" text-anchor="end" font-size="9.5" fill="#2dd4bf" opacity="0.9">sieć ${P.fmt.pl2(costNet)} zł/kWh</text>
+    `;
+
+    const pcLine = pathPC ? `<path d="${pathPC}" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linejoin="miter"/>` : '';
+    const htLine = pathHt ? `<path d="${pathHt}" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linejoin="miter"/>` : '';
+
+    const lx = W - padR - 230;
+    const legend = `
+      <line x1="${lx}" y1="${padT + 7}" x2="${lx + 18}" y2="${padT + 7}" stroke="#22d3ee" stroke-width="2"/>
+      <text x="${lx + 22}" y="${padT + 11}" fill="#a1a1aa">PC</text>
+      <line x1="${lx + 60}" y1="${padT + 7}" x2="${lx + 78}" y2="${padT + 7}" stroke="#f59e0b" stroke-width="2"/>
+      <text x="${lx + 82}" y="${padT + 11}" fill="#a1a1aa">grzałka</text>
+      <line x1="${lx + 140}" y1="${padT + 7}" x2="${lx + 158}" y2="${padT + 7}" stroke="#2dd4bf" stroke-width="2" stroke-dasharray="6,4"/>
+      <text x="${lx + 162}" y="${padT + 11}" fill="#a1a1aa">sieć</text>
+    `;
+
+    svg.innerHTML = `
+      ${gridLines}${xGrid}${axes}${netLine}${pcLine}${htLine}${legend}${yLabels}${xLabels}
+      <text x="${padL - 30}" y="${padT - 10}" font-size="9.5" letter-spacing="1.4">[zł/kWh]</text>
+    `;
+
+    const ctxEl = document.getElementById('pvsim-tank-cost-ctx');
+    if (ctxEl) {
+      ctxEl.textContent = `— sieć ${P.fmt.pl2(costNet)} zł/kWh · COP sezonu ${P.fmt.pl1(hpCOP)}`
+        + ` · strefa dzień ${ps.gridDayStart}:00–${ps.gridDayEnd}:00 ${P.fmt.pl2(ps.gridPriceDay)} zł, noc ${P.fmt.pl2(ps.gridPriceNight)} zł`;
     }
   };
 

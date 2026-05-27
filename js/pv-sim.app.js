@@ -27,6 +27,8 @@
      - suwaki pompy ciepła: moc, liczba biegów, pasmo „tylko PC",
        COP letni i zimowy (moduł 04, hpKW = 0 = PC wyłączona)
      - przełączniki strategii pary PC+grzałka dzień/noc (moduł 04)
+     - przełącznik trasy cyrkulacji CWU: stary węzeł / nasz zasobnik
+       (moduł 04, P.state.circRoute)
      - suwaki cen inwestycji: PV, grzałki, PC, zasobnik, SCADA (moduł 07)
      - suwaki limitu zwrotu i okresu życia, przełącznik kryterium
        optymalizacji (maks. zysk / min. zwrot / maks. pokrycie),

@@ -10,40 +10,49 @@
      do średniej dobowej z PVGIS (tryb 'avg') lub do idealnego
      dnia słonecznego (tryb 'clear'). Zwraca tablicę 24 godzin + sumy.
 
-   P.simulateDHW(residents, monthIdx, T_hot)
+   P.simulateDHW(residents, monthIdx, T_hot, params)
      Godzinowe zapotrzebowanie na ciepłą wodę użytkową dla N mieszkańców.
      Rozkłada dobową objętość wg znormalizowanego profilu godzinowego,
      oblicza energię użyteczną oraz straty cyrkulacji (procent energii
-     użytecznej wg suwaka P.state.circLossPct — kotwice w P.CIRC_LOSS:
+     użytecznej wg suwaka params.circLossPct — kotwice w P.CIRC_LOSS:
      stary budynek ~60%, nowy ~35%) i koszt całkowity przy aktualnej
-     taryfie ECO.
+     taryfie ECO. `params` (opcjonalny, domyślnie P.state) udostępnia
+     priceHeatGJ i circLossPct.
 
-   P.simulateTank(simPV, simDHW, heaterKW, tankL, T_init)
+   P.simulateTank(simPV, simDHW, heaterKW, tankL, T_init, params)
      Model zasobnika 1-węzłowego (fully-mixed) z 6 podkrokami na godzinę.
      Symuluje: pobór CWU (rozcieńczenie), grzanie parą PC + grzałka wg strategii
      wybranej osobno dla strefy dziennej i nocnej taryfy, straty postojowe.
-     Para grzeje do wspólnego setpointu P.state.heaterTargetC („Temperatura
+     Para grzeje do wspólnego setpointu params.heaterTargetC („Temperatura
      docelowa zasobnika", suwak Modułu 04 — niezależny od T_hot z Modułu 02).
-     Pompa ciepła (P.state.hpKW, hpGears, hpCOPSummer/Winter, hpOnlyBandC) ma
+     Pompa ciepła (params.hpKW, hpGears, hpCOPSummer/Winter, hpOnlyBandC) ma
      priorytet w off-grid (wybiera największy bieg ≤ nadwyżki PV, grzałka dobiera
      resztę) oraz w on-grid pracuje sama w pasmie pod setpointem (bieg
      proporcjonalny do zapotrzebowania), poniżej pasma dochodzi grzałka.
      hpKW = 0 ⇒ PC wyłączona; heaterKW = 0 ⇒ grzałka wyłączona.
      Strategie: 'off', 'off-grid' (power diverter — moc do nadwyżki PV, grzeje
      tylko do setpointu), 'on-grid' (moc proporcjonalna, pobór z PV + sieci).
-     Śledzi pokrycie CWU, oszczędności oraz zużycie energii rozbite na PV/sieć
-     i grzałkę/PC.
+     Trasa cyrkulacji params.circRoute: 'eco' (pętla na starym węźle, P_circ
+     nie obciąża zasobnika) albo 'tank' (pętla na naszym zasobniku — krok 1b
+     w podpętli godzinowej drenuje zbiornik stałą mocą P_circ_kW aż do T_in,
+     a wyciągnięte ciepło wlicza się do Q_saved).
+     Śledzi pokrycie CWU (mianownik = pełna energia CWU budynku niezależnie od
+     trasy), oszczędności oraz zużycie energii rozbite na PV/sieć i grzałkę/PC.
+     `params` (opcjonalny, domyślnie P.state) zawiera wszystkie nastawy układu.
 
-   P.simulateTankMonth(simPV, simDHW, heaterKW, tankL, monthIdx)
+   P.simulateTankMonth(simPV, simDHW, heaterKW, tankL, monthIdx, params)
      Ciągła symulacja zasobnika przez cały miesiąc — wywołuje
      P.simulateTank() raz na dobę, przekazując temperaturę końcową
      poprzedniej doby jako startową kolejnej (5. parametr T_init).
      Zwraca dobowe szeregi czasowe i zagregowane statystyki miesięczne.
+     `params` (opcjonalny, domyślnie P.state) propagowane do simulateTank().
 
-   P.simulateTankYear()
+   P.simulateTankYear(params)
      Symulacja roczna — wywołuje P.simulateTankMonth() dla każdego z 12
      miesięcy z osobnymi wejściami PV i CWU. Zwraca agregaty miesięczne
-     (do wykresu słupkowego) oraz sumy roczne.
+     (do wykresu słupkowego) oraz sumy roczne. `params` (opcjonalny,
+     domyślnie P.state) — używane przez optimize.js do iterowania wariantów
+     bez mutowania P.state.
 
    P.computeInvestment(simYear)
      Kalkulator inwestycji — sumuje koszt instalacji PV, grzałki, pompy
@@ -282,7 +291,7 @@ window.PVSIM = window.PVSIM || {};
         // on-grid: pasmo "tylko PC" wokół setpointu).
         let Q_hp_per = 0, hp_pvShare = 0;
         let Q_heater_per = 0, heater_pvShare = 0;
-        const T_cap_pair = Math.min(T_set, P.TANK_T_MAX);  // wspólny cap = setpoint
+        const T_cap_pair = T_set;  // wspólny cap = setpoint (suwak heaterTargetC, 0–70°C)
 
         if (strat === 'off-grid') {
           // PC: największy bieg k taki, że (k/N)·hpKW ≤ P_PV oraz ≥ progu PC

@@ -75,6 +75,20 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
 - Profil godzinowy: Chmielewska 2025, Energies 18(17), 42 budynki w Polsce
 - Temperatura wody zimnej: model sinusoidalny, min luty ~6°C, max sierpień ~16°C
 - Taryfa: domyślnie `P.state.priceHeatGJ = 130 zł/GJ` (edytowalna z UI — pole „Cena ciepła")
+- Straty cyrkulacji: `Q_circ = circLossPct × Q_useful` (kWh/dobę), rozsmarowane
+  płasko na 24h jako stała moc `P_circ = Q_circ / 24` — **niezależna od
+  godzinowego profilu rozbioru** (cyrkulacja to UA·ΔT pętli, nie funkcja
+  chwilowego poboru). Sezonowa zmienność wchodzi przez `Q_useful` zależne od
+  `T_cold(monthIdx)`: zimą `kwhM3` większe ⇒ `P_circ` ~30% wyższe niż latem
+  (przy domyślnych ustawieniach: luty ≈ 0,256 kW, sierpień ≈ 0,198 kW).
+  **Uwaga — uproszczenie:** fizycznie strata cyrkulacji to `UA_pętli · (T_loop − T_zewn)`,
+  więc napędza ją temperatura otoczenia rur, **nie** `T_cold`. W modelu sezonowość
+  wchodzi przez `T_cold(monthIdx)` tylko dlatego, że niskie `T_zewn` zimą koreluje
+  z niskim `T_cold` (oba sterowane porą roku) — kierunek zmiany się zgadza,
+  ale to korelacja, nie przyczyna. Na razie zostawione tak; docelowo warto
+  przepisać na model `UA_pętli · (T_loop − T_zewn)` z osobnym profilem `T_zewn`.
+  `P_circ` używane w Module 04 w trybie `circRoute='tank'` jako stały drenaż
+  zasobnika w podkroku 1b ([physics.js:280](js/pv-sim.physics.js#L280)).
 
 ### Moduł 03 — Sieć (taryfa energii elektrycznej)
 - Parametry: cena strefy dziennej [zł/kWh], cena strefy nocnej [zł/kWh], godziny strefy dziennej (start/koniec)
@@ -118,9 +132,12 @@ Wszystko co używane przez inny plik musi być na namespace: `P.xxx`.
   dziennej i nocnej), słupkowy wykres mocy elektrycznej PC + grzałki
   (4-stos: PC·PV, grz·PV, PC·sieć, grz·sieć) oraz słupkowy wykres podziału
   mocy cieplnej (PC vs grzałka, kwh ciepła dostarczonego do zasobnika)
-- Statystyki: pokrycie CWU, godziny pracy grzałki i PC, ciepło z PC,
-  zużycie prądu pary PC+grzałka (PV vs sieć), koszt energii z sieci
-  wg cen stref z Modułu 03
+- Statystyki: pokrycie CWU, bilans energii (Q_saved z rozbiciem
+  `w tym X do starego węzła / w tym Y na cyrkulację` — drugi człon
+  niezerowy tylko w trybie `tank`), godziny pracy grzałki i PC,
+  ciepło z PC, zużycie prądu pary PC+grzałka (PV vs sieć), koszt
+  energii z sieci wg cen stref z Modułu 03. Pod togglem trasy
+  cyrkulacji wyświetla się tekstowy opis aktywnego wariantu.
 
 ### Moduł 05 — Symulacja miesięczna
 - Symulacja ciągła zasobnika przez cały miesiąc (`days × 24 h`): pierwsza doba

@@ -13,8 +13,11 @@
    renderHeatSplitChart() — wykres słupkowy podziału mocy cieplnej
                             (PC vs grzałka, kWh ciepła dostarczonego do
                             zasobnika)
-   renderTankStats()      — karty: pokrycie CWU, bilans energii, grzałka,
-                            PC, zużycie prądu — źródło i — urządzenie,
+   renderTankStats()      — karty: pokrycie CWU, bilans energii
+                            (Q_saved z rozbiciem `w tym X do starego węzła
+                            / w tym Y na cyrkulację` — drugi człon niezerowy
+                            tylko w trybie circRoute='tank'), grzałka, PC,
+                            zużycie prądu — źródło i — urządzenie,
                             koszt energii z sieci
    ========================================================= */
 window.PVSIM = window.PVSIM || {};
@@ -56,18 +59,19 @@ window.PVSIM = window.PVSIM || {};
     }
 
     // Linie referencyjne:
-    //  T_kran (cel, ustawiana sliderem) — niebieska, najważniejsza dla użytkownika
-    //  T_max 60°C (termostat) — czerwona
+    //  T_kran (cel CWU, suwak T_hot Modułu 02) — niebieska
+    //  T_set (setpoint zasobnika, suwak heaterTargetC Modułu 04) — bursztynowa
     //  T_in (woda zimna, sezonowa) — szary cień
     const T_hot = P.state.T_hot;
+    const T_set = P.state.heaterTargetC;
     const refLines = `
       <line x1="${padL}" y1="${y(T_hot).toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${y(T_hot).toFixed(2)}"
             stroke="#2dd4bf" stroke-width="1" stroke-dasharray="6,4" opacity="0.5"/>
       <text x="${(W - padR - 4).toFixed(2)}" y="${(y(T_hot) - 4).toFixed(2)}" text-anchor="end" font-size="9.5" fill="#2dd4bf" opacity="0.8">T_kran ${T_hot}°</text>
 
-      <line x1="${padL}" y1="${y(P.TANK_T_MAX).toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${y(P.TANK_T_MAX).toFixed(2)}"
-            stroke="#ef4444" stroke-width="1" stroke-dasharray="6,4" opacity="0.4"/>
-      <text x="${(W - padR - 4).toFixed(2)}" y="${(y(P.TANK_T_MAX) - 4).toFixed(2)}" text-anchor="end" font-size="9.5" fill="#ef4444" opacity="0.7">T_max 60°</text>
+      <line x1="${padL}" y1="${y(T_set).toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${y(T_set).toFixed(2)}"
+            stroke="#f59e0b" stroke-width="1" stroke-dasharray="6,4" opacity="0.5"/>
+      <text x="${(padL + 4).toFixed(2)}" y="${(y(T_set) - 4).toFixed(2)}" text-anchor="start" font-size="9.5" fill="#f59e0b" opacity="0.8">T_set ${T_set}°</text>
 
       <line x1="${padL}" y1="${y(T_in).toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${y(T_in).toFixed(2)}"
             stroke="var(--pvsim-text-2)" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>

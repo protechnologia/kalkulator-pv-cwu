@@ -3,7 +3,7 @@
 
    renderMonthTankChart() — ciągła linia temperatury zasobnika przez
                             cały miesiąc (days × 24 h), kolor błękitny,
-                            linie referencyjne T_kran / T_max / T_wodociąg,
+                            linie referencyjne T_kran / T_set / T_wodociąg,
                             siatka pionowa co dobę.
    renderMonthElecChart() — wykres słupkowy dobowego bilansu energii
                             elektrycznej pary PC + grzałka (jeden słupek
@@ -57,14 +57,15 @@ window.PVSIM = window.PVSIM || {};
     }
 
     const T_hot = P.state.T_hot;
+    const T_set = P.state.heaterTargetC;
     const refLines = `
       <line x1="${padL}" y1="${y(T_hot).toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${y(T_hot).toFixed(2)}"
             stroke="#2dd4bf" stroke-width="1" stroke-dasharray="6,4" opacity="0.5"/>
       <text x="${(W - padR - 4).toFixed(2)}" y="${(y(T_hot) - 4).toFixed(2)}" text-anchor="end" font-size="9.5" fill="#2dd4bf" opacity="0.8">T_kran ${T_hot}°</text>
 
-      <line x1="${padL}" y1="${y(P.TANK_T_MAX).toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${y(P.TANK_T_MAX).toFixed(2)}"
-            stroke="#ef4444" stroke-width="1" stroke-dasharray="6,4" opacity="0.4"/>
-      <text x="${(W - padR - 4).toFixed(2)}" y="${(y(P.TANK_T_MAX) - 4).toFixed(2)}" text-anchor="end" font-size="9.5" fill="#ef4444" opacity="0.7">T_max 60°</text>
+      <line x1="${padL}" y1="${y(T_set).toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${y(T_set).toFixed(2)}"
+            stroke="#f59e0b" stroke-width="1" stroke-dasharray="6,4" opacity="0.5"/>
+      <text x="${(padL + 4).toFixed(2)}" y="${(y(T_set) - 4).toFixed(2)}" text-anchor="start" font-size="9.5" fill="#f59e0b" opacity="0.8">T_set ${T_set}°</text>
 
       <line x1="${padL}" y1="${y(T_in).toFixed(2)}" x2="${(W - padR).toFixed(2)}" y2="${y(T_in).toFixed(2)}"
             stroke="var(--pvsim-text-2)" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>

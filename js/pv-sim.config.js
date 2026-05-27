@@ -5,7 +5,7 @@
    - stałe fizyczno-geograficzne (szerokość Opola, skaler clear-sky)
    - parametry CWU: zużycie wody na osobę, ciepło właściwe wody,
      model temperatury wody zimnej (sinusoida z opóźnieniem fazowym),
-     taryfę ciepła ECO Opole (P.PRICE_PER_GJ — edytowalna z UI),
+     domyślną cenę ciepła sieciowego (P.state.priceHeatGJ — edytowalna z UI),
      kotwice strat cyrkulacji CIRC_LOSS (stary/nowy budynek — znaczniki suwaka)
    - godzinowy profil zużycia CWU znormalizowany do 1.0
      (źródło: Chmielewska 2025, Energies 18(17), 42 budynki w PL)
@@ -16,8 +16,9 @@
    - ziarno PRNG zmienności pogody dobowej (WEATHER_SEED)
    - obiekt state — bieżące wartości wszystkich suwaków i pól UI,
      w tym parametry taryfy elektrycznej (moduł 03), strategie grzałki
-     dla strefy dziennej i nocnej (moduł 04), ceny inwestycji (moduł 07)
-     oraz parametry optymalizacji (moduł 08)
+     dla strefy dziennej i nocnej oraz trasę cyrkulacji circRoute
+     ('eco' | 'tank', moduł 04), ceny inwestycji (moduł 07) oraz
+     parametry optymalizacji (moduł 08)
    - siatkę OPT_GRID przeszukiwaną przez grid search (moduł 08)
 
    Musi być ładowany jako PIERWSZY spośród plików JS,
@@ -97,7 +98,6 @@ window.PVSIM = window.PVSIM || {};
   P.CIRC_LOSS = { new: 0.35, old: 0.60 };
 
   // ===== ZASOBNIK + GRZAŁKA (Moduł 04) =====
-  P.TANK_T_MAX  = 60;    // °C — termostat (granica higieniczna anti-legionella)
   P.TANK_T_AMB  = 15;    // °C — otoczenie zasobnika (piwnica/kotłownia)
   // UA dla zasobnika izolowanego pianką PU 50mm, smukły walec H/D≈3:
   //   UA(V) = UA_REF · (V/V_REF)^(2/3) — klasa energetyczna B/C wg PN-EN 12897

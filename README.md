@@ -187,6 +187,31 @@ a strategia wybierana jest osobno dla każdej strefy:
   proporcjonalnie do zapotrzebowania); poniżej pasma PC bierze top bieg,
   a grzałka modulowana wg `(T_set − T) / BAND` dobiera resztę.
 
+### Straty cyrkulacji CWU
+Pętla cyrkulacji utrzymuje ciepłą wodę w rurach, żeby kran odkręcony o 3:00
+nie czekał kilkudziesięciu sekund na ciepło — fizycznie to ciągłe `UA_pętli ·
+(T_loop − T_zewn)` rozproszone przez izolację rurociągu, niezależne od tego,
+czy ktoś właśnie odkręca wodę. W modelu zastępujemy to **stałą mocą** rozsmarowaną
+na całą dobę: `P_circ = (circLossPct · Q_useful) / 24` [kW], gdzie `Q_useful`
+to dobowa energia użyteczna CWU, a `circLossPct` to suwak (kotwice 35% / 60%
+wg klasy izolacji pętli). Strata w każdej godzinie jest taka sama — nie zależy
+od godzinowego profilu poboru.
+
+Sezonowo `P_circ` zmienia się, bo `Q_useful = dailyM3 · kwhM3(monthIdx)`,
+a `kwhM3` rośnie zimą przez niższą `T_cold` (woda wodociągowa ~6 °C w lutym,
+~16 °C w sierpniu). Przy domyślnych ustawieniach: `P_circ ≈ 0,256 kW` w lutym
+vs `0,198 kW` w sierpniu — różnica ~30%. **Uwaga: to uproszczenie.** Fizycznie
+napęd strat cyrkulacji to `T_zewn`, nie `T_cold` — w modelu sezonowość wchodzi
+przez `T_cold` tylko dlatego, że oba są skorelowane porą roku. Kierunek zmiany
+się zgadza, ale to korelacja, nie przyczyna; docelowo warto przepisać na
+`UA_pętli · (T_loop − T_zewn)` z osobnym profilem temperatury otoczenia rur.
+
+W trybie `circRoute='eco'` (domyślnym) pętla wisi na starym węźle ciepłowniczym
+i `P_circ` służy tylko do wyceny mianownika pokrycia CWU. W trybie
+`circRoute='tank'` ta sama stała moc drenuje nasz zasobnik w każdym podkroku
+godzinowym (krok 1b w `simulateTank`), a `Q_saved` obejmuje ciepło dostarczone
+zarówno do kranu, jak i do pętli.
+
 ### Fizyka zasobnika
 Model 1-węzłowy (fully-mixed) — zasobnik traktowany jako jednorodna masa
 wody o temperaturze `T(t)`. Każda godzina liczona w **6 podkrokach**, w każdym:
@@ -194,9 +219,21 @@ wody o temperaturze `T(t)`. Każda godzina liczona w **6 podkrokach**, w każdym
 1. **Pobór** — strumień ciepłej wody zastępowany wodą wodociągową `T_in`,
    nowa temperatura jako średnia ważona masami. Oszczędność `Q_saved`
    = ile mniej ciepła musiałby dostarczyć stary węzeł ECO (Δ od `T_in`).
-2. **Grzanie** — moce PC i grzałki wg strategii (powyżej), cap mocy do
-   ilości potrzebnej, by nie przekroczyć setpointu w tym podkroku.
-3. **Straty postojowe** — `Q_strat = UA · (T − T_otoczenia) · dt`,
+2. **Drenaż cyrkulacji** (tylko w trybie `circRoute='tank'`) — stała moc
+   `P_circ` (patrz „Straty cyrkulacji CWU" wyżej) wyciągana z zasobnika,
+   `Q_saved` powiększone o energię dostarczoną do pętli. W trybie `eco`
+   krok pomijany — pętla wisi na starym węźle, zasobnik jej nie czuje.
+3. **Grzanie — pompa ciepła** (priorytet) — bieg PC wybierany wg strategii
+   (off-grid: największy `k` z `(k/N)·hpKW ≤ nadwyżka PV`; on-grid w pasmie
+   `[T_set − hpOnlyBand, T_set)`: bieg proporcjonalny do `req`; poniżej pasma:
+   top bieg). Ciepło `Q_hp = elec_hp · COP_sezonowy`, cap do ilości potrzebnej
+   na setpoint.
+4. **Grzanie — grzałka elektryczna** — dobiera resztę (off-grid: reszta
+   nadwyżki PV ponad to, co wzięła PC, jeśli `P_PV ≥ heaterThreshold · heaterKW`;
+   on-grid: moc proporcjonalna `heaterKW · clamp((T_set − T)/BAND, 0, 1)`,
+   nadwyżka PV w pierwszej kolejności, brakującą część dobiera sieć po cenie
+   strefy). Sprawność 1:1 (1 kWh prądu = 1 kWh ciepła), cap do setpointu.
+5. **Straty postojowe** — `Q_strat = UA · (T − T_otoczenia) · dt`,
    gdzie `UA(V) = UA_REF · (V/V_REF)^(2/3)` (skalowanie powierzchni
    zasobnika z objętością, klasa B/C wg PN-EN 12897).
 
